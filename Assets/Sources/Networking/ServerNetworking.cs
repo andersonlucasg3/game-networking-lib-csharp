@@ -5,33 +5,45 @@ using System.Net.Sockets;
 
 public class ServerNetworking {
     private Socket serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-    private List<ClientServerConnection> connections = new List<ClientServerConnection>();
+    private List<ClientConnection> connections = new List<ClientConnection>();
 
     public void Start(int port) {
         IPEndPoint endpoint = new IPEndPoint(IPAddress.Any, port);
-        StartListening(endpoint);
+        StartConnecting(endpoint);
     }
 
     public void Start(string host, int port) {
         IPHostEntry hostEntry = Dns.GetHostEntry(host);
         IPEndPoint endpoint = new IPEndPoint(hostEntry.AddressList[0], port);
-        StartListening(endpoint);
+        StartConnecting(endpoint);
     }
 
-    private void StartListening(IPEndPoint endpoint) {
+    //Remove uma conexão fechada da lista de conexões (Se a conexão estiver aberta, ela é fechada antes)
+    public void RemoveConnection(ClientConnection conn) {
+        if(!conn.isClosed) {
+            conn.CloseConnection();
+        }
+        connections.Remove(conn);
+    }
+
+    private void StartConnecting(IPEndPoint endpoint) {
         serverSocket.Bind(endpoint);
         serverSocket.Listen(0);
         serverSocket.BeginAccept(ServerSocketAcceptCallback, this);
     }
 
-    private static void ServerSocketAcceptCallback(IAsyncResult result) {
-        try {
-            ServerNetworking networking = (ServerNetworking) result.AsyncState;
-            Socket clientSocket = networking.serverSocket.EndAccept(result);
-            ClientServerConnection conn = new ClientServerConnection(networking.serverSocket, clientSocket);
-            networking.connections.Add(conn);
+    private void ServerSocketAcceptedConnection(IAsyncResult result) {
+        try {    
+            Socket clientSocket = serverSocket.EndAccept(result);
+            ClientConnection conn = new ClientConnection(clientSocket, this);
+            connections.Add(conn);
         } catch(Exception exception) {
-            Logger.Log("ServerSocketAcceptCallback", "Exception: " + exception.Message);
+            Logger.Log("ServerSocketAcceptedConnection", "Exception: " + exception.Message);
         }
+    }
+
+    private static void ServerSocketAcceptCallback(IAsyncResult result) {
+        ServerNetworking networking = (ServerNetworking) result.AsyncState;
+        networking.ServerSocketAcceptedConnection(result);
     }   
 }

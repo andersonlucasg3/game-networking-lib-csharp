@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 
-public class ServerNetworking {
+public class ServerNetworking: INetworking {
     private Socket serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-    private List<ClientConnection> connections = new List<ClientConnection>();
+    private List<Connection> connections = new List<Connection>();
 
     public void Start(int port) {
         IPEndPoint endpoint = new IPEndPoint(IPAddress.Any, port);
@@ -19,8 +19,8 @@ public class ServerNetworking {
     }
 
     //Remove uma conexão fechada da lista de conexões (Se a conexão estiver aberta, ela é fechada antes)
-    public void RemoveConnection(ClientConnection conn) {
-        if(!conn.isClosed) {
+    public void RemoveConnection(Connection conn) {
+        if(!conn.isConnected()) {
             conn.CloseConnection();
         }
         connections.Remove(conn);
@@ -35,7 +35,7 @@ public class ServerNetworking {
     private void ServerSocketAcceptedConnection(IAsyncResult result) {
         try {    
             Socket clientSocket = serverSocket.EndAccept(result);
-            ClientConnection conn = new ClientConnection(clientSocket, this);
+            Connection conn = new Connection(clientSocket, this);
             connections.Add(conn);
         } catch(Exception exception) {
             Logger.Log("ServerSocketAcceptedConnection", "Exception: " + exception.Message);

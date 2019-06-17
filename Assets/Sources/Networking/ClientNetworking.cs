@@ -3,9 +3,13 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 
-public class ClientNetworking {
+public class ClientNetworking: INetworking {
     private Socket clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-    private ServerConnection connection;
+    private Connection serverConnection;
+
+    public ClientNetworking() {
+        this.serverConnection = new Connection(clientSocket, this);
+    }
 
     public void Start(int port) {
         IPEndPoint endpoint = new IPEndPoint(IPAddress.Any, port);
@@ -18,8 +22,22 @@ public class ClientNetworking {
         StartConnecting(endpoint);
     }
 
-    private void StartConnecting(IPEndPoint endpoint) {
-        clientSocket.Connect(endpoint);        
+    public void RemoveConnection(Connection conn) {
+        if(!conn.isConnected()) {
+            conn.CloseConnection();
+        }
     }
 
+    private void StartConnecting(IPEndPoint endpoint) {
+        clientSocket.BeginConnect(endpoint, ClientSocketConnectCallback, this);
+    }
+
+    private void FinishConecting(IAsyncResult result) {
+        clientSocket.EndConnect(result);
+    }
+
+    private static void ClientSocketConnectCallback(IAsyncResult result) {
+        ClientNetworking networking = (ClientNetworking) result.AsyncState;
+        networking.FinishConecting(result);   
+    }
 }

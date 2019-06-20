@@ -1,0 +1,32 @@
+{
+  "format": 1,
+  "restore": {
+    "/Users/anderson/Programming/medieval-game/game-server-lib-csharp/game-server-lib/game-server-lib.csproj": {}
+  },
+  "projects": {
+    "/Users/anderson/Programming/medieval-game/game-server-lib-csharp/game-server-lib/game-server-lib.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/Users/anderson/Programming/medieval-game/game-server-lib-csharp/game-server-lib/game-server-lib.csproj",
+        "projectName": "game-server-lib",
+        "projectPath": "/Users/anderson/Programming/medieval-game/game-server-lib-csharp/game-server-lib/game-server-lib.csproj",
+        "projectJsonPath": "/Users/anderson/Programming/medieval-game/game-server-lib-csharp/game-server-lib/project.json",
+        "packagesPath": "/Users/anderson/.nuget/packages/",
+        "projectStyle": "ProjectJson",
+        "configFilePaths": [
+          "/Users/anderson/.config/NuGet/NuGet.Config"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        }
+      },
+      "dependencies": {
+        "Microsoft.NETCore.Portable.Compatibility": "[1.0.1, )",
+        "NETStandard.Library": "[2.0.3, )"
+      },
+      "frameworks": {
+        "netstandard1.5": {}
+      }
+    }
+  }
+}

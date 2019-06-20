@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>game_server_lib_csharp</RootNamespace>
+    <BaseDirectory>Sources\networkinglib</BaseDirectory>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="README.md" />
+    <None Remove=".gitignore" />
+  </ItemGroup>
+</Project>

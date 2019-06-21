@@ -20,13 +20,34 @@ namespace Tests.IO {
         }
 
         [Test]
+        public void TestEncoder() {
+            Value value = new Value();
+            Encoder encoder = new Encoder();
+            this.Measure(() => {
+                encoder.Encode(value);
+            }, "Encoder");
+        }
+
+        [Test]
+        public void TestDecoder() {
+            Value value = new Value();
+
+            Encoder encoder = new Encoder();
+            byte[] encoded = encoder.Encode(value);
+
+            Decoder decoder = new Decoder();
+            this.Measure(() => {
+                decoder.Decode<Value>(encoded);
+            }, "Decoder");
+        }
+
+        [Test]
         public void TestEncoderDecoder() {
             this.Measure(() => {
                 Value value = new Value();
 
                 Encoder encoder = new Encoder();
                 byte[] encoded = encoder.Encode(value);
-
 
                 Decoder decoder = new Decoder();
                 Value decoded = decoder.Decode<Value>(encoded);
@@ -39,6 +60,7 @@ namespace Tests.IO {
                 Assert.AreEqual(value.ulongVal, decoded.ulongVal);
                 Assert.AreEqual(value.stringVal, decoded.stringVal);
                 Assert.AreEqual(value.bytesVal, decoded.bytesVal);
+                Assert.AreEqual(value.subValue, decoded.subValue);
             }, "Encoder and Decoder");
         }
 
@@ -63,6 +85,7 @@ namespace Tests.IO {
                 Assert.AreEqual(value.ulongVal, decoded.ulongVal);
                 Assert.AreEqual(value.stringVal, decoded.stringVal);
                 Assert.AreEqual(value.bytesVal, decoded.bytesVal);
+                Assert.AreEqual(value.subValue, decoded.subValue);
             }, "BinaryFormatter");
         }
     }
@@ -79,6 +102,8 @@ namespace Tests.IO {
         public string stringVal = "Minha string preferida";
         public byte[] bytesVal = System.Text.Encoding.UTF8.GetBytes("Minha string preferida em bytes");
 
+        public SubValue subValue = new SubValue();
+
         public void Encode(IEncoder encoder) {
             encoder.Encode(this.intVal);
             encoder.Encode(this.shortVal);
@@ -88,6 +113,7 @@ namespace Tests.IO {
             encoder.Encode(this.ulongVal);
             encoder.Encode(this.stringVal);
             encoder.Encode(this.bytesVal);
+            encoder.Encode(this.subValue);
         }
 
         public void Decode(IDecoder decoder) {
@@ -99,6 +125,44 @@ namespace Tests.IO {
             this.ulongVal = decoder.DecodeULong();
             this.stringVal = decoder.DecodeString();
             this.bytesVal = decoder.DecodeBytes();
+            this.subValue = decoder.Decode<SubValue>();
+        }
+    }
+
+    [Serializable]
+    class SubValue: ICodable {
+        public string name = "Meu nome";
+        public int age = 30;
+        public float height = 1.95F;
+        public float weight = 110F;
+
+        public void Encode(IEncoder encoder) {
+            encoder.Encode(this.name);
+            encoder.Encode(this.age);
+            encoder.Encode(this.height);
+            encoder.Encode(this.weight);
+        }
+
+        public void Decode(IDecoder decoder) {
+            this.name = decoder.DecodeString();
+            this.age = decoder.DecodeInt();
+            this.height = decoder.DecodeFloat();
+            this.weight = decoder.DecodeFloat();
+        }
+
+        public override bool Equals(object obj) {
+            if (obj is SubValue) {
+                SubValue other = obj as SubValue;
+                return this.name == other.name &&
+                    this.age == other.age &&
+                    this.height == other.height &&
+                    this.weight == other.weight;
+            }
+            return base.Equals(obj);
+        }
+
+        public override int GetHashCode() {
+            return base.GetHashCode();
         }
     }
 }

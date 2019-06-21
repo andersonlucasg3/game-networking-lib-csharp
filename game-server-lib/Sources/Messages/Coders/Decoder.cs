@@ -57,11 +57,13 @@ namespace Messages.Coders {
             return this.reader.ReadBytes(length);
         }
 
-        public T Decode<T>() where T : IDecodable, new() {
-            Decoder decoder = new Decoder(this.reader.BaseStream);
-            T value = new T();
-            value.Decode(decoder);
-            return value;
+        public T Decode<T>() where T : class, IDecodable, new() {
+            if (this.reader.ReadBoolean()) {
+                T value = new T();
+                value.Decode(this);
+                return value;
+            }
+            return null;
         }
     }
 

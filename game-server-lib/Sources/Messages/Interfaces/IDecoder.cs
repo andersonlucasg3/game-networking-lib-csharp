@@ -13,6 +13,6 @@
         string DecodeString();
         byte[] DecodeBytes();
 
-        T Decode<T>() where T : IDecodable, new();
+        T Decode<T>() where T : class, IDecodable, new();
     }
 }

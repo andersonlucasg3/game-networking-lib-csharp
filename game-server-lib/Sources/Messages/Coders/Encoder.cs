@@ -62,8 +62,13 @@ namespace Messages.Coders {
         }
 
         public void Encode(IEncodable value) {
-            Encoder encoder = new Encoder(this.writer.BaseStream);
-            value.Encode(encoder);
+            bool hasValue = value != null;
+            this.writer.Write(hasValue);
+
+            if (hasValue) {
+                Encoder encoder = new Encoder(this.writer.BaseStream);
+                value.Encode(encoder);
+            }
         }
     }
 

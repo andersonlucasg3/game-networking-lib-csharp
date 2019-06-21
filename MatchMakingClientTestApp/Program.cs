@@ -32,7 +32,7 @@ namespace MatchMakingClientTestApp {
             this.client.Start("0.0.0.0", 6289);
         }
 
-        public void Read() {
+        public void PeakMessage() {
             this.client.Read();
         }
 
@@ -50,6 +50,8 @@ namespace MatchMakingClientTestApp {
 
         public void MatchMakingClientDidRequestConnectToGameServer(MatchMakingClient<GameClient> matchMaking, ConnectGameInstanceResponse message) {
             Logger.Log(typeof(TestMatchMaking), "Just received connect to game instance " + message);
+
+            matchMaking.Ready();
         }
 
         #endregion
@@ -62,7 +64,7 @@ namespace MatchMakingClientTestApp {
             test.Connect();
 
             while (test.IsConnected || test.IsConnecting) {
-                test.Read();
+                test.PeakMessage();
             }
 
             Log("Terminating application...");

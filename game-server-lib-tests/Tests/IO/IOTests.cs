@@ -1,8 +1,10 @@
 using NUnit.Framework;
 using Messages.Coders;
 using Messages.Coders.Binary;
+using Messages.Streams;
 using System;
 using System.IO;
+using System.Collections.Generic;
 using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Tests.IO {
@@ -102,6 +104,59 @@ namespace Tests.IO {
         }
 
         [Test]
+        public void TestPartialStreamingDecoding() {
+            var firstToken = "asldkfjalksdjfalkjsdf";
+            var username = "andersonlucasg3";
+            var secondToken = "asdlkfalksjdgklashdioohweg";
+            var ip = "10.0.0.1";
+            var port = (short)6109;
+
+
+            var loginRequest = new LoginRequest();
+            loginRequest.accessToken = firstToken;
+            loginRequest.username = username;
+
+            var matchRequest = new MatchRequest();
+
+            var connectRequest = new ConnectGameInstanceResponse();
+            connectRequest.token = secondToken;
+            connectRequest.ip = ip;
+            connectRequest.port = port;
+
+            var encoder = new MessageStreamWriter();
+            List<byte> data = new List<byte>();
+            data.AddRange(encoder.Write(loginRequest));
+            data.AddRange(encoder.Write(matchRequest));
+            data.AddRange(encoder.Write(connectRequest));
+
+            var decoder = new MessageStreamReader();
+
+            this.Measure(() => {
+                var position = 0;
+                do {
+                    decoder.Add(data.GetRange(position, 1).ToArray());
+                    var container = decoder.Decode();
+                    if (container != null) {
+                        if (container.Is(typeof(LoginRequest))) {
+                            var message = container.Parse<LoginRequest>();
+                            Assert.AreEqual(message.accessToken, firstToken);
+                            Assert.AreEqual(message.username, username);
+                        } else if (container.Is(typeof(MatchRequest))) {
+                            var message = container.Parse<MatchRequest>();
+                            Assert.AreNotEqual(message, null);
+                        } else if (container.Is(typeof(ConnectGameInstanceResponse))) {
+                            var message = container.Parse<ConnectGameInstanceResponse>();
+                            Assert.AreEqual(message.ip, ip);
+                            Assert.AreEqual(message.port, port);
+                            Assert.AreEqual(message.token, secondToken);
+                        }
+                    }
+                    position += 1;
+                } while (position < data.Count);
+            }, "Partial Stream Decoding");
+        }
+
+        [Test]
         public void TestMessageSize() {
             var encoder = new Encoder();
 
@@ -127,6 +182,30 @@ namespace Tests.IO {
         public void Decode(IDecoder decoder) {
             this.accessToken = decoder.DecodeString();
             this.username = decoder.DecodeString();
+        }
+    }
+
+    class MatchRequest : ICodable {
+        public void Encode(IEncoder encoder) { }
+
+        public void Decode(IDecoder decoder) { }
+    }
+
+    class ConnectGameInstanceResponse : ICodable {
+        public string token;
+        public string ip;
+        public short port;
+
+        public void Encode(IEncoder encoder) {
+            encoder.Encode(this.token);
+            encoder.Encode(this.ip);
+            encoder.Encode(this.port);
+        }
+
+        public void Decode(IDecoder decoder) {
+            this.token = decoder.DecodeString();
+            this.ip = decoder.DecodeString();
+            this.port = decoder.DecodeShort();
         }
     }
 

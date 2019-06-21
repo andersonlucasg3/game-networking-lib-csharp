@@ -49,9 +49,14 @@
     <Compile Include="Sources\MatchMaking\Interfaces\IMessageEncoder.cs" />
     <Compile Include="Sources\MatchMaking\Models\MessageContainer.cs" />
     <Compile Include="Sources\MatchMaking\Protobuf\Messages\AnyMessage.cs" />
-    <Compile Include="Sources\MatchMaking\Protobuf\Coders\CoderHelper.cs" />
     <Compile Include="Sources\MatchMaking\Protobuf\Coders\MessageDecoder.cs" />
     <Compile Include="Sources\MatchMaking\Protobuf\Coders\MessageEncoder.cs" />
+    <Compile Include="Sources\Messages\Streams\MessageStreamReader.cs" />
+    <Compile Include="Sources\Messages\Streams\MessageStreamWriter.cs" />
+    <Compile Include="Sources\Messages\Coders\CoderHelper.cs" />
+    <Compile Include="Sources\Messages\Interfaces\IStreamReader.cs" />
+    <Compile Include="Sources\Messages\Interfaces\IStreamWriter.cs" />
+    <Compile Include="Sources\Messages\Models\MessageContainer.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Sources\" />
@@ -67,6 +72,8 @@
     <Folder Include="Sources\MatchMaking\Protobuf\" />
     <Folder Include="Sources\MatchMaking\Protobuf\Coders\" />
     <Folder Include="Sources\MatchMaking\Protobuf\Messages\" />
+    <Folder Include="Sources\Messages\Streams\" />
+    <Folder Include="Sources\Messages\Models\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />

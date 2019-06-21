@@ -5,6 +5,7 @@ using System.IO;
 
 namespace MatchMaking.Protobuf.Coders {
     using MatchMaking.Coders;
+    using Messages.Coders;
 
     public sealed class MessageEncoder: IMessageEncoder {
         public byte[] Encode<Message>(Message message) where Message: IMessage {

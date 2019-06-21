@@ -1,7 +1,9 @@
+using System;
+
 namespace Networking.Models {
     using IO;
 
-    public partial class Client {
+    public partial class Client: IDisposable {
         internal object raw;
 
         internal IReader reader;
@@ -13,6 +15,11 @@ namespace Networking.Models {
             this.raw = raw;
             this.reader = reader;
             this.writer = writer;
+        }
+
+        public void Dispose() {
+            this.reader.Dispose();
+            this.writer.Dispose();
         }
     }
 }

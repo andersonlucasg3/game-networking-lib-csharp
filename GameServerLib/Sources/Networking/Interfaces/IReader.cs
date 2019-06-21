@@ -1,5 +1,7 @@
+using System;
+
 namespace Networking.IO {
-    public interface IReader {
+    public interface IReader: IDisposable {
         byte[] Read();
     }
 }

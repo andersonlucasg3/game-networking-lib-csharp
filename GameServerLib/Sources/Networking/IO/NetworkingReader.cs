@@ -6,8 +6,8 @@ namespace Networking.IO {
     public sealed class NetworkingReader : IReader {
         private readonly Socket socket;
         private readonly Thread readThread;
-
         private readonly Queue<byte[]> readQueue;
+        private bool reading = true;
 
         internal NetworkingReader(Socket socket) {
             this.socket = socket;
@@ -17,11 +17,6 @@ namespace Networking.IO {
 
             this.readThread = new Thread(() => { this.ReadThreadRun(); });
             this.readThread.Start();
-        }
-
-        ~NetworkingReader() {
-            this.readThread.Interrupt();
-            this.readThread.Abort();
         }
 
         public byte[] Read() {
@@ -34,13 +29,17 @@ namespace Networking.IO {
             return bytes;
         }
 
+        public void Dispose() {
+            this.reading = false;
+        }
+
         private void ReadThreadRun() {
-            while (this.readThread.IsAlive) {
+            do {
                 byte[] shrinked = new byte[0];
 
+                byte[] buffer = new byte[4096];
 
                 int count = 0;
-                byte[] buffer = new byte[4096];
                 try {
                     count = this.socket.Receive(buffer);
                 } catch { }
@@ -52,8 +51,10 @@ namespace Networking.IO {
                     shrinked = buffer;
                 }
 
-                lock (this) { this.readQueue.Enqueue(shrinked); }
-            }
+                lock (this) {
+                    this.readQueue.Enqueue(shrinked);
+                }
+            } while (this.reading);
         }
 
         private void Copy(byte[] source, ref byte[] destination) {

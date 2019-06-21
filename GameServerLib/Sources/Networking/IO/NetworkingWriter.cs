@@ -7,6 +7,7 @@ namespace Networking.IO {
         private readonly Socket socket;
         private readonly List<byte> buffer;
         private readonly Thread writeThread;
+        private bool writing = true;
 
         internal NetworkingWriter(Socket socket) {
             this.socket = socket;
@@ -16,13 +17,12 @@ namespace Networking.IO {
             this.writeThread.Start();
         }
 
-        ~NetworkingWriter() {
-            this.writeThread.Interrupt();
-            this.writeThread.Abort();
-        }
-
         public void Write(byte[] data) {
             lock (this) { this.buffer.AddRange(data); }
+        }
+
+        public void Dispose() {
+            this.writing = false;
         }
 
         private void ShrinkBuffer(int written) {
@@ -30,12 +30,16 @@ namespace Networking.IO {
         }
 
         private void WriteThreadRun() {
-            while (this.writeThread.IsAlive) {
+            do {
                 lock(this) {
-                    int written = this.socket.Send(this.buffer.ToArray());
-                    this.ShrinkBuffer(written);
+                    int written = 0;
+                    try {
+                        written = this.socket.Send(this.buffer.ToArray());
+                    } catch { }
+
+                    if (written > 0) { this.ShrinkBuffer(written); }
                 }
-            }
+            } while (this.writing);
         }
     }
 

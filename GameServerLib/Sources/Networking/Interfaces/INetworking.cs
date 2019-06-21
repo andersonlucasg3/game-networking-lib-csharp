@@ -5,6 +5,7 @@ namespace Networking {
         int Port { get; }
 
         void Start(int port);
+        void Stop();
         Client Connect(string host, int port);
 
         Client Accept();

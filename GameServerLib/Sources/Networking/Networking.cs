@@ -13,9 +13,9 @@ namespace Networking {
 
         private readonly Socket socket;
         private readonly Thread acceptThread;
-
         private readonly Queue<Socket> acceptedQueue;
-
+        private bool accepting = true;
+        
         public int Port { get; private set; }
 
         public Networking() {
@@ -29,17 +29,18 @@ namespace Networking {
             this.acceptThread.Start();
         }
 
-        ~Networking() {
-            this.acceptThread.Interrupt();
-            this.acceptThread.Abort();
-        }
-
         public void Start(int port) {
             this.Port = port;
             this.socket.Bind(new IPEndPoint(IPAddress.Any, port));
             this.socket.Listen(10);
 
             this.isListening = true;
+        }
+
+        public void Stop() {
+            this.accepting = false;
+            this.socket.Shutdown(SocketShutdown.Both);
+            this.socket.Dispose();
         }
 
         public Client Connect(string host, int port) {
@@ -54,6 +55,7 @@ namespace Networking {
         }
 
         public void Disconnect(Client client) {
+            client.Dispose();
             client.Socket.Shutdown(SocketShutdown.Both);
             client.Socket.Dispose();
         }
@@ -67,12 +69,14 @@ namespace Networking {
         }
 
         private void AcceptThreadRun() {
-            while (this.acceptThread.IsAlive) {
+            do {
                 if (!isListening) { continue; }
 
                 Socket accepted = this.socket.Accept();
-                lock(this) { this.acceptedQueue.Enqueue(accepted); }
-            }
+                lock (this) {
+                    this.acceptedQueue.Enqueue(accepted);
+                }
+            } while (this.accepting);
         }
     }
 

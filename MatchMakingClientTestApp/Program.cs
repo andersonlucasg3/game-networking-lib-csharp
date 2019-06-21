@@ -27,6 +27,12 @@ namespace MatchMakingClientTestApp {
             this.client.Delegate = this;
         }
 
+        ~TestMatchMaking() {
+            Logger.Log(this.GetType(), "Destructing...");
+            this.client.Delegate = null;
+            this.client.Stop();
+        }
+
         public void Connect() {
             this.IsConnecting = true;
             this.client.Start("0.0.0.0", 6289);

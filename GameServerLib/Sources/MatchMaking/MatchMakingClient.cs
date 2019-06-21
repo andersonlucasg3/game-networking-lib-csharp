@@ -22,9 +22,9 @@ namespace MatchMaking {
         }
 
         public void Start(string host, int port) {
-            this.connection.Connect(host, port);
-
-            this.Delegate?.MatchMakingClientDidConnect(this);
+            this.connection.Connect(host, port, () => {
+                this.Delegate?.MatchMakingClientDidConnect(this);
+            });
         }
 
         public void Stop() {
@@ -55,6 +55,10 @@ namespace MatchMaking {
         public void Read() {
             var container = this.connection.Read();
             if (container != null) { this.RouteMessage(container); }
+        }
+
+        public void Flush() {
+            this.connection.Flush();
         }
 
         private void RouteMessage(MessageContainer container) {

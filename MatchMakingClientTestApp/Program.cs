@@ -40,6 +40,7 @@ namespace MatchMakingClientTestApp {
 
         public void PeakMessage() {
             this.client.Read();
+            this.client.Flush();
         }
 
         #region IMatchMakingClientDelegate

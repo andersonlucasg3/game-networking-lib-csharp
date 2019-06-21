@@ -5,6 +5,8 @@ namespace MatchMaking.Connection {
     using Models;
     using Protobuf.Coders;
 
+    public delegate void ClientConnectionDelegate();
+
     public sealed class ClientConnection<MMClient> where MMClient: Client, new() {
         private INetworking networking;
 
@@ -16,9 +18,12 @@ namespace MatchMaking.Connection {
             this.networking = networking;
         }
 
-        public void Connect(string host, int port) {
-            this.client = Client.Create<MMClient>(this.networking.Connect(host, port),
+        public void Connect(string host, int port, ClientConnectionDelegate connectionDelegate) {
+            this.networking.Connect(host, port, (client) => {
+                this.client = Client.Create<MMClient>(client,
                 new MessageDecoder(), new MessageEncoder());
+                connectionDelegate.Invoke();
+            });
         }
 
         public MessageContainer Read() {
@@ -34,6 +39,12 @@ namespace MatchMaking.Connection {
             byte[] bytes;
             if ((bytes = this.client?.encoder?.Encode(message)) != null) {
                 this.networking.Send(this.client.client, bytes);
+            }
+        }
+
+        public void Flush() {
+            if (this.client?.client != null) {
+                this.networking.Flush(this.client.client);
             }
         }
 

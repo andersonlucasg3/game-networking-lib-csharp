@@ -1,7 +1,8 @@
 using System;
 
 namespace Networking.IO {
-    public interface IWriter: IDisposable {
+    public interface IWriter {
         void Write(byte[] data);
+        void Flush();
     }
 }

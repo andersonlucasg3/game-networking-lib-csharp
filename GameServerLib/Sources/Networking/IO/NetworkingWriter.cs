@@ -6,40 +6,34 @@ namespace Networking.IO {
     public sealed class NetworkingWriter : IWriter {
         private readonly Socket socket;
         private readonly List<byte> buffer;
-        private readonly Thread writeThread;
-        private bool writing = true;
+
+        private bool isSending;
 
         internal NetworkingWriter(Socket socket) {
             this.socket = socket;
             this.buffer = new List<byte>();
+        }
 
-            this.writeThread = new Thread(() => { this.WriteThreadRun(); });
-            this.writeThread.Start();
+        private void Write() {
+            if (!this.isSending) { this.isSending = true; } else { return; }
+            this.socket.BeginSend(this.buffer.ToArray(), 0, this.buffer.Count, SocketFlags.Partial, (ar) => {
+                int written = this.socket.EndSend(ar);
+                if (written > 0) { this.ShrinkBuffer(written); }
+                this.isSending = false;
+            }, this);
         }
 
         public void Write(byte[] data) {
-            lock (this) { this.buffer.AddRange(data); }
+            this.buffer.AddRange(data);
+            this.Write();
         }
 
-        public void Dispose() {
-            this.writing = false;
+        public void Flush() {
+            this.Write();
         }
 
         private void ShrinkBuffer(int written) {
             this.buffer.RemoveRange(0, written);
-        }
-
-        private void WriteThreadRun() {
-            do {
-                lock(this) {
-                    int written = 0;
-                    try {
-                        written = this.socket.Send(this.buffer.ToArray());
-                    } catch { }
-
-                    if (written > 0) { this.ShrinkBuffer(written); }
-                }
-            } while (this.writing);
         }
     }
 

@@ -1,7 +1,8 @@
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
+using System.Threading.Tasks;
 using System.Collections.Generic;
+using System;
 
 namespace Networking {
     using Models;
@@ -9,12 +10,8 @@ namespace Networking {
     using IO.Extensions;
 
     public sealed class Networking : INetworking {
-        private bool isListening;
-
         private readonly Socket socket;
-        private readonly Thread acceptThread;
         private readonly Queue<Socket> acceptedQueue;
-        private bool accepting = true;
         
         public int Port { get; private set; }
 
@@ -22,11 +19,9 @@ namespace Networking {
             this.acceptedQueue = new Queue<Socket>();
 
             this.socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp) {
-                NoDelay = true
+                NoDelay = true,
+                Blocking = false
             };
-
-            this.acceptThread = new Thread(() => { this.AcceptThreadRun(); });
-            this.acceptThread.Start();
         }
 
         public void Start(int port) {
@@ -34,28 +29,41 @@ namespace Networking {
             this.socket.Bind(new IPEndPoint(IPAddress.Any, port));
             this.socket.Listen(10);
 
-            this.isListening = true;
+            this.socket.BeginAccept((ar) => {
+                var accepted = this.socket.EndAccept(ar);
+                accepted.Blocking = false;
+                accepted.NoDelay = true;
+                this.acceptedQueue.Enqueue(accepted);
+            }, this);
         }
 
         public void Stop() {
-            this.accepting = false;
             this.socket.Shutdown(SocketShutdown.Both);
             this.socket.Dispose();
         }
 
-        public Client Connect(string host, int port) {
-            this.socket.Connect(host, port);
-            return new Client(this.socket, this.socket.Reader(), this.socket.Writer());
+        public void Connect(string host, int port, NetworkingConnectDelegate connectDelegate) {
+            SocketAsyncEventArgs args = new SocketAsyncEventArgs();
+            args.RemoteEndPoint = new IPEndPoint(IPAddress.Parse(host), port);
+            args.Completed += (object sender, SocketAsyncEventArgs e) => {
+                connectDelegate.Invoke(new Client(this.socket, this.socket.Reader(), this.socket.Writer()));
+            };
+            if (this.socket.ConnectAsync(args)) {
+                Logging.Logger.Log(this.GetType(), "Trying to connect to " + host + "-" + port);
+            }
         }
 
+
+
         public Client Accept() {
-            Socket accepted;
-            lock(this) { accepted = this.acceptedQueue.Dequeue(); }
-            return new Client(accepted, accepted.Reader(), accepted.Writer());
+            if (this.acceptedQueue.Count > 0) {
+                var accepted = this.acceptedQueue.Dequeue();
+                return new Client(accepted, accepted.Reader(), accepted.Writer());
+            }
+            return null;
         }
 
         public void Disconnect(Client client) {
-            client.Dispose();
             client.Socket.Shutdown(SocketShutdown.Both);
             client.Socket.Dispose();
         }
@@ -68,15 +76,8 @@ namespace Networking {
             client.writer.Write(message);
         }
 
-        private void AcceptThreadRun() {
-            do {
-                if (!isListening) { continue; }
-
-                Socket accepted = this.socket.Accept();
-                lock (this) {
-                    this.acceptedQueue.Enqueue(accepted);
-                }
-            } while (this.accepting);
+        public void Flush(Client client) {
+            client.writer.Flush();
         }
     }
 
@@ -84,7 +85,9 @@ namespace Networking {
         public partial class Client {
             internal Socket Socket { get { return this.raw as Socket; } }
 
-            internal Client(Socket socket, IReader reader, IWriter writer): this(socket as object, reader, writer) { }
+            internal Client(Socket socket, IReader reader, IWriter writer): this(socket as object, reader, writer) {
+                
+            }
         }
 
         public static class SocketExt {

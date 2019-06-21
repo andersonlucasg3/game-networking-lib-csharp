@@ -37,12 +37,6 @@ namespace MatchMaking.Connection {
             }
         }
 
-        public void Flush() {
-            if (this.client?.client != null) {
-                this.networking.Flush(this.client.client);
-            }
-        }
-
         public void Disconnect() {
             this.networking.Disconnect(this.client.client);
         }

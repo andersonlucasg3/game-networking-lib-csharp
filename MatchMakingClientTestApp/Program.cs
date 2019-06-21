@@ -34,7 +34,6 @@ namespace MatchMakingClientTestApp {
 
         public void Read() {
             this.client.Read();
-            this.client.Flush();
         }
 
         #region IMatchMakingClientDelegate
@@ -45,6 +44,8 @@ namespace MatchMakingClientTestApp {
                 "5B92DB791D914642A0DE624D6A9132BA36E3C6A6178846D8B0656619CCF9E55BAA7BFD98C19E45A1B5169B15E5E346F7",
                 "anderson"
             );
+
+            matchMaking.RequestMatch();
         }
 
         public void MatchMakingClientDidRequestConnectToGameServer(MatchMakingClient<GameClient> matchMaking, ConnectGameInstanceResponse message) {

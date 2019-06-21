@@ -57,10 +57,6 @@ namespace MatchMaking {
             if (container != null) { this.RouteMessage(container); }
         }
 
-        public void Flush() {
-            this.connection.Flush();
-        }
-
         private void RouteMessage(MessageContainer container) {
             if (container.Is(ConnectGameInstanceResponse.Descriptor)) {
                 this.Delegate?.MatchMakingClientDidRequestConnectToGameServer(this, container.Parse<ConnectGameInstanceResponse>());

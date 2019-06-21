@@ -12,6 +12,5 @@ namespace Networking {
 
         byte[] Read(Client client);
         void Send(Client client, byte[] message);
-        void Flush(Client client);
     }
 }

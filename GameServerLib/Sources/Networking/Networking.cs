@@ -1,5 +1,7 @@
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
+using System.Collections.Generic;
 
 namespace Networking {
     using Models;
@@ -7,31 +9,48 @@ namespace Networking {
     using IO.Extensions;
 
     public sealed class Networking : INetworking {
-        private Socket socket;
+        private bool isListening;
+
+        private readonly Socket socket;
+        private readonly Thread acceptThread;
+
+        private readonly Queue<Socket> acceptedQueue;
 
         public int Port { get; private set; }
 
         public Networking() {
-            this.socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            this.socket.NoDelay = true;
+            this.acceptedQueue = new Queue<Socket>();
+
+            this.socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp) {
+                NoDelay = true
+            };
+
+            this.acceptThread = new Thread(() => { this.AcceptThreadRun(); });
+            this.acceptThread.Start();
+        }
+
+        ~Networking() {
+            this.acceptThread.Interrupt();
+            this.acceptThread.Abort();
         }
 
         public void Start(int port) {
             this.Port = port;
             this.socket.Bind(new IPEndPoint(IPAddress.Any, port));
             this.socket.Listen(10);
+
+            this.isListening = true;
         }
 
         public Client Connect(string host, int port) {
             this.socket.Connect(host, port);
-            this.socket.Blocking = false;
             return new Client(this.socket, this.socket.Reader(), this.socket.Writer());
         }
 
         public Client Accept() {
-            Socket clientSocket = this.socket.Accept();
-            clientSocket.Blocking = false;
-            return new Client(clientSocket, clientSocket.Reader(), clientSocket.Writer());
+            Socket accepted;
+            lock(this) { accepted = this.acceptedQueue.Dequeue(); }
+            return new Client(accepted, accepted.Reader(), accepted.Writer());
         }
 
         public void Disconnect(Client client) {
@@ -47,8 +66,13 @@ namespace Networking {
             client.writer.Write(message);
         }
 
-        public void Flush(Client client) {
-            client.writer.Flush();
+        private void AcceptThreadRun() {
+            while (this.acceptThread.IsAlive) {
+                if (!isListening) { continue; }
+
+                Socket accepted = this.socket.Accept();
+                lock(this) { this.acceptedQueue.Enqueue(accepted); }
+            }
         }
     }
 

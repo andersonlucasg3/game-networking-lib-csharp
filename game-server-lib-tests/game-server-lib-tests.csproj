@@ -9,9 +9,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="nunit" Version="3.11.0" />
-    <PackageReference Include="NUnit3TestAdapter" Version="3.11.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
+    <PackageReference Include="nunit" Version="3.12.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.13.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.1.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -20,6 +20,6 @@
     <Folder Include="Tests\Protobuf\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\game-server-lib\game-server-lib.csproj" />
+    <ProjectReference Include="..\GameServerLib\GameServerLib.csproj" />
   </ItemGroup>
 </Project>

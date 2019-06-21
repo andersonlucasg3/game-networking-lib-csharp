@@ -6,6 +6,8 @@
 
   <ItemGroup>
     <Folder Include="Sources\" />
+    <Folder Include="Sources\GameServer\" />
+    <Folder Include="Sources\MatchMaking\Connection\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.8.0" />

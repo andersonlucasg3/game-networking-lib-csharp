@@ -11,9 +11,9 @@ namespace Networking {
 
         public int Port { get; private set; }
 
-        Networking() {
-            this.socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
-            this.socket.Blocking = false;
+        public Networking() {
+            this.socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            this.socket.NoDelay = true;
         }
 
         public void Start(int port) {
@@ -23,7 +23,8 @@ namespace Networking {
         }
 
         public Client Connect(string host, int port) {
-            this.socket.Connect(new IPEndPoint(IPAddress.Parse(host), port));
+            this.socket.Connect(host, port);
+            this.socket.Blocking = false;
             return new Client(this.socket, this.socket.Reader(), this.socket.Writer());
         }
 
@@ -56,6 +57,17 @@ namespace Networking {
             internal Socket Socket { get { return this.raw as Socket; } }
 
             internal Client(Socket socket, IReader reader, IWriter writer): this(socket as object, reader, writer) { }
+        }
+
+        public static class SocketExt {
+            public static bool IsConnected(this Socket op) {
+                bool part1 = op.Poll(1000, SelectMode.SelectRead);
+                bool part2 = (op.Available == 0);
+                if (part1 && part2) {
+                    return false;
+                }
+                return true;
+            }
         }
     }
 }

@@ -1,15 +1,14 @@
 ﻿namespace MatchMaking.Models {
-    using Networking.Models;
     using Coders;
 
-    public class MatchMakingClient {
-        internal Client client;
+    public class Client {
+        internal Networking.Models.Client client;
         internal IMessageDecoder decoder;
         internal IMessageEncoder encoder;
 
         public bool IsConnected { get { return this.client.IsConnected; } }
 
-        internal static MMClient Create<MMClient>(Client client, IMessageDecoder decoder, IMessageEncoder encoder) where MMClient: MatchMakingClient, new() {
+        internal static MMClient Create<MMClient>(Networking.Models.Client client, IMessageDecoder decoder, IMessageEncoder encoder) where MMClient: Client, new() {
             return new MMClient {
                 client = client,
                 decoder = decoder,
@@ -17,11 +16,11 @@
             };
         }
 
-        internal MatchMakingClient() { }
+        protected Client() { }
 
         public override bool Equals(object obj) {
-            if (obj is MatchMakingClient) {
-                MatchMakingClient other = obj as MatchMakingClient;
+            if (obj is Client) {
+                Client other = obj as Client;
                 return other.client == this.client;
             }
             return object.ReferenceEquals(this, obj);

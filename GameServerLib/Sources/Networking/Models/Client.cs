@@ -7,7 +7,7 @@ namespace Networking.Models {
         internal IReader reader;
         internal IWriter writer;
 
-        public bool IsConnected { get { return false; } }
+        public bool IsConnected { get { return this.Socket.IsConnected(); } }
 
         internal Client(object raw, IReader reader, IWriter writer) {
             this.raw = raw;

@@ -63,10 +63,10 @@ namespace Messages.Coders {
                         partialMatches.Remove(partialMatches[j]);
 
                 if (arrayToSearch[i] == patternToFind[0]) {
-                    if (patternToFind.Length == 1)
+                    if (patternToFind.Length == 1) {
                         return i;
-                    else
-                        partialMatches.Add(new PartialMatch(i));
+                    }
+                    partialMatches.Add(new PartialMatch(i));
                 }
             }
 

@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "game-server-lib", "game-server-lib\game-server-lib.csproj", "{D2EDA6E0-7532-4512-9260-C39F960F03FF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "game-server-lib-tests", "game-server-lib-tests\game-server-lib-tests.csproj", "{36EB75C6-72ED-43D1-ACFA-2F6466A10893}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "game-server-lib-tests", "game-server-lib-tests\game-server-lib-tests.csproj", "{4A7B1BE3-EC0C-4125-8319-2DC060742759}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,11 +13,15 @@ Global
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{D2EDA6E0-7532-4512-9260-C39F960F03FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D2EDA6E0-7532-4512-9260-C39F960F03FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D2EDA6E0-7532-4512-9260-C39F960F03FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D2EDA6E0-7532-4512-9260-C39F960F03FF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{36EB75C6-72ED-43D1-ACFA-2F6466A10893}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{36EB75C6-72ED-43D1-ACFA-2F6466A10893}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{36EB75C6-72ED-43D1-ACFA-2F6466A10893}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{36EB75C6-72ED-43D1-ACFA-2F6466A10893}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A7B1BE3-EC0C-4125-8319-2DC060742759}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A7B1BE3-EC0C-4125-8319-2DC060742759}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A7B1BE3-EC0C-4125-8319-2DC060742759}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A7B1BE3-EC0C-4125-8319-2DC060742759}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		Policies = $0
+		$0.DotNetNamingPolicy = $1
+		$1.DirectoryNamespaceAssociation = PrefixedHierarchical
+		$0.StandardHeader = $2
 	EndGlobalSection
 EndGlobal

@@ -275,11 +275,9 @@ namespace Tests.IO {
             if (obj is SubValue) {
                 SubValue other = obj as SubValue;
                 return this.name == other.name &&
-                    this.age == other.age &&
-                    this.height == other.height &&
-                    this.weight == other.weight;
+                    this.age == other.age;
             }
-            return base.Equals(obj);
+            return object.ReferenceEquals(this, obj);
         }
 
         public override int GetHashCode() {

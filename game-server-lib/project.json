@@ -2,8 +2,8 @@
   "dependencies": {
     "Google.Protobuf": "3.8.0",
     "Google.Protobuf.Tools": "3.8.0",
-    "Microsoft.NETCore.Portable.Compatibility": "1.0.1",
-    "NETStandard.Library": "2.0.3"
+    "NETStandard.Library": "1.6.0",
+    "Microsoft.NETCore.Portable.Compatibility": "1.0.1"
   },
   "frameworks": {
     "netstandard1.5": {}

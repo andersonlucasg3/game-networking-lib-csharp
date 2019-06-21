@@ -24,7 +24,7 @@
                 MatchMakingClient other = obj as MatchMakingClient;
                 return other.client == this.client;
             }
-            return base.Equals(obj);
+            return object.ReferenceEquals(this, obj);
         }
 
         public override int GetHashCode() {

@@ -43,50 +43,58 @@ namespace Tests.IO {
 
         [Test]
         public void TestEncoderDecoder() {
-            this.Measure(() => {
-                Value value = new Value();
+            Encoder encoder = new Encoder();
+            Decoder decoder = new Decoder();
 
-                Encoder encoder = new Encoder();
+            Value value = new Value();
+
+            Value decoded = null;
+
+            this.Measure(() => {
                 byte[] encoded = encoder.Encode(value);
 
-                Decoder decoder = new Decoder();
-                Value decoded = decoder.Decode<Value>(encoded);
-
-                Assert.AreEqual(value.intVal, decoded.intVal);
-                Assert.AreEqual(value.shortVal, decoded.shortVal);
-                Assert.AreEqual(value.longVal, decoded.longVal);
-                Assert.AreEqual(value.uintVal, decoded.uintVal);
-                Assert.AreEqual(value.ushortVal, decoded.ushortVal);
-                Assert.AreEqual(value.ulongVal, decoded.ulongVal);
-                Assert.AreEqual(value.stringVal, decoded.stringVal);
-                Assert.AreEqual(value.bytesVal, decoded.bytesVal);
-                Assert.AreEqual(value.subValue, decoded.subValue);
+                decoded = decoder.Decode<Value>(encoded);
             }, "Encoder and Decoder");
+
+            Assert.AreEqual(value.intVal, decoded.intVal);
+            Assert.AreEqual(value.shortVal, decoded.shortVal);
+            Assert.AreEqual(value.longVal, decoded.longVal);
+            Assert.AreEqual(value.uintVal, decoded.uintVal);
+            Assert.AreEqual(value.ushortVal, decoded.ushortVal);
+            Assert.AreEqual(value.ulongVal, decoded.ulongVal);
+            Assert.AreEqual(value.stringVal, decoded.stringVal);
+            Assert.AreEqual(value.bytesVal, decoded.bytesVal);
+            Assert.AreEqual(value.subValue, decoded.subValue);
+            Assert.AreEqual(value.subValue.subSubValue.empty, decoded.subValue.subSubValue.empty);
         }
 
         [Test]
         public void TestBinaryEncoder() {
-            this.Measure(() => {
-                Value value = new Value();
+            BinaryFormatter formatter = new BinaryFormatter();
 
-                BinaryFormatter formatter = new BinaryFormatter();
-                MemoryStream ms = new MemoryStream();
+            Value value = new Value();
+
+            Value decoded = null;
+
+            MemoryStream ms = new MemoryStream();
+
+            this.Measure(() => {
                 formatter.Serialize(ms, value);
 
                 ms.Seek(0, SeekOrigin.Begin);
-
-                Value decoded = (Value)formatter.Deserialize(ms);
-
-                Assert.AreEqual(value.intVal, decoded.intVal);
-                Assert.AreEqual(value.shortVal, decoded.shortVal);
-                Assert.AreEqual(value.longVal, decoded.longVal);
-                Assert.AreEqual(value.uintVal, decoded.uintVal);
-                Assert.AreEqual(value.ushortVal, decoded.ushortVal);
-                Assert.AreEqual(value.ulongVal, decoded.ulongVal);
-                Assert.AreEqual(value.stringVal, decoded.stringVal);
-                Assert.AreEqual(value.bytesVal, decoded.bytesVal);
-                Assert.AreEqual(value.subValue, decoded.subValue);
+                
+                decoded = (Value)formatter.Deserialize(ms);
             }, "BinaryFormatter");
+
+            Assert.AreEqual(value.intVal, decoded.intVal);
+            Assert.AreEqual(value.shortVal, decoded.shortVal);
+            Assert.AreEqual(value.longVal, decoded.longVal);
+            Assert.AreEqual(value.uintVal, decoded.uintVal);
+            Assert.AreEqual(value.ushortVal, decoded.ushortVal);
+            Assert.AreEqual(value.ulongVal, decoded.ulongVal);
+            Assert.AreEqual(value.stringVal, decoded.stringVal);
+            Assert.AreEqual(value.bytesVal, decoded.bytesVal);
+            Assert.AreEqual(value.subValue, decoded.subValue);
         }
     }
 
@@ -136,6 +144,8 @@ namespace Tests.IO {
         public float height = 1.95F;
         public float weight = 110F;
 
+        public SubSubValue subSubValue = new SubSubValue();
+
         public void Encode(IEncoder encoder) {
             encoder.Encode(this.name);
             encoder.Encode(this.age);
@@ -163,6 +173,19 @@ namespace Tests.IO {
 
         public override int GetHashCode() {
             return base.GetHashCode();
+        }
+    }
+
+    [Serializable]
+    class SubSubValue : ICodable {
+        public string empty;
+
+        public void Encode(IEncoder encoder) {
+            encoder.Encode(this.empty);
+        }
+
+        public void Decode(IDecoder decoder) {
+            this.empty = decoder.DecodeString();
         }
     }
 }

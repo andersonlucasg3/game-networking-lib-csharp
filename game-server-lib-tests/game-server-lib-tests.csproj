@@ -5,6 +5,7 @@
 
     <IsPackable>false</IsPackable>
     <RootNamespace>GameServerLibTests</RootNamespace>
+    <StartupObject>Tests.Program</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,6 +17,7 @@
   <ItemGroup>
     <Folder Include="Tests\" />
     <Folder Include="Tests\IO\" />
+    <Folder Include="Tests\Protobuf\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\game-server-lib\game-server-lib.csproj" />

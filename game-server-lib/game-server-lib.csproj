@@ -42,6 +42,16 @@
     <Compile Include="Sources\Messages\Coders\Decoder.cs" />
     <Compile Include="Sources\Messages\Interfaces\ICodable.cs" />
     <Compile Include="Sources\Logging\Logger.cs" />
+    <Compile Include="Sources\Protobuf\MatchMaking.cs" />
+    <Compile Include="Sources\MatchMaking\MatchMakingConnection.cs" />
+    <Compile Include="Sources\MatchMaking\Models\MatchMakingClient.cs" />
+    <Compile Include="Sources\MatchMaking\Interfaces\IMessageDecoder.cs" />
+    <Compile Include="Sources\MatchMaking\Interfaces\IMessageEncoder.cs" />
+    <Compile Include="Sources\MatchMaking\Models\MessageContainer.cs" />
+    <Compile Include="Sources\MatchMaking\Protobuf\Messages\AnyMessage.cs" />
+    <Compile Include="Sources\MatchMaking\Protobuf\Coders\CoderHelper.cs" />
+    <Compile Include="Sources\MatchMaking\Protobuf\Coders\MessageDecoder.cs" />
+    <Compile Include="Sources\MatchMaking\Protobuf\Coders\MessageEncoder.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Sources\" />
@@ -50,6 +60,13 @@
     <Folder Include="Sources\Messages\Interfaces\" />
     <Folder Include="Sources\Messages\Coders\" />
     <Folder Include="Sources\Logging\" />
+    <Folder Include="Sources\Protobuf\" />
+    <Folder Include="Sources\MatchMaking\" />
+    <Folder Include="Sources\MatchMaking\Models\" />
+    <Folder Include="Sources\MatchMaking\Interfaces\" />
+    <Folder Include="Sources\MatchMaking\Protobuf\" />
+    <Folder Include="Sources\MatchMaking\Protobuf\Coders\" />
+    <Folder Include="Sources\MatchMaking\Protobuf\Messages\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />

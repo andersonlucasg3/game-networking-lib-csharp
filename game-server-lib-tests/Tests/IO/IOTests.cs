@@ -53,6 +53,8 @@ namespace Tests.IO {
             this.Measure(() => {
                 byte[] encoded = encoder.Encode(value);
 
+                Logging.Logger.Log(typeof(IOTests), "Encoded message size: " + encoded.Length);
+
                 decoded = decoder.Decode<Value>(encoded);
             }, "Encoder and Decoder");
 
@@ -81,6 +83,8 @@ namespace Tests.IO {
             this.Measure(() => {
                 formatter.Serialize(ms, value);
 
+                Logging.Logger.Log(typeof(IOTests), "Encoded message size: " + ms.Length);
+
                 ms.Seek(0, SeekOrigin.Begin);
                 
                 decoded = (Value)formatter.Deserialize(ms);
@@ -95,6 +99,34 @@ namespace Tests.IO {
             Assert.AreEqual(value.stringVal, decoded.stringVal);
             Assert.AreEqual(value.bytesVal, decoded.bytesVal);
             Assert.AreEqual(value.subValue, decoded.subValue);
+        }
+
+        [Test]
+        public void TestMessageSize() {
+            var encoder = new Encoder();
+
+            LoginRequest request = new LoginRequest {
+                accessToken = "asdfasdfasdf",
+                username = "andersonlucasg3"
+            };
+
+            int size = encoder.Encode(request).Length;
+            Logging.Logger.Log(typeof(IOTests), "LoginRequest Message size: " + size);
+        }
+    }
+
+    class LoginRequest : ICodable {
+        public string accessToken;
+        public string username;
+
+        public void Encode(IEncoder encoder) {
+            encoder.Encode(this.accessToken);
+            encoder.Encode(this.username);
+        }
+
+        public void Decode(IDecoder decoder) {
+            this.accessToken = decoder.DecodeString();
+            this.username = decoder.DecodeString();
         }
     }
 

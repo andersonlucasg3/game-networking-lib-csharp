@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{D2EDA6E0-7532-4512-9260-C39F960F03FF}</ProjectGuid>
+    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <RootNamespace>GameServerLib</RootNamespace>
+    <AssemblyName>game-server-lib</AssemblyName>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Sources\Networking\Interfaces\INetworking.cs" />
+    <Compile Include="Sources\Networking\Interfaces\IReader.cs" />
+    <Compile Include="Sources\Networking\Interfaces\IWriter.cs" />
+    <Compile Include="Sources\Networking\IO\NetworkingReader.cs" />
+    <Compile Include="Sources\Networking\IO\NetworkingWriter.cs" />
+    <Compile Include="Sources\Networking\Models\Client.cs" />
+    <Compile Include="Sources\Networking\Networking.cs" />
+    <Compile Include="Sources\Messages\Interfaces\IEncodable.cs" />
+    <Compile Include="Sources\Messages\Interfaces\IEncoder.cs" />
+    <Compile Include="Sources\Messages\Interfaces\IDecoder.cs" />
+    <Compile Include="Sources\Messages\Interfaces\IDecodable.cs" />
+    <Compile Include="Sources\Messages\Coders\Encoder.cs" />
+    <Compile Include="Sources\Messages\Coders\Decoder.cs" />
+    <Compile Include="Sources\Messages\Interfaces\ICodable.cs" />
+    <Compile Include="Sources\Logging\Logger.cs" />
+    <Compile Include="Sources\Protobuf\MatchMaking.cs" />
+    <Compile Include="Sources\MatchMaking\MatchMakingConnection.cs" />
+    <Compile Include="Sources\MatchMaking\Models\MatchMakingClient.cs" />
+    <Compile Include="Sources\MatchMaking\Interfaces\IMessageDecoder.cs" />
+    <Compile Include="Sources\MatchMaking\Interfaces\IMessageEncoder.cs" />
+    <Compile Include="Sources\MatchMaking\Models\MessageContainer.cs" />
+    <Compile Include="Sources\MatchMaking\Protobuf\Messages\AnyMessage.cs" />
+    <Compile Include="Sources\MatchMaking\Protobuf\Coders\MessageDecoder.cs" />
+    <Compile Include="Sources\MatchMaking\Protobuf\Coders\MessageEncoder.cs" />
+    <Compile Include="Sources\Messages\Streams\MessageStreamReader.cs" />
+    <Compile Include="Sources\Messages\Streams\MessageStreamWriter.cs" />
+    <Compile Include="Sources\Messages\Coders\CoderHelper.cs" />
+    <Compile Include="Sources\Messages\Interfaces\IStreamReader.cs" />
+    <Compile Include="Sources\Messages\Interfaces\IStreamWriter.cs" />
+    <Compile Include="Sources\Messages\Models\MessageContainer.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Sources\" />
+    <Folder Include="Sources\Networking\" />
+    <Folder Include="Sources\Messages\" />
+    <Folder Include="Sources\Messages\Interfaces\" />
+    <Folder Include="Sources\Messages\Coders\" />
+    <Folder Include="Sources\Logging\" />
+    <Folder Include="Sources\Protobuf\" />
+    <Folder Include="Sources\MatchMaking\" />
+    <Folder Include="Sources\MatchMaking\Models\" />
+    <Folder Include="Sources\MatchMaking\Interfaces\" />
+    <Folder Include="Sources\MatchMaking\Protobuf\" />
+    <Folder Include="Sources\MatchMaking\Protobuf\Coders\" />
+    <Folder Include="Sources\MatchMaking\Protobuf\Messages\" />
+    <Folder Include="Sources\Messages\Streams\" />
+    <Folder Include="Sources\Messages\Models\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="project.json" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
+</Project>

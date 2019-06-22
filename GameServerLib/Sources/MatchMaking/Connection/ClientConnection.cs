@@ -36,8 +36,8 @@ namespace MatchMaking.Connection {
         }
 
         public void Send<Message>(Message message) where Message: IMessage {
-            byte[] bytes;
-            if ((bytes = this.client?.encoder?.Encode(message)) != null) {
+            byte[] bytes = this.client?.encoder?.Encode(message);
+            if (bytes != null) {
                 this.networking.Send(this.client.client, bytes);
             }
         }

@@ -10,25 +10,27 @@ namespace MatchMaking {
 
         private WeakReference weakDelegate;
 
-        public bool IsConnected { get { return this.connection.IsConnected; } }
+        private bool isConnecting = false;
+
+        public bool IsConnected { get { return this.connection?.IsConnected ?? false || this.isConnecting; } }
 
         public IMatchMakingClientDelegate<MMClient> Delegate {
             get { return this.weakDelegate.Target as IMatchMakingClientDelegate<MMClient>; }
             set { this.weakDelegate = new WeakReference(value); }
         }
 
-        public MatchMakingClient() {
-            this.connection = new ClientConnection<MMClient>(new Networking.Networking());
-        }
-
         public void Start(string host, int port) {
+            this.isConnecting = true;
+            this.connection = new ClientConnection<MMClient>(new Networking.Networking());
             this.connection.Connect(host, port, () => {
                 this.Delegate?.MatchMakingClientDidConnect(this);
+                this.isConnecting = false;
             });
         }
 
         public void Stop() {
-            this.connection.Disconnect();
+            this.isConnecting = false;
+            this.connection?.Disconnect();
         }
 
         public void Login(string accessToken, string username) {
@@ -53,17 +55,26 @@ namespace MatchMaking {
         }
 
         public void Read() {
-            var container = this.connection.Read();
+            var container = this.connection?.Read();
             if (container != null) { this.RouteMessage(container); }
         }
 
         public void Flush() {
-            this.connection.Flush();
+            if (!this.isConnecting &&
+                !this.IsConnected &&
+                this.connection != null) {
+
+                this.connection = null;
+                this.Delegate?.MatchMakingClientDidDisconnect(this);
+            }
+            this.connection?.Flush();
         }
 
         private void RouteMessage(MessageContainer container) {
             if (container.Is(ConnectGameInstanceResponse.Descriptor)) {
                 this.Delegate?.MatchMakingClientDidRequestConnectToGameServer(this, container.Parse<ConnectGameInstanceResponse>());
+            } else {
+                this.Delegate?.MatchMakingClientDidReceiveUnknownMessage(this, container);
             }
         }
     }

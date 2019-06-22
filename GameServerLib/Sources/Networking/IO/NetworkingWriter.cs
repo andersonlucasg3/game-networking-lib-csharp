@@ -15,6 +15,7 @@ namespace Networking.IO {
         }
 
         private void Write() {
+            if (!this.socket.Connected) { return; }
             if (!this.isSending) { this.isSending = true; } else { return; }
             this.socket.BeginSend(this.buffer.ToArray(), 0, this.buffer.Count, SocketFlags.Partial, (ar) => {
                 int written = this.socket.EndSend(ar);

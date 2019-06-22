@@ -43,14 +43,12 @@ namespace Networking {
         }
 
         public void Connect(string host, int port, NetworkingConnectDelegate connectDelegate) {
-            SocketAsyncEventArgs args = new SocketAsyncEventArgs();
-            args.RemoteEndPoint = new IPEndPoint(IPAddress.Parse(host), port);
-            args.Completed += (object sender, SocketAsyncEventArgs e) => {
+            var result = this.socket.BeginConnect(host, port, (ar) => {
+                this.socket.EndConnect(ar);
                 connectDelegate.Invoke(new Client(this.socket, this.socket.Reader(), this.socket.Writer()));
-            };
-            if (this.socket.ConnectAsync(args)) {
-                Logging.Logger.Log(this.GetType(), "Trying to connect to " + host + "-" + port);
-            }
+            }, this);
+
+            Logging.Logger.Log(this.GetType(), "Trying to connect to " + host + "-" + port);
         }
 
 

@@ -1,16 +1,16 @@
 namespace Networking {
     using Models;
 
-    public delegate void NetworkingConnectDelegate(Client client);
-
     public interface INetworking {
         int Port { get; }
 
-        void Start(int port);
-        void Stop();
-        void Connect(string host, int port, NetworkingConnectDelegate connectDelegate);
+        INetworkingDelegate Delegate { get; set; }
 
+        void Start(int port);
         Client Accept();
+        void Stop();
+
+        void Connect(string host, int port);
         void Disconnect(Client client);
 
         byte[] Read(Client client);

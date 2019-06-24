@@ -1,19 +1,25 @@
+using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading.Tasks;
 using System.Collections.Generic;
-using System;
 
 namespace Networking {
-    using Models;
     using IO;
+    using Models;
     using IO.Extensions;
 
     public sealed class Networking : INetworking {
         private readonly Socket socket;
         private readonly Queue<Socket> acceptedQueue;
+
+        private WeakReference weakDelegate;
         
         public int Port { get; private set; }
+
+        public INetworkingDelegate Delegate {
+            get { return this.weakDelegate?.Target as INetworkingDelegate; }
+            set { this.weakDelegate = new WeakReference(value); }
+        }
 
         public Networking() {
             this.acceptedQueue = new Queue<Socket>();
@@ -29,29 +35,19 @@ namespace Networking {
             this.socket.Bind(new IPEndPoint(IPAddress.Any, port));
             this.socket.Listen(10);
 
+            this.AcceptNewClient();
+        }
+
+        private void AcceptNewClient() {
             this.socket.BeginAccept((ar) => {
                 var accepted = this.socket.EndAccept(ar);
-                accepted.Blocking = false;
                 accepted.NoDelay = true;
+                accepted.Blocking = false;
                 this.acceptedQueue.Enqueue(accepted);
+
+                this.AcceptNewClient();
             }, this);
         }
-
-        public void Stop() {
-            this.socket.Shutdown(SocketShutdown.Both);
-            this.socket.Dispose();
-        }
-
-        public void Connect(string host, int port, NetworkingConnectDelegate connectDelegate) {
-            var result = this.socket.BeginConnect(host, port, (ar) => {
-                this.socket.EndConnect(ar);
-                connectDelegate.Invoke(new Client(this.socket, this.socket.Reader(), this.socket.Writer()));
-            }, this);
-
-            Logging.Logger.Log(this.GetType(), "Trying to connect to " + host + "-" + port);
-        }
-
-
 
         public Client Accept() {
             if (this.acceptedQueue.Count > 0) {
@@ -61,9 +57,25 @@ namespace Networking {
             return null;
         }
 
+        public void Stop() {
+            this.socket.Shutdown(SocketShutdown.Both);
+            this.socket.Dispose();
+        }
+
+        public void Connect(string host, int port) {
+            this.socket.BeginConnect(host, port, (ar) => {
+                this.socket.EndConnect(ar);
+                this.Delegate?.NetworkingDidConnect(new Client(this.socket, this.socket.Reader(), this.socket.Writer()));
+            }, this);
+
+            Logging.Logger.Log(this.GetType(), "Trying to connect to " + host + "-" + port);
+        }
+
         public void Disconnect(Client client) {
-            client.Socket.Shutdown(SocketShutdown.Both);
-            client.Socket.Dispose();
+            client.socket.BeginDisconnect(false, (ar) => {
+                client.socket.EndDisconnect(ar);
+                this.Delegate?.NetworkingDidDisconnect(client);
+            }, this);
         }
 
         public byte[] Read(Client client) {
@@ -75,27 +87,10 @@ namespace Networking {
         }
 
         public void Flush(Client client) {
-            client.writer.Flush();
-        }
-    }
-
-    namespace Models {
-        public partial class Client {
-            internal Socket Socket { get { return this.raw as Socket; } }
-
-            internal Client(Socket socket, IReader reader, IWriter writer): this(socket as object, reader, writer) {
-                
-            }
-        }
-
-        public static class SocketExt {
-            public static bool IsConnected(this Socket op) {
-                bool part1 = op.Poll(1000, SelectMode.SelectRead);
-                bool part2 = (op.Available == 0);
-                if (part1 && part2) {
-                    return false;
-                }
-                return true;
+            if (client.IsConnected) {
+                client.writer.Flush();
+            } else {
+                this.Delegate?.NetworkingDidDisconnect(client);
             }
         }
     }

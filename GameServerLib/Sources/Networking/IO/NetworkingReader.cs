@@ -1,5 +1,4 @@
 using System.Net.Sockets;
-using System.Threading;
 using System.Collections.Generic;
 
 namespace Networking.IO {
@@ -7,18 +6,16 @@ namespace Networking.IO {
         private readonly Socket socket;
         private readonly Queue<byte[]> readQueue;
 
-
         private bool isReceiving;
         
         internal NetworkingReader(Socket socket) {
             this.socket = socket;
-            //this.socket.ReceiveTimeout = 100;
-
+            
             this.readQueue = new Queue<byte[]>();
         }
 
         private void Receive() {
-            if (!this.isReceiving) { this.isReceiving = true; } else { return; }
+            if (this.isReceiving) { return; } else { this.isReceiving = true; }
 
             byte[] buffer = new byte[4096];
             this.socket.BeginReceive(buffer, 0, 4096, SocketFlags.Partial, (ar) => {

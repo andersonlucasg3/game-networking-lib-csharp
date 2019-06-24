@@ -1,29 +1,33 @@
-﻿using Networking;
+﻿using System;
+using Networking;
 using Google.Protobuf;
 
 namespace MatchMaking.Connection {
     using Models;
     using Protobuf.Coders;
 
-    public delegate void ClientConnectionDelegate();
-
-    public sealed class ClientConnection<MMClient> where MMClient: Client, new() {
-        private INetworking networking;
+    public sealed class ClientConnection<MMClient>: INetworkingDelegate where MMClient: Client, new() {
+        private readonly INetworking networking;
 
         private MMClient client;
+        private WeakReference weakDelegate;
+
+        public bool IsConnecting { get; private set; }
 
         public bool IsConnected { get { return this.client?.IsConnected ?? false; } }
+
+        public IClientConnectionDelegate<MMClient> Delegate {
+            get { return this.weakDelegate?.Target as IClientConnectionDelegate<MMClient>; }
+            set { this.weakDelegate = new WeakReference(value); }
+        }
 
         public ClientConnection(INetworking networking) {
             this.networking = networking;
         }
 
-        public void Connect(string host, int port, ClientConnectionDelegate connectionDelegate) {
-            this.networking.Connect(host, port, (client) => {
-                this.client = Client.Create<MMClient>(client,
-                new MessageDecoder(), new MessageEncoder());
-                connectionDelegate.Invoke();
-            });
+        public void Connect(string host, int port) {
+            this.IsConnecting = true;
+            this.networking.Connect(host, port);
         }
 
         public MessageContainer Read() {
@@ -51,5 +55,21 @@ namespace MatchMaking.Connection {
         public void Disconnect() {
             this.networking.Disconnect(this.client.client);
         }
+
+        #region INetworkingDelegate
+
+        void INetworkingDelegate.NetworkingDidConnect(Networking.Models.Client client) {
+            this.client = Client.Create<MMClient>(client, new MessageDecoder(), new MessageEncoder());
+            this.IsConnecting = false;
+            this.Delegate?.ClientConnectionDidConnect();
+        }
+
+        void INetworkingDelegate.NetworkingDidDisconnect(Networking.Models.Client client) {
+            this.client = null;
+            this.IsConnecting = false;
+            this.Delegate?.ClientConnectionDidDisconnect();
+        }
+
+        #endregion
     }
 }

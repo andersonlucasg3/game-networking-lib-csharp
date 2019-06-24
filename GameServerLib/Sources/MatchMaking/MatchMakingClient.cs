@@ -5,31 +5,26 @@ namespace MatchMaking {
     using Connection;
     using Models;
 
-    public class MatchMakingClient<MMClient> where MMClient: Client, new() {
+    public class MatchMakingClient<MMClient>: IClientConnectionDelegate<MMClient> where MMClient: Client, new() {
         private ClientConnection<MMClient> connection;
 
         private WeakReference weakDelegate;
 
-        private bool isConnecting = false;
+        public bool IsConnecting { get { return this.connection?.IsConnecting ?? false; } }
 
-        public bool IsConnected { get { return this.connection?.IsConnected ?? false || this.isConnecting; } }
+        public bool IsConnected { get { return this.connection?.IsConnected ?? false; } }
 
         public IMatchMakingClientDelegate<MMClient> Delegate {
-            get { return this.weakDelegate.Target as IMatchMakingClientDelegate<MMClient>; }
+            get { return this.weakDelegate?.Target as IMatchMakingClientDelegate<MMClient>; }
             set { this.weakDelegate = new WeakReference(value); }
         }
 
         public void Start(string host, int port) {
-            this.isConnecting = true;
             this.connection = new ClientConnection<MMClient>(new Networking.Networking());
-            this.connection.Connect(host, port, () => {
-                this.Delegate?.MatchMakingClientDidConnect(this);
-                this.isConnecting = false;
-            });
+            this.connection.Connect(host, port);
         }
 
         public void Stop() {
-            this.isConnecting = false;
             this.connection?.Disconnect();
         }
 
@@ -55,18 +50,11 @@ namespace MatchMaking {
         }
 
         public void Read() {
-            var container = this.connection?.Read();
+            MessageContainer container = this.connection?.Read();
             if (container != null) { this.RouteMessage(container); }
         }
 
         public void Flush() {
-            if (!this.isConnecting &&
-                !this.IsConnected &&
-                this.connection != null) {
-
-                this.connection = null;
-                this.Delegate?.MatchMakingClientDidDisconnect(this);
-            }
             this.connection?.Flush();
         }
 
@@ -77,5 +65,18 @@ namespace MatchMaking {
                 this.Delegate?.MatchMakingClientDidReceiveUnknownMessage(this, container);
             }
         }
+
+        #region IClientConnectionDelegate<MMClient>
+
+        void IClientConnectionDelegate<MMClient>.ClientConnectionDidConnect() {
+            this.Delegate?.MatchMakingClientDidConnect(this);
+        }
+
+        void IClientConnectionDelegate<MMClient>.ClientConnectionDidDisconnect() {
+            this.connection = null;
+            this.Delegate?.MatchMakingClientDidDisconnect(this);
+        }
+
+        #endregion
     }
 }

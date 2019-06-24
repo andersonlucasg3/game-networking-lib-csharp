@@ -4,28 +4,30 @@ using System.Threading;
 
 namespace Networking.IO {
     public sealed class NetworkingWriter : IWriter {
-        private readonly Socket socket;
-        private readonly List<byte> buffer;
-
+        private byte[] buffer;
         private bool isSending;
+
+        private readonly Socket socket;
 
         internal NetworkingWriter(Socket socket) {
             this.socket = socket;
-            this.buffer = new List<byte>();
         }
 
         private void Write() {
-            if (!this.socket.Connected) { return; }
-            if (!this.isSending) { this.isSending = true; } else { return; }
-            this.socket.BeginSend(this.buffer.ToArray(), 0, this.buffer.Count, SocketFlags.Partial, (ar) => {
-                int written = this.socket.EndSend(ar);
-                if (written > 0) { this.ShrinkBuffer(written); }
-                this.isSending = false;
-            }, this);
+            if (this.socket.Connected) {
+                if (this.isSending) { return; } else { this.isSending = true; }
+                this.socket.BeginSend(this.buffer, 0, this.buffer.Length, SocketFlags.Partial, (ar) => {
+                    int written = this.socket.EndSend(ar);
+                    if (written > 0) { this.ShrinkBuffer(written); }
+                    this.isSending = false;
+                }, this);
+            }
         }
 
         public void Write(byte[] data) {
-            this.buffer.AddRange(data);
+            List<byte> bytes = new List<byte>(this.buffer);
+            bytes.AddRange(data);
+            this.buffer = bytes.ToArray();
             this.Write();
         }
 
@@ -34,7 +36,9 @@ namespace Networking.IO {
         }
 
         private void ShrinkBuffer(int written) {
-            this.buffer.RemoveRange(0, written);
+            List<byte> bytes = new List<byte>(this.buffer);
+            bytes.RemoveRange(0, written);
+            this.buffer = bytes.ToArray();
         }
     }
 

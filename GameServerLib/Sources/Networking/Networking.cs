@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Collections.Generic;
@@ -26,7 +26,9 @@ namespace Networking {
 
             this.socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp) {
                 NoDelay = true,
-                Blocking = false
+                Blocking = false,
+                SendTimeout = 2000,
+                ReceiveTimeout = 2000
             };
         }
 
@@ -63,10 +65,15 @@ namespace Networking {
         }
 
         public void Connect(string host, int port) {
-            this.socket.BeginConnect(host, port, (ar) => {
-                this.socket.EndConnect(ar);
-                this.Delegate?.NetworkingDidConnect(new Client(this.socket, this.socket.Reader(), this.socket.Writer()));
-            }, this);
+            var result = this.socket.BeginConnect(host, port, (ar) => {
+                if (this.socket.Connected) {
+                    this.socket.EndConnect(ar);
+                    this.Delegate?.NetworkingDidConnect(new Client(this.socket, this.socket.Reader(), this.socket.Writer()));
+                } else {
+                    this.socket.Close();
+                    this.Delegate?.NetworkingConnectDidTimeout();
+                }
+            }, null);
 
             Logging.Logger.Log(this.GetType(), "Trying to connect to " + host + "-" + port);
         }

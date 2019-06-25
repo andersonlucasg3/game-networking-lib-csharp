@@ -20,8 +20,10 @@ namespace MatchMaking {
         }
 
         public void Start(string host, int port) {
-            this.connection = new ClientConnection<MMClient>(new Networking.Networking());
-            this.connection.Connect(host, port);
+            if (!(this.connection?.IsConnecting ?? false)) {
+                this.connection = new ClientConnection<MMClient>(new Networking.Networking());
+                this.connection.Connect(host, port);
+            }
         }
 
         public void Stop() {
@@ -70,6 +72,11 @@ namespace MatchMaking {
 
         void IClientConnectionDelegate<MMClient>.ClientConnectionDidConnect() {
             this.Delegate?.MatchMakingClientDidConnect(this);
+        }
+
+        void IClientConnectionDelegate<MMClient>.ClientConnectionDidTimeout() {
+            this.connection = null;
+            this.Delegate?.MatchMakingClientConnectDidTimeout(this);
         }
 
         void IClientConnectionDelegate<MMClient>.ClientConnectionDidDisconnect() {

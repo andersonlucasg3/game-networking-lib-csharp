@@ -66,6 +66,12 @@ namespace MatchMaking.Connection {
             this.Delegate?.ClientConnectionDidConnect();
         }
 
+        void INetworkingDelegate.NetworkingConnectDidTimeout() {
+            this.client = null;
+            this.IsConnecting = false;
+            this.Delegate?.ClientConnectionDidTimeout();
+        }
+
         void INetworkingDelegate.NetworkingDidDisconnect(Networking.Models.Client client) {
             this.client = null;
             this.IsConnecting = false;

@@ -53,7 +53,9 @@ namespace MatchMaking.Connection {
         }
 
         public void Disconnect() {
-            this.networking.Disconnect(this.client.client);
+            if (this.client?.client != null) {
+                this.networking?.Disconnect(this.client.client);
+            }
         }
 
         #region INetworkingDelegate

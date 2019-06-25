@@ -4,10 +4,13 @@ namespace Networking {
     public interface INetworking {
         int Port { get; }
 
-        void Start(int port);
-        Client Connect(string host, int port);
+        INetworkingDelegate Delegate { get; set; }
 
+        void Start(int port);
         Client Accept();
+        void Stop();
+
+        void Connect(string host, int port);
         void Disconnect(Client client);
 
         byte[] Read(Client client);

@@ -4,11 +4,10 @@ using System.Net.Sockets;
 using System.Collections.Generic;
 
 namespace Networking {
-    using IO;
     using Models;
     using IO.Extensions;
 
-    public sealed class Networking : INetworking {
+    public sealed class NetSocket : INetworking {
         private readonly Socket socket;
         private readonly Queue<Socket> acceptedQueue;
 
@@ -21,7 +20,7 @@ namespace Networking {
             set { this.weakDelegate = new WeakReference(value); }
         }
 
-        public Networking() {
+        public NetSocket() {
             this.acceptedQueue = new Queue<Socket>();
 
             this.socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp) {

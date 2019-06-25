@@ -19,4 +19,10 @@
     <PackageReference Include="Google.Protobuf" Version="3.8.0" />
     <PackageReference Include="Google.Protobuf.Tools" Version="3.8.0" />
   </ItemGroup>
+  <ItemGroup>
+    <Reference Include="UnityEngine">
+      <HintPath>..\..\..\..\..\..\Applications\Unity\Hub\Editor\2019.1.7f1\Unity.app\Contents\Managed\UnityEngine.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
 </Project>

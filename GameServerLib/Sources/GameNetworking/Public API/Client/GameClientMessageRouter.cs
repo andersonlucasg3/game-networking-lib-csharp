@@ -1,36 +1,27 @@
 ﻿using Messages.Models;
-using System;
 
 namespace GameNetworking {
-    using Messages;
+    using Messages.Server;
+    using Messages.Client;
+    using Executors;
+    using Executors.Client;
 
-    internal interface IGameClientMessageRouterDelegate {
-        void StartGame();
-        void SpawnPlayer(SpawnMessage message);
-        void SyncPlayer(SyncMessage message);
-        void MirrorPlayerInfo(PlayerMirrorInfo message);
-        void CustomServerMessage(MessageContainer container);
-    }
+    internal class GameClientMessageRouter: BaseClientWorker {
+        internal GameClientMessageRouter(GameClient client) : base(client) { }
 
-    internal class GameClientMessageRouter {
-        private WeakReference weakDelegate;
-
-        public IGameClientMessageRouterDelegate Delegate {
-            get { return this.weakDelegate?.Target as IGameClientMessageRouterDelegate; }
-            set { this.weakDelegate = new WeakReference(value); }
+        private void Execute(IExecutor executor) {
+            executor.Execute();
         }
 
         internal void Route(MessageContainer container) {
-            if (container.Is(typeof(StartGameMessage))) {
-                this.Delegate?.StartGame();
-            } else if (container.Is(typeof(SpawnMessage))) {
-                this.Delegate?.SpawnPlayer(container.Parse<SpawnMessage>());
-            } else if (container.Is(typeof(SyncMessage))) {
-                this.Delegate?.SyncPlayer(container.Parse<SyncMessage>());
-            } else if (container.Is(typeof(PlayerMirrorInfo))) {
-                this.Delegate?.MirrorPlayerInfo(container.Parse<PlayerMirrorInfo>());
+            if (container == null) { return; }
+
+            if (container.Is(typeof(ConnectedPlayerMessage))) {
+                this.Execute(new ConnectedPlayerExecutor(this.Client, container.Parse<ConnectedPlayerMessage>()));
+            } else if (container.Is(typeof(PlayerSpawnMessage))) {
+
             } else {
-                this.Delegate?.CustomServerMessage(container);
+                this.Client?.Delegate?.GameClientDidReceiveMessage(container);
             }
         }
     }

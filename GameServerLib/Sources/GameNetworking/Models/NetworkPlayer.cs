@@ -16,8 +16,12 @@ namespace GameNetworking.Models {
             internal set { this.weakGameObject = new WeakReference(value); }
         }
 
-        public NetworkPlayer() {
+        internal NetworkPlayer() {
             this.PlayerId = random.Next();
+        }
+
+        internal NetworkPlayer(int playerId) {
+            this.PlayerId = playerId;
         }
 
         public override bool Equals(object obj) {

@@ -7,7 +7,7 @@ namespace GameNetworking.Messages {
         public Vec3 direction;
 
         void IDecodable.Decode(IDecoder decoder) {
-            this.direction = decoder.Decode<Vec3>();
+            this.direction = decoder.Object<Vec3>();
         }
 
         void IEncodable.Encode(IEncoder encoder) {

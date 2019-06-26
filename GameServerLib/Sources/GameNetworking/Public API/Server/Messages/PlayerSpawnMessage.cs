@@ -1,19 +1,19 @@
 ﻿using Messages.Coders;
 
-namespace GameNetworking.Messages {
+namespace GameNetworking.Messages.Server {
     using Models;
 
-    public class SpawnMessage: ICodable {
+    public class PlayerSpawnMessage: ICodable {
         public int spawnId;
         public int playerId;
         public Vec3 position;
         public Vec3 rotation;
 
         void IDecodable.Decode(IDecoder decoder) {
-            this.spawnId = decoder.DecodeInt();
-            this.playerId = decoder.DecodeInt();
-            this.position = decoder.Decode<Vec3>();
-            this.rotation = decoder.Decode<Vec3>();
+            this.spawnId = decoder.Int();
+            this.playerId = decoder.Int();
+            this.position = decoder.Object<Vec3>();
+            this.rotation = decoder.Object<Vec3>();
         }
 
         void IEncodable.Encode(IEncoder encoder) {

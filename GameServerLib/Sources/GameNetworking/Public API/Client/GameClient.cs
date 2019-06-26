@@ -8,13 +8,12 @@ namespace GameNetworking {
     using Models;
 
     public sealed class GameClient {
-        private readonly NetworkingClient networkingClient;
         private readonly List<NetworkPlayer> networkPlayers;
-
         private readonly GameClientConnector connector;
         private readonly GameClientMessageRouter router;
-
         private WeakReference weakDelegate;
+
+        internal readonly NetworkingClient networkingClient;
 
         public IGameClientDelegate Delegate {
             get { return this.weakDelegate?.Target as IGameClientDelegate; }
@@ -26,16 +25,12 @@ namespace GameNetworking {
 
             this.networkingClient = new NetworkingClient();
 
-            this.connector = new GameClientConnector(this.networkingClient) {
-                Delegate = new ConnectorDelegate(this)
-            };
-            this.router = new GameClientMessageRouter() {
-                Delegate = new RouterDelegate(this)
-            };
+            this.connector = new GameClientConnector(this);
+            this.router = new GameClientMessageRouter(this);
         }
 
         public void Connect(string host, int port) {
-            this.networkingClient.Connect(host, port);
+            this.connector.Connect(host, port);
         }
 
         public void Update() {
@@ -43,54 +38,18 @@ namespace GameNetworking {
             this.networkingClient.Flush();
         }
 
-        internal class GameClientDelegate {
-            private WeakReference weakGameClient;
-
-            protected GameClient gameClient { get { return this.weakGameClient?.Target as GameClient; } }
-
-            public GameClientDelegate(GameClient client) {
-                this.weakGameClient = new WeakReference(client);
-            }
+        internal void AddPlayer(NetworkPlayer player) {
+            this.networkPlayers.Add(player);
         }
+    }
 
-        class ConnectorDelegate: GameClientDelegate, IGameClientConnectorDelegate {
-            public ConnectorDelegate(GameClient client) : base(client) { }
+    internal abstract class BaseClientWorker {
+        private readonly WeakReference weakClient;
 
-            void IGameClientConnectorDelegate.GameClientDidConnect() {
-                this.gameClient.Delegate?.GameClientDidConnect();
-            }
+        protected GameClient Client => this.weakClient?.Target as GameClient;
 
-            void IGameClientConnectorDelegate.GameClientConnectDidTimeout() {
-                this.gameClient.Delegate?.GameClientConnectDidTimeout();
-            }
-
-            void IGameClientConnectorDelegate.GameClientDidDisconnect() {
-                this.gameClient.Delegate?.GameClientDidDisconnect();
-            }
-        }
-
-        class RouterDelegate: GameClientDelegate, IGameClientMessageRouterDelegate {
-            public RouterDelegate(GameClient client) : base(client) { }
-
-            void IGameClientMessageRouterDelegate.StartGame() {
-
-            }
-
-            void IGameClientMessageRouterDelegate.SpawnPlayer(Messages.SpawnMessage message) {
-
-            }
-
-            void IGameClientMessageRouterDelegate.MirrorPlayerInfo(Messages.PlayerMirrorInfo message) {
-
-            }
-
-            void IGameClientMessageRouterDelegate.SyncPlayer(Messages.SyncMessage message) {
-
-            }
-
-            void IGameClientMessageRouterDelegate.CustomServerMessage(MessageContainer container) {
-
-            }
+        protected BaseClientWorker(GameClient client) {
+            this.weakClient = new WeakReference(client);
         }
     }
 }

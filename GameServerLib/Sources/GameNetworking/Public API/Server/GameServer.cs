@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
-using Messages.Models;
 using Messages.Coders;
 using System;
 
@@ -8,13 +7,16 @@ namespace GameNetworking {
     using Networking;
     using Models;
     using Messages;
-    using Messages.Models;
 
-    public class GameServer: INetworkingServerDelegate {
-        private readonly NetworkingServer networkingServer;
-        private readonly List<KeyValuePair<NetworkClient, NetworkPlayer>> connectedPlayers;
+    public class GameServer {
+        private readonly List<ClientPlayerPair> connectedPlayers;
+
+        private readonly GameServerClientAcceptor clientAcceptor;
+        private readonly GameServerMessageRouter router;
 
         private WeakReference weakDelegate;
+
+        internal readonly NetworkingServer networkingServer;
 
         public IGameServerDelegate Delegate {
             get { return this.weakDelegate?.Target as IGameServerDelegate; }
@@ -22,10 +24,12 @@ namespace GameNetworking {
         }
 
         public GameServer() {
-            this.connectedPlayers = new List<KeyValuePair<NetworkClient, NetworkPlayer>>();
-            this.networkingServer = new NetworkingServer {
-                Delegate = this
-            };
+            this.connectedPlayers = new List<ClientPlayerPair>();
+
+            this.networkingServer = new NetworkingServer();
+
+            this.clientAcceptor = new GameServerClientAcceptor(this);
+            this.router = new GameServerMessageRouter(this);
         }
 
         public void Listen(int port) {
@@ -34,51 +38,46 @@ namespace GameNetworking {
 
         public void StartGame() {
             this.connectedPlayers.ForEach((each) => {
-                this.networkingServer.Send(new StartGameMessage(), each.Key);
+                this.networkingServer.Send(new StartGameMessage(), each.Client);
             });
         }
 
         public void Update() {
             this.networkingServer.AcceptClient();
-            this.connectedPlayers.ForEach((each) => { this.networkingServer.Read(each.Key); });
-            this.connectedPlayers.ForEach((each) => { this.networkingServer.Flush(each.Key); });
+            this.connectedPlayers.ForEach((each) => { this.networkingServer.Read(each.Client); });
+            this.connectedPlayers.ForEach((each) => { this.networkingServer.Flush(each.Client); });
         }
 
-        #region INetworkingServerDelegate
-
-        void INetworkingServerDelegate.NetworkingServerDidAcceptClient(NetworkClient client) {
-            NetworkPlayer player = new NetworkPlayer();
-            this.BroadcastMessage(new PlayerMirrorInfo {
-                playerId = player.PlayerId
-            });
-            this.connectedPlayers.Add(new KeyValuePair<NetworkClient, NetworkPlayer>(client, player));
+        internal void AddPair(ClientPlayerPair pair) {
+            this.connectedPlayers.Add(pair);
         }
 
-        void INetworkingServerDelegate.NetworkingServerDidReadMessage(MessageContainer container, NetworkClient client) {
-            var playerInfo = this.connectedPlayers.Find(x => x.Key.Equals(client)).Value;
-            if (container.Is(typeof(SpawnMessage))) {
-                var message = container.Parse<SpawnMessage>();
-                var spawnedObject = this.Delegate?.GameServerSpawnCharacter(message.spawnId, playerInfo);
-                playerInfo.GameObject = spawnedObject;
-                this.BroadcastSpawn(playerInfo, message.spawnId);
-            } else {
-                this.Delegate?.GameServerDidReceiveClientMessage(container, playerInfo);
-            }
+        internal ClientPlayerPair FindPair(NetworkClient client) {
+            return this.connectedPlayers.Find(pair => pair == client);
         }
 
-        #endregion
-
-        private void BroadcastMessage(IEncodable message) {
-            this.connectedPlayers.ForEach(each => this.networkingServer.Send(message, each.Key));
+        internal void BroadcastMessage(IEncodable message) {
+            this.networkingServer.SendBroadcast(message, this.connectedPlayers.ConvertAll(c => c.Client));
         }
 
-        private void BroadcastSpawn(NetworkPlayer player, int spawnId) {
-            this.BroadcastMessage(new SpawnMessage {
-                spawnId = spawnId,
-                playerId = player.PlayerId,
-                position = player.GameObject.transform.position.ToVec3(),
-                rotation = player.GameObject.transform.eulerAngles.ToVec3()
-            });
+        internal void BroadcastMessage(IEncodable message, NetworkClient excludeClient) {
+            List<NetworkClient> all = new List<NetworkClient>();
+            foreach (var x in this.connectedPlayers) { if (x != excludeClient) { all.Add(x.Client); } }
+            this.networkingServer.SendBroadcast(message, all);
+        }
+
+        internal void Send(IEncodable message, NetworkClient client) {
+            this.networkingServer.Send(message, client);
+        }
+    }
+
+    internal abstract class BaseServerWorker {
+        private readonly WeakReference weakServer;
+
+        protected GameServer Server => this.weakServer?.Target as GameServer;
+
+        protected BaseServerWorker(GameServer server) {
+            this.weakServer = new WeakReference(server);
         }
     }
 }

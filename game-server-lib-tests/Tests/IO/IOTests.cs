@@ -88,7 +88,7 @@ namespace Tests.IO {
                 Logging.Logger.Log(typeof(IOTests), "Encoded message size: " + ms.Length);
 
                 ms.Seek(0, SeekOrigin.Begin);
-                
+
                 decoded = (Value)formatter.Deserialize(ms);
             }, "BinaryFormatter");
 
@@ -180,8 +180,8 @@ namespace Tests.IO {
         }
 
         public void Decode(IDecoder decoder) {
-            this.accessToken = decoder.DecodeString();
-            this.username = decoder.DecodeString();
+            this.accessToken = decoder.String();
+            this.username = decoder.String();
         }
     }
 
@@ -203,14 +203,14 @@ namespace Tests.IO {
         }
 
         public void Decode(IDecoder decoder) {
-            this.token = decoder.DecodeString();
-            this.ip = decoder.DecodeString();
-            this.port = decoder.DecodeShort();
+            this.token = decoder.String();
+            this.ip = decoder.String();
+            this.port = decoder.Short();
         }
     }
 
     [Serializable]
-    class Value: ICodable {
+    class Value : ICodable {
         public int intVal = 1;
         public short shortVal = 2;
         public long longVal = 3;
@@ -236,20 +236,20 @@ namespace Tests.IO {
         }
 
         public void Decode(IDecoder decoder) {
-            this.intVal = decoder.DecodeInt();
-            this.shortVal = decoder.DecodeShort();
-            this.longVal = decoder.DecodeLong();
-            this.uintVal = decoder.DecodeUInt();
-            this.ushortVal = decoder.DecodeUShort();
-            this.ulongVal = decoder.DecodeULong();
-            this.stringVal = decoder.DecodeString();
-            this.bytesVal = decoder.DecodeBytes();
-            this.subValue = decoder.Decode<SubValue>();
+            this.intVal = decoder.Int();
+            this.shortVal = decoder.Short();
+            this.longVal = decoder.Long();
+            this.uintVal = decoder.UInt();
+            this.ushortVal = decoder.UShort();
+            this.ulongVal = decoder.ULong();
+            this.stringVal = decoder.String();
+            this.bytesVal = decoder.Bytes();
+            this.subValue = decoder.Object<SubValue>();
         }
     }
 
     [Serializable]
-    class SubValue: ICodable {
+    class SubValue : ICodable {
         public string name = "Meu nome";
         public int age = 30;
         public float height = 1.95F;
@@ -265,10 +265,10 @@ namespace Tests.IO {
         }
 
         public void Decode(IDecoder decoder) {
-            this.name = decoder.DecodeString();
-            this.age = decoder.DecodeInt();
-            this.height = decoder.DecodeFloat();
-            this.weight = decoder.DecodeFloat();
+            this.name = decoder.String();
+            this.age = decoder.Int();
+            this.height = decoder.Float();
+            this.weight = decoder.Float();
         }
 
         public override bool Equals(object obj) {
@@ -294,7 +294,7 @@ namespace Tests.IO {
         }
 
         public void Decode(IDecoder decoder) {
-            this.empty = decoder.DecodeString();
+            this.empty = decoder.String();
         }
     }
 }

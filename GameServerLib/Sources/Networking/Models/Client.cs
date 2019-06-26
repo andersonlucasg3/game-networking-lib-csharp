@@ -16,6 +16,19 @@ namespace Networking.Models {
             this.reader = reader;
             this.writer = writer;
         }
+
+        public override bool Equals(object obj) {
+            if (obj is Client) {
+                return this.socket == ((Client)obj).socket;
+            } else if (obj is Socket) {
+                return this.socket == obj;
+            }
+            return object.Equals(this, obj);
+        }
+
+        public override int GetHashCode() {
+            return base.GetHashCode();
+        }
     }
 
     public static class SocketExt {

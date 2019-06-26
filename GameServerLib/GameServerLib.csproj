@@ -19,6 +19,9 @@
     <Folder Include="Sources\GameNetworking\Messages\Models\" />
     <Folder Include="Sources\GameNetworking\Networking\" />
     <Folder Include="Sources\GameNetworking\Models\" />
+    <Folder Include="Sources\GameNetworking\Public API\" />
+    <Folder Include="Sources\GameNetworking\Public API\Client\" />
+    <Folder Include="Sources\GameNetworking\Public API\Server\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.8.0" />

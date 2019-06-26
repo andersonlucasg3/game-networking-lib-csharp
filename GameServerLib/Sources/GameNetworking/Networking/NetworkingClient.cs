@@ -29,6 +29,12 @@ namespace GameNetworking.Networking {
             this.networking.Connect(host, port);
         }
 
+        public void Disconnect() {
+            if (this.client?.Client != null) {
+                this.networking.Disconnect(this.client.Client);
+            }
+        }
+
         public MessageContainer Read() {
             if (this.client?.Client != null) {
                 byte[] bytes = this.networking.Read(this.client.Client);

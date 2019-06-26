@@ -1,4 +1,5 @@
 ﻿using Messages.Coders;
+using UnityEngine;
 
 namespace GameNetworking.Messages.Models {
     public class Vec3: ICodable {
@@ -16,6 +17,16 @@ namespace GameNetworking.Messages.Models {
             encoder.Encode(this.x);
             encoder.Encode(this.y);
             encoder.Encode(this.z);
+        }
+    }
+
+    internal static class Vector3Ext {
+        internal static Vec3 ToVec3(this Vector3 op) {
+            return new Vec3 {
+                x = op.x,
+                y = op.y,
+                z = op.z
+            };
         }
     }
 }

@@ -3,7 +3,7 @@
 namespace GameNetworking.Messages {
     using Messages.Models;
 
-    public struct SyncMessage: ICodable {
+    public class SyncMessage: ICodable {
         public Vec3 position;
         public Vec3 rotation;
 

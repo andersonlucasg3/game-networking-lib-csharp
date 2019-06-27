@@ -9,17 +9,15 @@ namespace GameNetworking {
     internal class GameClientMessageRouter: BaseClientWorker {
         internal GameClientMessageRouter(GameClient client) : base(client) { }
 
-        private void Execute(IExecutor executor) {
-            executor.Execute();
-        }
-
         internal void Route(MessageContainer container) {
             if (container == null) { return; }
 
-            if (container.Is(typeof(ConnectedPlayerMessage))) {
-                this.Execute(new ConnectedPlayerExecutor(this.Client, container.Parse<ConnectedPlayerMessage>()));
-            } else if (container.Is(typeof(PlayerSpawnMessage))) {
+            Logging.Logger.Log(this.GetType(), string.Format("Route | container: {0}", container));
 
+            if (container.Is(typeof(ConnectedPlayerMessage))) {
+                new ConnectedPlayerExecutor(this.Client, container.Parse<ConnectedPlayerMessage>()).Execute();
+            } else if (container.Is(typeof(PlayerSpawnMessage))) {
+                new PlayerSpawnExecutor(this.Client, container.Parse<PlayerSpawnMessage>()).Execute();
             } else {
                 this.Client?.Delegate?.GameClientDidReceiveMessage(container);
             }

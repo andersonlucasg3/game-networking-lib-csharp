@@ -45,7 +45,7 @@ namespace GameNetworking.Networking {
         }
 
         public void Send(IEncodable message) {
-            this.client?.Writer.Write(message);
+            this.client?.Write(message);
         }
 
         public void Flush() {

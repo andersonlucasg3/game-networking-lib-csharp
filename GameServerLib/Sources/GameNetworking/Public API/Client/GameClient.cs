@@ -33,6 +33,10 @@ namespace GameNetworking {
             this.connector.Connect(host, port);
         }
 
+        public void Send(IEncodable message) {
+            this.networkingClient.Send(message);
+        }
+
         public void Update() {
             this.router.Route(this.networkingClient.Read());
             this.networkingClient.Flush();
@@ -40,6 +44,10 @@ namespace GameNetworking {
 
         internal void AddPlayer(NetworkPlayer player) {
             this.networkPlayers.Add(player);
+        }
+
+        internal NetworkPlayer FindPlayer(int playerId) {
+            return this.networkPlayers.Find(player => player.PlayerId == playerId);
         }
     }
 

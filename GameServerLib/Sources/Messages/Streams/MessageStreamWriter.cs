@@ -11,6 +11,8 @@ namespace Messages.Streams {
             var encoder = new Coders.Binary.Encoder();
             buffer.AddRange(encoder.Encode(message));
 
+            CoderHelper.InsertDelimiter(ref buffer);
+
             return buffer.ToArray();
         }
     }

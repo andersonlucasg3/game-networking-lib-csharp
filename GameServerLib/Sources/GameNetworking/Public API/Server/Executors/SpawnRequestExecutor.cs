@@ -17,7 +17,9 @@ namespace GameNetworking.Executors.Server {
             this.pair = pair;
         }
 
-        void IExecutor.Execute() {
+        public void Execute() {
+            Logging.Logger.Log(this.GetType(), "Executing...");
+
             var id = this.message.spawnObjectId;
             var spawned = this.server.Delegate?.GameServerSpawnCharacter(id, pair.Player);
             this.pair.Player.GameObject = spawned;

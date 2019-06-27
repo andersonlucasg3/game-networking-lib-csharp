@@ -12,7 +12,9 @@
             this.spawnMessage = message;
         }
 
-        void IExecutor.Execute() {
+        public void Execute() {
+            Logging.Logger.Log(this.GetType(), "Executing...");
+
             var player = new NetworkPlayer(this.spawnMessage.playerId);
             this.gameClient.AddPlayer(player);
         }

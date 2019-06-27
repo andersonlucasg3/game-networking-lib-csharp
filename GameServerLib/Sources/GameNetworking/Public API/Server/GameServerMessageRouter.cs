@@ -12,16 +12,15 @@ namespace GameNetworking {
             server.networkingServer.MessagesDelegate = this;
         }
 
-        private void Execute(IExecutor executor) {
-            executor.Execute();
-        }
-
         #region INetworkingServerMessagesDelegate
 
         void INetworkingServerMessagesDelegate.NetworkingServerDidReadMessage(MessageContainer container, NetworkClient client) {
             var pair = this.Server.FindPair(client);
+
+            Logging.Logger.Log(this.GetType(), string.Format("NetworkingServerDidReadMessage | container: {0}, client: {1}", container, pair));
+
             if (container.Is(typeof(SpawnRequestMessage))) {
-                this.Execute(new SpawnRequestExecutor(this.Server, container.Parse<SpawnRequestMessage>(), pair));
+                new SpawnRequestExecutor(this.Server, container.Parse<SpawnRequestMessage>(), pair).Execute();
             } else {
                 this.Server.Delegate?.GameServerDidReceiveClientMessage(container, pair.Player);
             }

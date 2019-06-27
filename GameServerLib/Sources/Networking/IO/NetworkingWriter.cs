@@ -11,6 +11,7 @@ namespace Networking.IO {
 
         internal NetworkingWriter(Socket socket) {
             this.socket = socket;
+            this.buffer = new byte[0];
         }
 
         private void Write() {

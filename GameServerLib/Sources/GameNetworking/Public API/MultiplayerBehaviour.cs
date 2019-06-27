@@ -2,6 +2,8 @@
 using System;
 using Messages.Models;
 using GameNetworking;
+using GameNetworking.Messages.Client;
+using GameNetworking.Messages.Server;
 
 [Serializable]
 public enum MultiplayerBehaviourType {
@@ -20,22 +22,15 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameCli
     protected MultiplayerBehaviourType behaviourType = MultiplayerBehaviourType.SERVER;
 
     [SerializeField]
-    protected string connectToHost = "localhost";
+    protected string connectToHost = "127.0.0.1";
 
     [SerializeField]
     protected int port = 30000;
 
     protected virtual void Start() {
         switch (this.behaviourType) {
-        case MultiplayerBehaviourType.SERVER: {
-                this.server = new GameServer { Delegate = this };
-                this.server.Listen(this.port);
-            }
-            break;
-        case MultiplayerBehaviourType.CLIENT:
-            this.client = new GameClient { Delegate = this };
-            this.client.Connect(this.connectToHost, this.port);
-            break;
+        case MultiplayerBehaviourType.SERVER: this.StartServer(); break;
+        case MultiplayerBehaviourType.CLIENT: this.StartClient(); break;
         }
     }
 
@@ -46,12 +41,27 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameCli
         }
     }
 
+    protected void StartServer() {
+        this.server = new GameServer { Delegate = this };
+        this.server.Listen(this.port);
+    }
+
+    protected void StartClient() {
+        this.client = new GameClient { Delegate = this };
+        this.client.Connect(this.connectToHost, this.port);
+    }
+
     private void UpdateServer() {
-        this.server.Update();
+        this.server?.Update();
     }
 
     private void UpdateClient() {
-        this.client.Update();
+        this.client?.Update();
+    }
+
+    public void RequestSpawn(int spawnId) {
+        Logging.Logger.Log(this.GetType(), string.Format("RequestSpawn | spawnId: {0}", spawnId));
+        this.client?.Send(new SpawnRequestMessage { spawnObjectId = spawnId });
     }
 
     #region IGameServerDelegate

@@ -10,8 +10,14 @@
             this.spawnMessage = message;
         }
 
-        void IExecutor.Execute() {
+        public void Execute() {
+            Logging.Logger.Log(this.GetType(), "Executing...");
 
+            var player = this.gameClient.FindPlayer(this.spawnMessage.playerId);
+            var spawned = this.gameClient.Delegate?.GameClientSpawnCharacter(this.spawnMessage.spawnId, player);
+            player.GameObject = spawned;
+            spawned.transform.position = this.spawnMessage.position.ToVector3();
+            spawned.transform.eulerAngles = this.spawnMessage.rotation.ToVector3();
         }
     }
 }

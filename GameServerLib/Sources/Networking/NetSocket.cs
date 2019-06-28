@@ -50,10 +50,10 @@ namespace Networking {
             }, this);
         }
 
-        public Client Accept() {
+        public NetClient Accept() {
             if (this.acceptedQueue.Count > 0) {
                 var accepted = this.acceptedQueue.Dequeue();
-                return new Client(accepted, accepted.Reader(), accepted.Writer());
+                return new NetClient(accepted, accepted.Reader(), accepted.Writer());
             }
             return null;
         }
@@ -67,7 +67,7 @@ namespace Networking {
             var result = this.socket.BeginConnect(host, port, (ar) => {
                 if (this.socket.Connected) {
                     this.socket.EndConnect(ar);
-                    this.Delegate?.NetworkingDidConnect(new Client(this.socket, this.socket.Reader(), this.socket.Writer()));
+                    this.Delegate?.NetworkingDidConnect(new NetClient(this.socket, this.socket.Reader(), this.socket.Writer()));
                 } else {
                     this.socket.Close();
                     this.Delegate?.NetworkingConnectDidTimeout();
@@ -77,22 +77,22 @@ namespace Networking {
             Logging.Logger.Log(this.GetType(), "Trying to connect to " + host + "-" + port);
         }
 
-        public void Disconnect(Client client) {
+        public void Disconnect(NetClient client) {
             client.socket.BeginDisconnect(false, (ar) => {
                 client.socket.EndDisconnect(ar);
                 this.Delegate?.NetworkingDidDisconnect(client);
             }, this);
         }
 
-        public byte[] Read(Client client) {
+        public byte[] Read(NetClient client) {
             return client.reader.Read();
         }
 
-        public void Send(Client client, byte[] message) {
+        public void Send(NetClient client, byte[] message) {
             client.writer.Write(message);
         }
 
-        public void Flush(Client client) {
+        public void Flush(NetClient client) {
             if (client.IsConnected) {
                 client.writer.Flush();
             } else {

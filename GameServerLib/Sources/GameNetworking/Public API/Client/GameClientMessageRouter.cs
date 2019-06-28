@@ -2,8 +2,6 @@
 
 namespace GameNetworking {
     using Messages.Server;
-    using Messages.Client;
-    using Executors;
     using Executors.Client;
 
     internal class GameClientMessageRouter: BaseClientWorker {
@@ -18,6 +16,8 @@ namespace GameNetworking {
                 new ConnectedPlayerExecutor(this.Client, container.Parse<ConnectedPlayerMessage>()).Execute();
             } else if (container.Is(typeof(PlayerSpawnMessage))) {
                 new PlayerSpawnExecutor(this.Client, container.Parse<PlayerSpawnMessage>()).Execute();
+            } else if (container.Is(typeof(SyncMessage))) {
+                new SyncExecutor(this.Client, container.Parse<SyncMessage>()).Execute();
             } else {
                 this.Client?.Delegate?.GameClientDidReceiveMessage(container);
             }

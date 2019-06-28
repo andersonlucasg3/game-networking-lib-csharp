@@ -2,7 +2,7 @@
 using Messages.Models;
 
 namespace GameNetworking {
-    using Models;
+    using Models.Client;
 
     public interface IGameClientDelegate {
         void GameClientDidConnect();

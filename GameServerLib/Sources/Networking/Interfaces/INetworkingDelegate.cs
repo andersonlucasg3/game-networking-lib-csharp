@@ -2,10 +2,10 @@
     using Models;
 
     public interface INetworkingDelegate {
-        void NetworkingDidConnect(Client client);
+        void NetworkingDidConnect(NetClient client);
 
         void NetworkingConnectDidTimeout();
 
-        void NetworkingDidDisconnect(Client client);
+        void NetworkingDidDisconnect(NetClient client);
     }
 }

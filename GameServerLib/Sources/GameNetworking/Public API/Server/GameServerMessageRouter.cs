@@ -4,7 +4,6 @@ using System;
 namespace GameNetworking {
     using Models;
     using Messages.Client;
-    using Executors;
     using Executors.Server;
 
     internal class GameServerMessageRouter: BaseServerWorker, INetworkingServerMessagesDelegate {
@@ -15,14 +14,16 @@ namespace GameNetworking {
         #region INetworkingServerMessagesDelegate
 
         void INetworkingServerMessagesDelegate.NetworkingServerDidReadMessage(MessageContainer container, NetworkClient client) {
-            var pair = this.Server.FindPair(client);
+            var player = this.Server.FindPlayer(client);
 
-            Logging.Logger.Log(this.GetType(), string.Format("NetworkingServerDidReadMessage | container: {0}, client: {1}", container, pair));
+            Logging.Logger.Log(this.GetType(), string.Format("NetworkingServerDidReadMessage | container: {0}, client: {1}", container, player));
 
             if (container.Is(typeof(SpawnRequestMessage))) {
-                new SpawnRequestExecutor(this.Server, container.Parse<SpawnRequestMessage>(), pair).Execute();
+                new SpawnRequestExecutor(this.Server, container.Parse<SpawnRequestMessage>(), player).Execute();
+            } else if (container.Is(typeof(MoveRequestMessage))) {
+                new MoveRequestExecutor(this.Server, player, container.Parse<MoveRequestMessage>()).Execute();
             } else {
-                this.Server.Delegate?.GameServerDidReceiveClientMessage(container, pair.Player);
+                this.Server.Delegate?.GameServerDidReceiveClientMessage(container, player);
             }
         }
 

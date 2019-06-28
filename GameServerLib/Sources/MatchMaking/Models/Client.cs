@@ -2,13 +2,13 @@
     using Coders;
 
     public class Client {
-        internal Networking.Models.Client client;
+        internal Networking.Models.NetClient client;
         internal IMessageDecoder decoder;
         internal IMessageEncoder encoder;
 
         public bool IsConnected { get { return this.client.IsConnected; } }
 
-        internal static MMClient Create<MMClient>(Networking.Models.Client client, IMessageDecoder decoder, IMessageEncoder encoder) where MMClient: Client, new() {
+        internal static MMClient Create<MMClient>(Networking.Models.NetClient client, IMessageDecoder decoder, IMessageEncoder encoder) where MMClient: Client, new() {
             return new MMClient {
                 client = client,
                 decoder = decoder,

@@ -1,7 +1,8 @@
 ﻿using Messages.Coders;
 
-namespace GameNetworking.Messages {
+namespace GameNetworking.Messages.Server {
     public class SyncMessage: ICodable {
+        public int playerId;
         public Vec3 position;
         public Vec3 rotation;
 

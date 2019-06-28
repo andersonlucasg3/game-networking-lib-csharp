@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using Messages.Coders;
-using Messages.Models;
 
 namespace GameNetworking {
     using Networking;
-    using Models;
+    using Models.Client;
 
     public sealed class GameClient {
         private readonly List<NetworkPlayer> networkPlayers;

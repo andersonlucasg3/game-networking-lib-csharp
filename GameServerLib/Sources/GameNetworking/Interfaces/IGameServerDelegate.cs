@@ -2,7 +2,7 @@
 using Messages.Models;
 
 namespace GameNetworking {
-    using Models;
+    using Models.Server;
 
     public interface IGameServerDelegate {
         GameObject GameServerSpawnCharacter(int spawnId, NetworkPlayer player);

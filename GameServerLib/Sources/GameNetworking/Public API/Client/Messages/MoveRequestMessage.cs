@@ -1,9 +1,7 @@
 ﻿using Messages.Coders;
 
-namespace GameNetworking.Messages {
-    using Models;
-
-    public class MoveMessage: ICodable {
+namespace GameNetworking.Messages.Client {
+    public class MoveRequestMessage: ICodable {
         public Vec3 direction;
 
         void IDecodable.Decode(IDecoder decoder) {

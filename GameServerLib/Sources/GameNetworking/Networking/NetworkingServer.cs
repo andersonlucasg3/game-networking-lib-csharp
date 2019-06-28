@@ -34,7 +34,7 @@ namespace GameNetworking.Networking {
         }
 
         public void AcceptClient() {
-            Client client = this.networking.Accept();
+            NetClient client = this.networking.Accept();
             if (client != null) {
                 NetworkClient networkClient = new NetworkClient(client, new MessageStreamReader(), new MessageStreamWriter());
                 this.Delegate?.NetworkingServerDidAcceptClient(networkClient);

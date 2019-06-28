@@ -1,7 +1,6 @@
 ﻿namespace GameNetworking.Executors.Client {
-    using Messages;
     using Messages.Server;
-    using Models;
+    using Models.Client;
 
     internal struct ConnectedPlayerExecutor: IExecutor {
         private readonly GameClient gameClient;
@@ -15,7 +14,9 @@
         public void Execute() {
             Logging.Logger.Log(this.GetType(), "Executing...");
 
-            var player = new NetworkPlayer(this.spawnMessage.playerId);
+            var player = new NetworkPlayer(this.spawnMessage.playerId) {
+                IsLocalPlayer = this.spawnMessage.isMe
+            };
             this.gameClient.AddPlayer(player);
         }
     }

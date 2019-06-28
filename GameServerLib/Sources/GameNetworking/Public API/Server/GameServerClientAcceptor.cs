@@ -1,5 +1,6 @@
 ﻿namespace GameNetworking {
     using Models;
+    using Models.Server;
     using Messages.Server;
 
     internal class GameServerClientAcceptor: BaseServerWorker, INetworkingServerDelegate {
@@ -10,10 +11,9 @@
         #region INetworkingServerDelegate
 
         void INetworkingServerDelegate.NetworkingServerDidAcceptClient(NetworkClient client) {
-            NetworkPlayer player = new NetworkPlayer();
-            var pair = new ClientPlayerPair(client, player);
-            this.Server.AddPair(pair);
-            this.Server.BroadcastMessage(new ConnectedPlayerMessage { playerId = player.PlayerId, isMe = false }, client);
+            NetworkPlayer player = new NetworkPlayer(client);
+            this.Server.AddPlayer(player);
+            this.Server.SendBroadcast(new ConnectedPlayerMessage { playerId = player.PlayerId, isMe = false }, client);
             this.Server.Send(new ConnectedPlayerMessage { playerId = player.PlayerId, isMe = true }, client);
         }
 

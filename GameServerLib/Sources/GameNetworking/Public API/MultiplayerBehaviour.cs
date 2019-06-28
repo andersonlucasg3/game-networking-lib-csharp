@@ -66,11 +66,11 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameCli
 
     #region IGameServerDelegate
 
-    public virtual GameObject GameServerSpawnCharacter(int spawnId, GameNetworking.Models.NetworkPlayer player) {
+    public virtual GameObject GameServerSpawnCharacter(int spawnId, GameNetworking.Models.Server.NetworkPlayer player) {
         return null;
     }
 
-    public virtual void GameServerDidReceiveClientMessage(MessageContainer container, GameNetworking.Models.NetworkPlayer player) {
+    public virtual void GameServerDidReceiveClientMessage(MessageContainer container, GameNetworking.Models.Server.NetworkPlayer player) {
 
     }
 
@@ -90,7 +90,7 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameCli
 
     }
 
-    public virtual GameObject GameClientSpawnCharacter(int spawnId, GameNetworking.Models.NetworkPlayer player) {
+    public virtual GameObject GameClientSpawnCharacter(int spawnId, GameNetworking.Models.Client.NetworkPlayer player) {
         return null;
     }
 

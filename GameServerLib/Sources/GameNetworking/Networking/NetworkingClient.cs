@@ -56,7 +56,7 @@ namespace GameNetworking.Networking {
 
         #region INetworkingDelegate
 
-        void INetworkingDelegate.NetworkingDidConnect(Client client) {
+        void INetworkingDelegate.NetworkingDidConnect(NetClient client) {
             this.client = new NetworkClient(client, new MessageStreamReader(), new MessageStreamWriter());
             this.Delegate?.NetworkingClientDidConnect();
         }
@@ -66,7 +66,7 @@ namespace GameNetworking.Networking {
             this.Delegate?.NetworkingClientConnectDidTimeout();
         }
 
-        void INetworkingDelegate.NetworkingDidDisconnect(Client client) {
+        void INetworkingDelegate.NetworkingDidDisconnect(NetClient client) {
             this.client = null;
             this.Delegate?.NetworkingClientDidDisconnect();
         }

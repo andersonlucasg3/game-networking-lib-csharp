@@ -4,10 +4,11 @@ using Messages.Coders;
 
 namespace GameNetworking {
     using Networking;
+    using Models;
     using Models.Client;
 
     public sealed class GameClient {
-        private readonly List<NetworkPlayer> networkPlayers;
+        private readonly NetworkPlayersStorage playersStorage;
         private readonly GameClientConnector connector;
         private readonly GameClientMessageRouter router;
         private WeakReference weakDelegate;
@@ -20,7 +21,7 @@ namespace GameNetworking {
         }
 
         public GameClient() {
-            this.networkPlayers = new List<NetworkPlayer>();
+            this.playersStorage = new NetworkPlayersStorage();
 
             this.networkingClient = new NetworkingClient();
 
@@ -42,11 +43,11 @@ namespace GameNetworking {
         }
 
         internal void AddPlayer(NetworkPlayer player) {
-            this.networkPlayers.Add(player);
+            this.playersStorage.Add(player);
         }
 
         internal NetworkPlayer FindPlayer(int playerId) {
-            return this.networkPlayers.Find(player => player.PlayerId == playerId);
+            return this.playersStorage.Find(player => player.PlayerId == playerId) as NetworkPlayer;
         }
     }
 

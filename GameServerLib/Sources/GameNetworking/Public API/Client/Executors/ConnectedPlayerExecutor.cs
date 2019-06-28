@@ -4,18 +4,18 @@
 
     internal struct ConnectedPlayerExecutor: IExecutor {
         private readonly GameClient gameClient;
-        private readonly ConnectedPlayerMessage spawnMessage;
+        private readonly ConnectedPlayerMessage message;
 
         internal ConnectedPlayerExecutor(GameClient client, ConnectedPlayerMessage message) {
             this.gameClient = client;
-            this.spawnMessage = message;
+            this.message = message;
         }
 
         public void Execute() {
             Logging.Logger.Log(this.GetType(), "Executing...");
 
-            var player = new NetworkPlayer(this.spawnMessage.playerId) {
-                IsLocalPlayer = this.spawnMessage.isMe
+            var player = new NetworkPlayer(this.message.playerId) {
+                IsLocalPlayer = this.message.isMe
             };
             this.gameClient.AddPlayer(player);
         }

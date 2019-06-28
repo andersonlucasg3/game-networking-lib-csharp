@@ -9,7 +9,7 @@ namespace Networking.Models {
         internal IReader reader;
         internal IWriter writer;
 
-        public bool IsConnected { get { return this.socket.IsConnected(); } }
+        public bool IsConnected { get { return this.socket.Connected; } }
 
         internal NetClient(Socket socket, IReader reader, IWriter writer) {
             this.socket = socket;
@@ -28,14 +28,6 @@ namespace Networking.Models {
 
         public override int GetHashCode() {
             return base.GetHashCode();
-        }
-    }
-
-    public static class SocketExt {
-        public static bool IsConnected(this Socket op) {
-            bool part1 = op.Poll(1000, SelectMode.SelectRead);
-            bool part2 = op.Available == 0;
-            return !(part1 && part2);
         }
     }
 }

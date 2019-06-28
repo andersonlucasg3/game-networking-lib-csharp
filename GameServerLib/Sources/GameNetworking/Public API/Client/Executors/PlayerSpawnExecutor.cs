@@ -1,4 +1,6 @@
-﻿namespace GameNetworking.Executors.Client {
+﻿using UnityEngine;
+
+namespace GameNetworking.Executors.Client {
     using Messages.Server;
 
     internal struct PlayerSpawnExecutor: IExecutor {
@@ -16,8 +18,22 @@
             var player = this.gameClient.FindPlayer(this.spawnMessage.playerId);
             var spawned = this.gameClient.Delegate?.GameClientSpawnCharacter(this.spawnMessage.spawnId, player);
             player.GameObject = spawned;
-            spawned.transform.position = this.spawnMessage.position.ToVector3();
-            spawned.transform.eulerAngles = this.spawnMessage.rotation.ToVector3();
+            
+            var charController = spawned.GetComponent<CharacterController>();
+            if (charController != null) {
+                charController.enabled = false;
+            }
+
+            Vector3 pos = Vector3.zero;
+            Vector3 euler = Vector3.zero;
+            this.spawnMessage.position.CopyToVector3(ref pos);
+            this.spawnMessage.rotation.CopyToVector3(ref euler);
+            spawned.transform.position = pos;
+            spawned.transform.eulerAngles = euler;
+
+            if (charController != null) {
+                charController.enabled = true;
+            }
         }
     }
 }

@@ -9,6 +9,11 @@ namespace GameNetworking.Messages.Server {
         public Vec3 position;
         public Vec3 rotation;
 
+        public PlayerSpawnMessage() {
+            this.position = new Vec3();
+            this.rotation = new Vec3();
+        }
+
         void IDecodable.Decode(IDecoder decoder) {
             this.spawnId = decoder.Int();
             this.playerId = decoder.Int();

@@ -19,18 +19,18 @@ namespace GameNetworking.Messages {
             encoder.Encode(this.z);
         }
 
-        public Vector3 ToVector3() {
-            return new Vector3(this.x, this.y, this.z);
+        public void CopyToVector3(ref Vector3 instance) {
+            instance.x = this.x;
+            instance.y = this.y;
+            instance.z = this.z;
         }
     }
 
     internal static class Vector3Ext {
-        internal static Vec3 ToVec3(this Vector3 op) {
-            return new Vec3 {
-                x = op.x,
-                y = op.y,
-                z = op.z
-            };
+        internal static void CopyToVec3(this Vector3 op, ref Vec3 instance) {
+            instance.x = op.x;
+            instance.y = op.y;
+            instance.z = op.z;
         }
     }
 }

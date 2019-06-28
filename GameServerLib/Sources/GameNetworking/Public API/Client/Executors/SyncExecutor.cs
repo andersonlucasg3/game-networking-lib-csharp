@@ -1,5 +1,6 @@
-﻿namespace GameNetworking.Executors.Client {
-    using Models.Client;
+﻿using UnityEngine;
+
+namespace GameNetworking.Executors.Client {
     using Messages.Server;
 
     internal struct SyncExecutor: IExecutor {
@@ -13,9 +14,18 @@
 
         public void Execute() {
             var player = this.gameClient.FindPlayer(this.message.playerId);
-            var transform = player.GameObject.transform;
-            transform.position = this.message.position.ToVector3();
-            transform.eulerAngles = this.message.rotation.ToVector3();
+            
+            var charController = player.GameObject.GetComponent<CharacterController>();
+            charController.enabled = false;
+            
+            Vector3 pos = Vector3.zero;
+            Vector3 euler = Vector3.zero;
+            this.message.position.CopyToVector3(ref pos);
+            this.message.rotation.CopyToVector3(ref euler);
+            charController.transform.position = pos;
+            charController.transform.eulerAngles = euler;
+            
+            charController.enabled = true;
         }
     }
 }

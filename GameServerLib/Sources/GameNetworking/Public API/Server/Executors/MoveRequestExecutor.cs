@@ -1,4 +1,6 @@
-﻿namespace GameNetworking.Executors.Server {
+﻿using UnityEngine;
+
+namespace GameNetworking.Executors.Server {
     using Models.Server;
     using Messages.Client;
 
@@ -14,7 +16,9 @@
         }
 
         public void Execute() {
-            this.gameServer.movementController.Move(this.player, this.message.direction.ToVector3());
+            Vector3 vec3 = Vector3.zero;
+            this.message.direction.CopyToVector3(ref vec3);
+            this.gameServer.movementController.Move(this.player, vec3);
         }
     }
 }

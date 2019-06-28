@@ -9,7 +9,7 @@ namespace GameNetworking {
     using Messages;
 
     public class GameServer {
-        private readonly List<NetworkPlayer> connectedPlayers;
+        private readonly NetworkPlayersStorage playersStorage;
 
         private readonly GameServerClientAcceptor clientAcceptor;
         private readonly GameServerMessageRouter router;
@@ -25,16 +25,14 @@ namespace GameNetworking {
         }
 
         public GameServer() {
-            this.connectedPlayers = new List<NetworkPlayer>();
+            this.playersStorage = new NetworkPlayersStorage();
 
             this.networkingServer = new NetworkingServer();
 
             this.clientAcceptor = new GameServerClientAcceptor(this);
             this.router = new GameServerMessageRouter(this);
 
-            this.movementController = new MovementController(this) {
-                Players = this.connectedPlayers
-            };
+            this.movementController = new MovementController(this, this.playersStorage);
         }
 
         public void Listen(int port) {
@@ -42,34 +40,42 @@ namespace GameNetworking {
         }
 
         public void StartGame() {
-            this.connectedPlayers.ForEach((each) => {
+            this.playersStorage.ForEach((each) => {
                 this.networkingServer.Send(new StartGameMessage(), each.Client);
             });
         }
 
         public void Update() {
             this.networkingServer.AcceptClient();
-            this.connectedPlayers.ForEach((each) => { this.networkingServer.Read(each.Client); });
-            this.connectedPlayers.ForEach((each) => { this.networkingServer.Flush(each.Client); });
+            this.playersStorage.ForEach((each) => { 
+                this.networkingServer.Read(each.Client); 
+                this.networkingServer.Flush(each.Client);    
+            });
             this.movementController.Update();
         }
 
         internal void AddPlayer(NetworkPlayer player) {
-            this.connectedPlayers.Add(player);
+            this.playersStorage.Add(player);
+        }
+
+        internal void RemovePlayer(NetworkPlayer player) {
+            this.playersStorage.Remove(player);
         }
 
         internal NetworkPlayer FindPlayer(NetworkClient client) {
-            return this.connectedPlayers.Find(player => player.Client == client);
+            return this.playersStorage.Find(player => player.Client == client);
         }
 
         internal void SendBroadcast(IEncodable message) {
-            this.networkingServer.SendBroadcast(message, this.connectedPlayers.ConvertAll(c => c.Client));
+            this.networkingServer.SendBroadcast(message, this.playersStorage.ConvertAll(c => c.Client));
         }
 
         internal void SendBroadcast(IEncodable message, NetworkClient excludeClient) {
-            List<NetworkClient> all = new List<NetworkClient>();
-            foreach (var x in this.connectedPlayers) { if (x.Client != excludeClient) { all.Add(x.Client); } }
-            this.networkingServer.SendBroadcast(message, all);
+            List<NetworkClient> clientList = this.playersStorage.ConvertFindingAll(
+                player => player.Client != excludeClient, 
+                player => player.Client
+            );
+            this.networkingServer.SendBroadcast(message, clientList);
         }
 
         internal void Send(IEncodable message, NetworkClient client) {

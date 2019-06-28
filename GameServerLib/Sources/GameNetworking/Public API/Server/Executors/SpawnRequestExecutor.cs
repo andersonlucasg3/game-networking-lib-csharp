@@ -26,10 +26,10 @@ namespace GameNetworking.Executors.Server {
 
             var playerSpawn = new PlayerSpawnMessage {
                 playerId = this.player.PlayerId,
-                spawnId = id,
-                position = spawned.transform.position.ToVec3(),
-                rotation = spawned.transform.eulerAngles.ToVec3()
+                spawnId = id
             };
+            spawned.transform.position.CopyToVec3(ref playerSpawn.position);
+            spawned.transform.eulerAngles.CopyToVec3(ref playerSpawn.rotation);
             this.server.SendBroadcast(playerSpawn);
         }
     }

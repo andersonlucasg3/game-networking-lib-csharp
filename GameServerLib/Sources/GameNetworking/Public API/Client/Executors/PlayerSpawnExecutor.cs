@@ -20,10 +20,8 @@ namespace GameNetworking.Executors.Client {
             player.GameObject = spawned;
             
             var charController = spawned.GetComponent<CharacterController>();
-            if (charController != null) {
-                charController.enabled = false;
-            }
-
+            charController.enabled = false;
+            
             Vector3 pos = Vector3.zero;
             Vector3 euler = Vector3.zero;
             this.spawnMessage.position.CopyToVector3(ref pos);
@@ -31,9 +29,7 @@ namespace GameNetworking.Executors.Client {
             spawned.transform.position = pos;
             spawned.transform.eulerAngles = euler;
 
-            if (charController != null) {
-                charController.enabled = true;
-            }
+            charController.enabled = true;
         }
     }
 }

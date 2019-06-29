@@ -16,8 +16,6 @@ namespace GameNetworking {
         void INetworkingServerMessagesDelegate.NetworkingServerDidReadMessage(MessageContainer container, NetworkClient client) {
             var player = this.Server.FindPlayer(client);
 
-            Logging.Logger.Log(this.GetType(), string.Format("NetworkingServerDidReadMessage | container: {0}, client: {1}", container, player));
-
             if (container.Is(typeof(SpawnRequestMessage))) {
                 new SpawnRequestExecutor(this.Server, container.Parse<SpawnRequestMessage>(), player).Execute();
             } else if (container.Is(typeof(MoveRequestMessage))) {

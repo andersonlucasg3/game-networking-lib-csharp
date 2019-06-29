@@ -10,8 +10,6 @@ namespace GameNetworking {
         internal void Route(MessageContainer container) {
             if (container == null) { return; }
 
-            Logging.Logger.Log(this.GetType(), string.Format("Route | container: {0}", container));
-
             if (container.Is(typeof(ConnectedPlayerMessage))) {
                 new ConnectedPlayerExecutor(this.Client, container.Parse<ConnectedPlayerMessage>()).Execute();
             } else if (container.Is(typeof(PlayerSpawnMessage))) {

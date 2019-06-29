@@ -3,8 +3,8 @@ using System;
 using Messages.Models;
 using GameNetworking;
 using GameNetworking.Messages.Client;
-using GameNetworking.Messages.Server;
 using GameNetworking.Messages;
+using Messages.Coders;
 
 [Serializable]
 public enum MultiplayerBehaviourType {
@@ -76,6 +76,10 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameCli
         MoveRequestMessage message = new MoveRequestMessage();
         direction.CopyToVec3(ref message.direction);
         this.client?.Send(message);
+    }
+
+    public void SendCustom(IEncodable encodable) {
+        this.client?.Send(encodable);
     }
 
     #region IGameServerDelegate

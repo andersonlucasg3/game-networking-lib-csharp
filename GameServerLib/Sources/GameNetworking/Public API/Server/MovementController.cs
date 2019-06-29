@@ -51,6 +51,8 @@ namespace GameNetworking {
         }
 
         private void SendSync(NetworkPlayer player) {
+            if (player.GameObject?.transform == null) { return; }
+
             var syncMessage = new SyncMessage() {
                 playerId = player.PlayerId
             };

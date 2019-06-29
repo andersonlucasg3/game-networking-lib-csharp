@@ -84,6 +84,10 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameCli
 
     #region IGameServerDelegate
 
+    public virtual void GameServerPlayerDidDisconnect(GameNetworking.Models.Server.NetworkPlayer player) {
+        
+    }
+
     public virtual GameObject GameServerSpawnCharacter(GameNetworking.Models.Server.NetworkPlayer player) {
         return null;
     }

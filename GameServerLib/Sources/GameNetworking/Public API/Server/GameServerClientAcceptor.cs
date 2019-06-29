@@ -26,7 +26,8 @@
         }
 
         void INetworkingServerDelegate.NetworkingServerClientDidDisconnect(NetworkClient client) {
-            
+            var player = this.Server.FindPlayer(client);
+            if (player != null) { this.Server.Delegate?.GameServerPlayerDidDisconnect(player); }
         }
 
         #endregion

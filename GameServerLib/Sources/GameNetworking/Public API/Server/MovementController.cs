@@ -8,25 +8,42 @@ namespace GameNetworking {
     using Messages.Server;
     using Messages;
 
-    internal class MovementController: BaseServerWorker {
-        private const float syncTimeMs = 0.2F;
-        private float lastSyncTime;
+    public interface IMovementController {
+        void Move(NetworkPlayer player, Vector3 direction, float velocity);
+    }
 
+    internal class MovementController: BaseServerWorker, IMovementController {
+        private float lastSyncTime;
         private NetworkPlayersStorage players;
+
+        public float SyncIntervalMs {
+            get; set;
+        }
 
         internal MovementController(GameServer gameServer, NetworkPlayersStorage storage) :base(gameServer) { 
             this.players = storage;
+            this.SyncIntervalMs = 0.2f;
         }
 
-        public void Move(NetworkPlayer player, Vector3 direction) {
+        public void Move(NetworkPlayer player, Vector3 direction, float velocity) {
             var charController = player.GameObject.GetComponent<CharacterController>();
             if (charController != null) {
-                charController.Move(direction);
+                charController.Move(direction * velocity);
+                this.Rotate(charController.transform, direction.normalized);
+            } else {
+                var movement = direction.normalized;
+                player.GameObject.transform.position = movement * velocity * Time.deltaTime;
+                this.Rotate(player.GameObject.transform, movement);
             }
         }
 
-        public void Update() {
-            if (Time.time - this.lastSyncTime > syncTimeMs) {
+        private void Rotate(Transform transform, Vector3 direction) {
+            direction.y = 0;
+            transform.forward = direction;
+        }
+
+        internal void Update() {
+            if (Time.time - this.lastSyncTime > this.SyncIntervalMs) {
                 this.lastSyncTime = Time.time;
 
                 this.players?.ForEach(player => this.SendSync(player));

@@ -6,7 +6,7 @@ namespace GameNetworking.Executors.Server {
     using Messages.Client;
     using Messages.Server;
     
-    internal class SpawnRequestExecutor: IExecutor {
+    internal struct SpawnRequestExecutor: IExecutor {
         private readonly GameServer server;
         private readonly SpawnRequestMessage message;
         private readonly NetworkPlayer player;

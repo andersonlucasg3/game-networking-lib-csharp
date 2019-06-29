@@ -4,7 +4,7 @@ namespace GameNetworking.Executors.Server {
     using Models.Server;
     using Messages.Client;
 
-    internal class MoveRequestExecutor: IExecutor {
+    internal struct MoveRequestExecutor: IExecutor {
         private readonly GameServer gameServer;
         private readonly NetworkPlayer player;
         private readonly MoveRequestMessage message;
@@ -18,7 +18,7 @@ namespace GameNetworking.Executors.Server {
         public void Execute() {
             Vector3 vec3 = Vector3.zero;
             this.message.direction.CopyToVector3(ref vec3);
-            this.gameServer.movementController.Move(this.player, vec3);
+            this.gameServer.Delegate?.GameServerDidReceiveMoveRequest(vec3, this.player, this.gameServer.movementController);
         }
     }
 }

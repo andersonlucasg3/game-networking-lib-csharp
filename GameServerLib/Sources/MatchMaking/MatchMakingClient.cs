@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Threading.Tasks;
+using Networking;
 
 namespace MatchMaking {
     using Connection;
@@ -21,7 +21,7 @@ namespace MatchMaking {
 
         public void Start(string host, int port) {
             if (!(this.connection?.IsConnecting ?? false)) {
-                this.connection = new ClientConnection<MMClient>(new Networking.Networking());
+                this.connection = new ClientConnection<MMClient>(new NetSocket());
                 this.connection.Connect(host, port);
             }
         }

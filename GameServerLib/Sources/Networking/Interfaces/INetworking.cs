@@ -7,14 +7,14 @@ namespace Networking {
         INetworkingDelegate Delegate { get; set; }
 
         void Start(int port);
-        Client Accept();
+        NetClient Accept();
         void Stop();
 
         void Connect(string host, int port);
-        void Disconnect(Client client);
+        void Disconnect(NetClient client);
 
-        byte[] Read(Client client);
-        void Send(Client client, byte[] message);
-        void Flush(Client client);
+        byte[] Read(NetClient client);
+        void Send(NetClient client, byte[] message);
+        void Flush(NetClient client);
     }
 }

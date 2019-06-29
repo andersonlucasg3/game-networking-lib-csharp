@@ -60,7 +60,7 @@ namespace MatchMaking.Connection {
 
         #region INetworkingDelegate
 
-        void INetworkingDelegate.NetworkingDidConnect(Networking.Models.Client client) {
+        void INetworkingDelegate.NetworkingDidConnect(Networking.Models.NetClient client) {
             this.client = Client.Create<MMClient>(client, new MessageDecoder(), new MessageEncoder());
             this.IsConnecting = false;
             this.Delegate?.ClientConnectionDidConnect();
@@ -72,7 +72,7 @@ namespace MatchMaking.Connection {
             this.Delegate?.ClientConnectionDidTimeout();
         }
 
-        void INetworkingDelegate.NetworkingDidDisconnect(Networking.Models.Client client) {
+        void INetworkingDelegate.NetworkingDidDisconnect(Networking.Models.NetClient client) {
             this.client = null;
             this.IsConnecting = false;
             this.Delegate?.ClientConnectionDidDisconnect();

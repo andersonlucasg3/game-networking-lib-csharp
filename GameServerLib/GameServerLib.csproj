@@ -12,11 +12,28 @@
   </PropertyGroup>
   <ItemGroup>
     <Folder Include="Sources\" />
-    <Folder Include="Sources\GameServer\" />
+    <Folder Include="Sources\GameNetworking\" />
     <Folder Include="Sources\MatchMaking\Connection\" />
+    <Folder Include="Sources\GameNetworking\Interfaces\" />
+    <Folder Include="Sources\GameNetworking\Networking\" />
+    <Folder Include="Sources\GameNetworking\Models\" />
+    <Folder Include="Sources\GameNetworking\Public API\" />
+    <Folder Include="Sources\GameNetworking\Public API\Client\" />
+    <Folder Include="Sources\GameNetworking\Public API\Server\" />
+    <Folder Include="Sources\GameNetworking\Public API\Client\Messages\" />
+    <Folder Include="Sources\GameNetworking\Public API\Messages\" />
+    <Folder Include="Sources\GameNetworking\Public API\Server\Messages\" />
+    <Folder Include="Sources\GameNetworking\Public API\Server\Executors\" />
+    <Folder Include="Sources\GameNetworking\Public API\Client\Executors\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.8.0" />
     <PackageReference Include="Google.Protobuf.Tools" Version="3.8.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="UnityEngine">
+      <HintPath>..\..\..\..\..\..\Applications\Unity\Hub\Editor\2019.1.8f1\Unity.app\Contents\Managed\UnityEngine.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
 </Project>

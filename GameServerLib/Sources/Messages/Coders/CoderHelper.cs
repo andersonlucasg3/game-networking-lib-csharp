@@ -24,16 +24,34 @@ namespace Messages.Coders {
         }
 
         internal static void WriteHeader(Type type, ref List<byte> buffer) {
-            buffer.AddRange(BitConverter.GetBytes(type.GetHashCode()));
+            buffer.AddRange(BitConverter.GetBytes(type.ToString().GetHashCode()));
         }
 
         internal static bool IsType(Type type, List<byte> buffer) {
-            byte[] typeBytes = buffer.GetRange(0, sizeof(int)).ToArray();
-            return typeBytes.Equals(BitConverter.GetBytes(type.GetHashCode()));
+            byte[] messageTypeBytes = buffer.GetRange(0, sizeof(int)).ToArray();
+            byte[] typeBytes = BitConverter.GetBytes(type.ToString().GetHashCode());
+            return ArraySearch.ContentEquals(typeBytes, messageTypeBytes);
         }
     }
 
     internal static class ArraySearch {
+        internal static bool ContentEquals(byte[] one, byte[] other) {
+            if (one == null || other == null) {
+                return false;
+            }
+            if (one.Length != other.Length) {
+                return false;
+            }
+
+            for (var i = 0; i < one.Length; i++) {
+                if (one[i] != other[i]) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         private class PartialMatch {
             public int Index { get; private set; }
             public int MatchLength { get; set; }

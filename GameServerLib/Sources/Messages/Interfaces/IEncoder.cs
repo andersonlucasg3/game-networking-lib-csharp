@@ -13,6 +13,8 @@
         void Encode(string value);
         void Encode(byte[] value);
 
+        void Encode(bool value);
+
         void Encode(IEncodable value);
     }
 }

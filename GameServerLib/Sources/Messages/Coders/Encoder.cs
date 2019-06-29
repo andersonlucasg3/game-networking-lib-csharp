@@ -61,6 +61,10 @@ namespace Messages.Coders {
             this.writer.Write(value);
         }
 
+        public void Encode(bool value) {
+            this.writer.Write(value);
+        }
+
         public void Encode(IEncodable value) {
             bool hasValue = value != null;
             this.writer.Write(hasValue);

@@ -59,7 +59,11 @@ namespace GameNetworking.Networking {
         }
 
         public void Flush(NetworkClient client) {
-            this.networking.Flush(client.Client);
+            if (client.Client.IsConnected) {
+                this.networking.Flush(client.Client);
+            } else {
+                this.Delegate?.NetworkingServerClientDidDisconnect(client);
+            }
         }
     }
 }

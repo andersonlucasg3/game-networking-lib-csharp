@@ -15,7 +15,10 @@ namespace GameNetworking.Executors.Client {
         public void Execute() {
             var player = this.gameClient.FindPlayer(this.message.playerId);
             
-            var charController = player.GameObject.GetComponent<CharacterController>();
+            var charController = player?.GameObject?.GetComponent<CharacterController>();
+
+            if (charController == null) { return; }
+
             charController.enabled = false;
             
             Vector3 pos = Vector3.zero;

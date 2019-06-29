@@ -66,6 +66,14 @@ namespace GameNetworking {
             return this.playersStorage.Find(player => player.Client == client);
         }
 
+        internal NetworkPlayer FindPlayer(int playerId) {
+            return this.playersStorage.Find(player => player.PlayerId == playerId);
+        }
+
+        internal List<NetworkPlayer> AllPlayers() {
+            return this.playersStorage.Players;
+        }
+
         internal void SendBroadcast(IEncodable message) {
             this.networkingServer.SendBroadcast(message, this.playersStorage.ConvertAll(c => c.Client));
         }

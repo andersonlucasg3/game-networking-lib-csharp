@@ -48,13 +48,13 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameCli
         }
     }
 
-    protected void StartServer() {
+    protected virtual void StartServer() {
         this.server = new GameServer { Delegate = this };
         this.server.movementController.SyncIntervalMs = this.syncIntervalMs / 1000.0F;
         this.server.Listen(this.port);
     }
 
-    protected void StartClient() {
+    protected virtual void StartClient() {
         this.client = new GameClient { Delegate = this };
         this.client.Connect(this.connectToHost, this.port);
     }
@@ -84,7 +84,7 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameCli
 
     #region IGameServerDelegate
 
-    public virtual GameObject GameServerSpawnCharacter(int spawnId, GameNetworking.Models.Server.NetworkPlayer player) {
+    public virtual GameObject GameServerSpawnCharacter(GameNetworking.Models.Server.NetworkPlayer player) {
         return null;
     }
 
@@ -112,7 +112,7 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameCli
 
     }
 
-    public virtual GameObject GameClientSpawnCharacter(int spawnId, GameNetworking.Models.Client.NetworkPlayer player) {
+    public virtual GameObject GameClientSpawnCharacter(GameNetworking.Models.Client.NetworkPlayer player) {
         return null;
     }
 

@@ -11,6 +11,6 @@ namespace GameNetworking {
 
         void GameClientDidReceiveMessage(MessageContainer container);
 
-        GameObject GameClientSpawnCharacter(int spawnId, NetworkPlayer player);
+        GameObject GameClientSpawnCharacter(NetworkPlayer player);
     }
 }

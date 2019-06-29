@@ -12,7 +12,7 @@
         }
 
         public void Execute() {
-            Logging.Logger.Log(this.GetType(), "Executing...");
+            Logging.Logger.Log(this.GetType(), string.Format("Executing for playerId {0} is me {1}", this.message.playerId, this.message.isMe));
 
             var player = new NetworkPlayer(this.message.playerId) {
                 IsLocalPlayer = this.message.isMe

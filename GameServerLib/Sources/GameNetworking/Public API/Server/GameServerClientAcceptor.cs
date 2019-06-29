@@ -12,9 +12,21 @@
 
         void INetworkingServerDelegate.NetworkingServerDidAcceptClient(NetworkClient client) {
             NetworkPlayer player = new NetworkPlayer(client);
+            this.Server.SendBroadcast(new ConnectedPlayerMessage { playerId = player.PlayerId, isMe = false });
             this.Server.AddPlayer(player);
-            this.Server.SendBroadcast(new ConnectedPlayerMessage { playerId = player.PlayerId, isMe = false }, client);
             this.Server.Send(new ConnectedPlayerMessage { playerId = player.PlayerId, isMe = true }, client);
+
+            this.Server.AllPlayers().ForEach(each => {
+                if (each.Client == client) { return; }
+                var connected = new ConnectedPlayerMessage();
+                connected.playerId = each.PlayerId;
+                connected.isMe = false;
+                this.Server.Send(connected, client);
+            });
+        }
+
+        void INetworkingServerDelegate.NetworkingServerClientDidDisconnect(NetworkClient client) {
+            
         }
 
         #endregion

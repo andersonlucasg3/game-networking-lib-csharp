@@ -5,6 +5,7 @@ namespace GameNetworking {
 
     internal interface INetworkingServerDelegate {
         void NetworkingServerDidAcceptClient(NetworkClient client);
+        void NetworkingServerClientDidDisconnect(NetworkClient client);
     }
 
     internal interface INetworkingServerMessagesDelegate {

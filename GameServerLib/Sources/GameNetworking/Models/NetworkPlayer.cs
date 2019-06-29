@@ -16,6 +16,10 @@ namespace GameNetworking.Models {
                 get; private set;
             }
 
+            public int SpawnId {
+                get; set;
+            }
+
             public GameObject GameObject {
                 get { return this.weakGameObject?.Target as GameObject; }
                 internal set { this.weakGameObject = new WeakReference(value); }

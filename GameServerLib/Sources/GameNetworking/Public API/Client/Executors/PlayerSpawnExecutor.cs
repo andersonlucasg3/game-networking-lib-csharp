@@ -13,10 +13,13 @@ namespace GameNetworking.Executors.Client {
         }
 
         public void Execute() {
-            Logging.Logger.Log(this.GetType(), "Executing...");
+            Logging.Logger.Log(this.GetType(), string.Format("Executing for playerId {0}", this.spawnMessage.playerId));
 
             var player = this.gameClient.FindPlayer(this.spawnMessage.playerId);
-            var spawned = this.gameClient.Delegate?.GameClientSpawnCharacter(this.spawnMessage.spawnId, player);
+
+            player.SpawnId = this.spawnMessage.spawnId;
+
+            var spawned = this.gameClient.Delegate?.GameClientSpawnCharacter(player);
             player.GameObject = spawned;
             
             var charController = spawned.GetComponent<CharacterController>();

@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using Messages.Models;
+using System.Collections.Generic;
 
 namespace GameNetworking {
     using Models.Client;

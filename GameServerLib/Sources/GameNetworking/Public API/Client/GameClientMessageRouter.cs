@@ -1,23 +1,26 @@
 ﻿using Messages.Models;
 
 namespace GameNetworking {
+    using Messages;
     using Messages.Server;
     using Executors.Client;
 
-    internal class GameClientMessageRouter: BaseClientWorker {
+    internal class GameClientMessageRouter: BaseWorker<GameClient> {
         internal GameClientMessageRouter(GameClient client) : base(client) { }
 
         internal void Route(MessageContainer container) {
             if (container == null) { return; }
 
             if (container.Is(typeof(ConnectedPlayerMessage))) {
-                new ConnectedPlayerExecutor(this.Client, container.Parse<ConnectedPlayerMessage>()).Execute();
+                new ConnectedPlayerExecutor(this.Instance, container.Parse<ConnectedPlayerMessage>()).Execute();
             } else if (container.Is(typeof(PlayerSpawnMessage))) {
-                new PlayerSpawnExecutor(this.Client, container.Parse<PlayerSpawnMessage>()).Execute();
+                new PlayerSpawnExecutor(this.Instance, container.Parse<PlayerSpawnMessage>()).Execute();
             } else if (container.Is(typeof(SyncMessage))) {
-                new SyncExecutor(this.Client, container.Parse<SyncMessage>()).Execute();
+                new SyncExecutor(this.Instance, container.Parse<SyncMessage>()).Execute();
+            } else if (container.Is(typeof(MoveRequestMessage))) {
+                new ClientMoveRequestExecutor(this.Instance, container.Parse<MoveRequestMessage>()).Execute();
             } else {
-                this.Client?.Delegate?.GameClientDidReceiveMessage(container);
+                this.Instance?.Delegate?.GameClientDidReceiveMessage(container);
             }
         }
     }

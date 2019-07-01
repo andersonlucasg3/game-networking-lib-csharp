@@ -8,20 +8,29 @@ namespace GameNetworking {
     using Models.Server;
     using Messages;
 
-    public class GameServer {
+    public class GameServer: IGameInstance {
         private readonly NetworkPlayersStorage playersStorage;
 
         private readonly GameServerClientAcceptor clientAcceptor;
         private readonly GameServerMessageRouter router;
 
         private WeakReference weakDelegate;
+        private WeakReference weakInstanceDelegate;
 
         internal readonly NetworkingServer networkingServer;
-        internal readonly MovementController movementController;
+
+        public readonly GameServerMovementController movementController;
+
+        IMovementController IGameInstance.MovementController { get { return this.movementController; } }
 
         public IGameServerDelegate Delegate {
             get { return this.weakDelegate?.Target as IGameServerDelegate; }
             set { this.weakDelegate = new WeakReference(value); }
+        }
+
+        public IGameInstanceDelegate InstanceDelegate {
+            get { return this.weakInstanceDelegate?.Target as IGameInstanceDelegate; }
+            set { this.weakInstanceDelegate = new WeakReference(value); }
         }
 
         public GameServer() {
@@ -32,7 +41,7 @@ namespace GameNetworking {
             this.clientAcceptor = new GameServerClientAcceptor(this);
             this.router = new GameServerMessageRouter(this);
 
-            this.movementController = new MovementController(this, this.playersStorage);
+            this.movementController = new GameServerMovementController(this, this.playersStorage);
         }
 
         public void Listen(int port) {
@@ -46,12 +55,13 @@ namespace GameNetworking {
         }
 
         public void Update() {
+            this.movementController.Update();
+            
             this.networkingServer.AcceptClient();
             this.playersStorage.ForEach((each) => { 
                 this.networkingServer.Read(each.Client); 
                 this.networkingServer.Flush(each.Client);    
             });
-            this.movementController.Update();
         }
 
         internal void AddPlayer(NetworkPlayer player) {
@@ -88,16 +98,6 @@ namespace GameNetworking {
 
         internal void Send(IEncodable message, NetworkClient client) {
             this.networkingServer.Send(message, client);
-        }
-    }
-
-    internal abstract class BaseServerWorker {
-        private readonly WeakReference weakServer;
-
-        protected GameServer Server => this.weakServer?.Target as GameServer;
-
-        protected BaseServerWorker(GameServer server) {
-            this.weakServer = new WeakReference(server);
         }
     }
 }

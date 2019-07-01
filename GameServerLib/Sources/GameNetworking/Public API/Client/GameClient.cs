@@ -7,18 +7,29 @@ namespace GameNetworking {
     using Models;
     using Models.Client;
 
-    public sealed class GameClient {
+    public class GameClient: IGameInstance {
         private readonly NetworkPlayersStorage playersStorage;
         private readonly GameClientConnector connector;
         private readonly GameClientMessageRouter router;
+        
         private WeakReference weakDelegate;
+        private WeakReference weakInstanceDelegate;
 
         internal readonly NetworkingClient networkingClient;
+
+        public readonly GameClientMovementController movementController;
 
         public IGameClientDelegate Delegate {
             get { return this.weakDelegate?.Target as IGameClientDelegate; }
             set { this.weakDelegate = new WeakReference(value); }
         }
+
+        public IGameInstanceDelegate InstanceDelegate {
+            get { return this.weakInstanceDelegate?.Target as IGameInstanceDelegate; }
+            set { this.weakInstanceDelegate = new WeakReference(value); }
+        }
+
+        IMovementController IGameInstance.MovementController { get { return this.movementController; } }
 
         public GameClient() {
             this.playersStorage = new NetworkPlayersStorage();
@@ -27,6 +38,7 @@ namespace GameNetworking {
 
             this.connector = new GameClientConnector(this);
             this.router = new GameClientMessageRouter(this);
+            this.movementController = new GameClientMovementController(this, this.playersStorage);
         }
 
         public void Connect(string host, int port) {
@@ -38,6 +50,8 @@ namespace GameNetworking {
         }
 
         public void Update() {
+            this.movementController.Update();
+            
             this.router.Route(this.networkingClient.Read());
             this.networkingClient.Flush();
         }
@@ -49,15 +63,9 @@ namespace GameNetworking {
         internal NetworkPlayer FindPlayer(int playerId) {
             return this.playersStorage.Find(player => player.PlayerId == playerId) as NetworkPlayer;
         }
-    }
 
-    internal abstract class BaseClientWorker {
-        private readonly WeakReference weakClient;
-
-        protected GameClient Client => this.weakClient?.Target as GameClient;
-
-        protected BaseClientWorker(GameClient client) {
-            this.weakClient = new WeakReference(client);
+        internal List<GameNetworking.Models.Server.NetworkPlayer> AllPlayers() {
+            return this.playersStorage.Players;
         }
     }
 }

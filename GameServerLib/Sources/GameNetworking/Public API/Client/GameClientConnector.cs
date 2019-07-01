@@ -3,31 +3,31 @@
 namespace GameNetworking {
     using Networking;
 
-    internal class GameClientConnector: BaseClientWorker, INetworkingClientDelegate {
+    internal class GameClientConnector: BaseWorker<GameClient>, INetworkingClientDelegate {
         internal GameClientConnector(GameClient client) : base(client) {
             client.networkingClient.Delegate = this;
         }        
 
         internal void Connect(string host, int port) {
-            this.Client?.networkingClient.Connect(host, port);
+            this.Instance?.networkingClient.Connect(host, port);
         }
 
         internal void Disconnect() {
-            this.Client?.networkingClient.Disconnect();
+            this.Instance?.networkingClient.Disconnect();
         }
 
         #region INetworkingClientDelegate
 
         void INetworkingClientDelegate.NetworkingClientDidConnect() {
-            this.Client?.Delegate?.GameClientDidConnect();
+            this.Instance?.Delegate?.GameClientDidConnect();
         }
 
         void INetworkingClientDelegate.NetworkingClientConnectDidTimeout() {
-            this.Client?.Delegate?.GameClientConnectDidTimeout();
+            this.Instance?.Delegate?.GameClientConnectDidTimeout();
         }
 
         void INetworkingClientDelegate.NetworkingClientDidDisconnect() {
-            this.Client?.Delegate?.GameClientDidDisconnect();
+            this.Instance?.Delegate?.GameClientDidDisconnect();
         }
 
         #endregion

@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System;
+using System.Collections.Generic;
 using Messages.Models;
 using GameNetworking;
 using GameNetworking.Messages.Client;
@@ -12,9 +13,9 @@ public enum MultiplayerBehaviourType {
     CLIENT
 }
 
-public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameClientDelegate {
-    private GameServer server;
-    private GameClient client;
+public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameClientDelegate, IGameInstanceDelegate {
+    protected GameServer server;
+    protected GameClient client;
 
     [SerializeField]
     protected GameObject[] spawnableObjects = new GameObject[0];
@@ -49,13 +50,13 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameCli
     }
 
     protected virtual void StartServer() {
-        this.server = new GameServer { Delegate = this };
+        this.server = new GameServer { Delegate = this, InstanceDelegate = this };
         this.server.movementController.SyncIntervalMs = this.syncIntervalMs / 1000.0F;
         this.server.Listen(this.port);
     }
 
     protected virtual void StartClient() {
-        this.client = new GameClient { Delegate = this };
+        this.client = new GameClient { Delegate = this, InstanceDelegate = this };
         this.client.Connect(this.connectToHost, this.port);
     }
 
@@ -78,9 +79,46 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameCli
         this.client?.Send(message);
     }
 
-    public void SendCustom(IEncodable encodable) {
-        this.client?.Send(encodable);
+    public void Send(IEncodable encodable, GameNetworking.Models.Server.NetworkPlayer player) {
+        switch (this.behaviourType) {
+            case MultiplayerBehaviourType.CLIENT: this.client?.Send(encodable); break;
+            case MultiplayerBehaviourType.SERVER: this.server?.Send(encodable, player.Client); break;
+        }
     }
+
+    public void Broadcast(IEncodable encodable) {
+        this.server?.SendBroadcast(encodable);
+    }
+
+    public void Broadcast(IEncodable encodable, GameNetworking.Models.Server.NetworkPlayer excludePlayer) {
+        this.server.SendBroadcast(encodable, excludePlayer.Client);
+    }
+
+    public GameNetworking.Models.Server.NetworkPlayer FindPlayer(int playerId) {
+        switch (this.behaviourType) {
+            case MultiplayerBehaviourType.CLIENT: return this.client.FindPlayer(playerId);
+            case MultiplayerBehaviourType.SERVER: return this.client.FindPlayer(playerId);
+        }
+        return null;
+    }
+
+    public List<GameNetworking.Models.Server.NetworkPlayer> AllPlayers() {
+        switch (this.behaviourType) {
+            case MultiplayerBehaviourType.CLIENT: return this.client.AllPlayers();
+            case MultiplayerBehaviourType.SERVER: return this.server.AllPlayers();
+        }
+        return null;
+    }
+
+    #region IGameInstance
+
+    public virtual void GameInstanceMovePlayer(GameNetworking.Models.Server.NetworkPlayer player, IMovementController movementController) {
+        if (player.inputState.HasMovement) {
+            movementController.Move(player, player.inputState.direction, this.moveStep * Time.deltaTime);
+        }
+    }
+
+    #endregion
 
     #region IGameServerDelegate
 
@@ -94,10 +132,6 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameCli
 
     public virtual void GameServerDidReceiveClientMessage(MessageContainer container, GameNetworking.Models.Server.NetworkPlayer player) {
 
-    }
-
-    public virtual void GameServerDidReceiveMoveRequest(Vector3 direction, GameNetworking.Models.Server.NetworkPlayer player, IMovementController movementController) {
-        movementController.Move(player, direction, this.moveStep * Time.deltaTime);
     }
 
     #endregion

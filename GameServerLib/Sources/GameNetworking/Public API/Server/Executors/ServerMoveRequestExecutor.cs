@@ -15,11 +15,12 @@
 
         public void Execute() {
             this.message.direction.CopyToVector3(ref this.player.inputState.direction);
-
+            
             this.message.playerId = this.player.PlayerId;
+
             var self = this;
             this.server.AllPlayers().ForEach(player => {
-                if (player.PlayerId != self.player.PlayerId) { return; }
+                if (player.PlayerId == self.player.PlayerId) { return; }
                 self.server.Send(self.message, player.Client);
             });
         }

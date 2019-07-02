@@ -8,24 +8,36 @@ namespace GameNetworking {
     using Messages.Server;
     using Messages;
 
-    public class GameServerMovementController: MovementController<GameServer> {
+    public class GameServerSyncController {
+        private WeakReference weakGameServer;
+        private NetworkPlayersStorage storage;
         private float lastSyncTime;
+
+        private GameServer Instance {
+            get { return this.weakGameServer?.Target as GameServer; }
+        }
 
         public float SyncIntervalMs {
             get; set;
         }
 
-        internal GameServerMovementController(GameServer instance, NetworkPlayersStorage storage) : base(instance, storage) {
+        internal GameServerSyncController(GameServer server, NetworkPlayersStorage storage) {
+            this.weakGameServer = new WeakReference(server);
+            this.storage = storage;
             this.SyncIntervalMs = 0.2f;
         }
 
-        public override void Update() {
-            base.Update();
-            
+        public void Update() {
+            this.storage.ForEach(player => {
+                if (player.inputState.HasMovement) {
+                    this.Instance.InstanceDelegate?.GameInstanceMovePlayer(player, player.inputState.direction);
+                }
+            });
+
             if (Time.time - this.lastSyncTime > this.SyncIntervalMs) {
                 this.lastSyncTime = Time.time;
 
-                this.players?.ForEach(player => this.SendSync(player));
+                this.storage?.ForEach(player => this.SendSync(player));
             }
         }
 

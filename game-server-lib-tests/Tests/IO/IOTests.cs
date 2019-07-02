@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using Messages.Coders;
 using Messages.Coders.Binary;
+using Messages.Models;
 using Messages.Streams;
 using System;
 using System.IO;
@@ -137,14 +138,14 @@ namespace Tests.IO {
                     decoder.Add(data.GetRange(position, 1).ToArray());
                     var container = decoder.Decode();
                     if (container != null) {
-                        if (container.Is(typeof(LoginRequest))) {
+                        if (container.Is(LoginRequest.Type)) {
                             var message = container.Parse<LoginRequest>();
                             Assert.AreEqual(message.accessToken, firstToken);
                             Assert.AreEqual(message.username, username);
-                        } else if (container.Is(typeof(MatchRequest))) {
+                        } else if (container.Is(MatchRequest.Type)) {
                             var message = container.Parse<MatchRequest>();
                             Assert.AreNotEqual(message, null);
-                        } else if (container.Is(typeof(ConnectGameInstanceResponse))) {
+                        } else if (container.Is(ConnectGameInstanceResponse.Type)) {
                             var message = container.Parse<ConnectGameInstanceResponse>();
                             Assert.AreEqual(message.ip, ip);
                             Assert.AreEqual(message.port, port);
@@ -170,7 +171,15 @@ namespace Tests.IO {
         }
     }
 
-    class LoginRequest : ICodable {
+    class LoginRequest : ITypedMessage {
+        public static int Type {
+            get { return 200; }
+        }
+
+        int ITypedMessage.Type {
+            get { return LoginRequest.Type; }
+        }
+
         public string accessToken;
         public string username;
 
@@ -185,13 +194,29 @@ namespace Tests.IO {
         }
     }
 
-    class MatchRequest : ICodable {
+    class MatchRequest : ITypedMessage {
+        public static int Type {
+            get { return 201; }
+        }
+
+        int ITypedMessage.Type {
+            get { return MatchRequest.Type; }
+        }
+
         public void Encode(IEncoder encoder) { }
 
         public void Decode(IDecoder decoder) { }
     }
 
-    class ConnectGameInstanceResponse : ICodable {
+    class ConnectGameInstanceResponse : ITypedMessage {
+        public static int Type {
+            get { return 202; }
+        }
+
+        int ITypedMessage.Type {
+            get { return ConnectGameInstanceResponse.Type; }
+        }
+
         public string token;
         public string ip;
         public short port;
@@ -210,7 +235,15 @@ namespace Tests.IO {
     }
 
     [Serializable]
-    class Value : ICodable {
+    class Value : ITypedMessage {
+        public static int Type {
+            get { return 100; }
+        }
+
+        int ITypedMessage.Type {
+            get { return Value.Type; }
+        }
+
         public int intVal = 1;
         public short shortVal = 2;
         public long longVal = 3;
@@ -249,7 +282,15 @@ namespace Tests.IO {
     }
 
     [Serializable]
-    class SubValue : ICodable {
+    class SubValue : ITypedMessage {
+        public static int Type {
+            get { return 101; }
+        }
+
+        int ITypedMessage.Type {
+            get { return SubValue.Type; }
+        }
+
         public string name = "Meu nome";
         public int age = 30;
         public float height = 1.95F;
@@ -286,7 +327,15 @@ namespace Tests.IO {
     }
 
     [Serializable]
-    class SubSubValue : ICodable {
+    class SubSubValue : ITypedMessage {
+        public static int Type {
+            get { return 102; }
+        }
+
+        int ITypedMessage.Type {
+            get { return SubSubValue.Type; }
+        }
+
         public string empty;
 
         public void Encode(IEncoder encoder) {

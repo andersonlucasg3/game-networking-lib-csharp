@@ -5,7 +5,6 @@ using Messages.Models;
 using GameNetworking;
 using GameNetworking.Messages.Client;
 using GameNetworking.Messages;
-using Messages.Coders;
 
 [Serializable]
 public enum MultiplayerBehaviourType {
@@ -19,19 +18,12 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameCli
 
     [SerializeField]
     protected GameObject[] spawnableObjects = new GameObject[0];
-
     [SerializeField]
     protected MultiplayerBehaviourType behaviourType = MultiplayerBehaviourType.SERVER;
-
     [SerializeField]
     protected string connectToHost = "127.0.0.1";
-
     [SerializeField]
     protected int port = 30000;
-
-    [SerializeField]
-    protected float moveStep = 1;
-
     [SerializeField]
     protected int syncIntervalMs = 200;
 
@@ -51,7 +43,7 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameCli
 
     protected virtual void StartServer() {
         this.server = new GameServer { Delegate = this, InstanceDelegate = this };
-        this.server.movementController.SyncIntervalMs = this.syncIntervalMs / 1000.0F;
+        this.server.syncController.SyncIntervalMs = this.syncIntervalMs / 1000.0F;
         this.server.Listen(this.port);
     }
 
@@ -79,18 +71,18 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameCli
         this.client?.Send(message);
     }
 
-    public void Send(IEncodable encodable, GameNetworking.Models.Server.NetworkPlayer player) {
+    public void Send(ITypedMessage encodable, GameNetworking.Models.Server.NetworkPlayer player) {
         switch (this.behaviourType) {
             case MultiplayerBehaviourType.CLIENT: this.client?.Send(encodable); break;
             case MultiplayerBehaviourType.SERVER: this.server?.Send(encodable, player.Client); break;
         }
     }
 
-    public void Broadcast(IEncodable encodable) {
+    public void Broadcast(ITypedMessage encodable) {
         this.server?.SendBroadcast(encodable);
     }
 
-    public void Broadcast(IEncodable encodable, GameNetworking.Models.Server.NetworkPlayer excludePlayer) {
+    public void Broadcast(ITypedMessage encodable, GameNetworking.Models.Server.NetworkPlayer excludePlayer) {
         this.server.SendBroadcast(encodable, excludePlayer.Client);
     }
 
@@ -112,10 +104,8 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameCli
 
     #region IGameInstance
 
-    public virtual void GameInstanceMovePlayer(GameNetworking.Models.Server.NetworkPlayer player, IMovementController movementController) {
-        if (player.inputState.HasMovement) {
-            movementController.Move(player, player.inputState.direction, this.moveStep * Time.deltaTime);
-        }
+    public virtual void GameInstanceMovePlayer(GameNetworking.Models.Server.NetworkPlayer player, Vector3 direction) {
+        
     }
 
     #endregion

@@ -1,14 +1,23 @@
 ﻿using Messages.Coders;
+using Messages.Models;
 
 namespace GameNetworking.Messages.Client {
-    public class SpawnRequestMessage: ICodable {
+    public class SpawnRequestMessage: ITypedMessage {
+        public static int Type {
+            get { return (int)MessageType.SPAWN_REQUEST; }
+        }
+
+        int ITypedMessage.Type {
+            get { return SpawnRequestMessage.Type; }
+        }
+        
         public int spawnObjectId;
 
-        void IEncodable.Encode(IEncoder encoder) {
+        public void Encode(IEncoder encoder) {
             encoder.Encode(this.spawnObjectId);
         }
 
-        void IDecodable.Decode(IDecoder decoder) {
+        public void Decode(IDecoder decoder) {
             this.spawnObjectId = decoder.Int();
         }
     }

@@ -17,12 +17,17 @@ namespace GameNetworking {
         void INetworkingServerMessagesDelegate.NetworkingServerDidReadMessage(MessageContainer container, NetworkClient client) {
             var player = this.Instance.FindPlayer(client);
 
-            if (container.Is(typeof(SpawnRequestMessage))) {
-                new SpawnRequestExecutor(this.Instance, container.Parse<SpawnRequestMessage>(), player).Execute();
-            } else if (container.Is(typeof(MoveRequestMessage))) {
-                new ServerMoveRequestExecutor(this.Instance, player, container.Parse<MoveRequestMessage>()).Execute();
-            } else {
-                this.Instance.Delegate?.GameServerDidReceiveClientMessage(container, player);
+            switch ((MessageType)container.Type) {
+                case MessageType.SPAWN_REQUEST:
+                    new SpawnRequestExecutor(this.Instance, container.Parse<SpawnRequestMessage>(), player).Execute();
+                    break;
+                case MessageType.MOVE_REQUEST:
+                    new ServerMoveRequestExecutor(this.Instance, player, container.Parse<MoveRequestMessage>()).Execute();
+                    break;
+
+                default:
+                    this.Instance.Delegate?.GameServerDidReceiveClientMessage(container, player);
+                    break;
             }
         }
 

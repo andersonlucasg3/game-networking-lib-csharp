@@ -2,11 +2,12 @@
 
 namespace Messages.Streams {
     using Coders;
+    using Models;
 
     public class MessageStreamWriter: IStreamWriter {
-        public byte[] Write<Message>(Message message) where Message : IEncodable {
+        public byte[] Write<Message>(Message message) where Message : ITypedMessage {
             var buffer = new List<byte>();
-            CoderHelper.WriteHeader(message.GetType(), ref buffer);
+            CoderHelper.WriteHeader(message.Type, ref buffer);
 
             var encoder = new Coders.Binary.Encoder();
             buffer.AddRange(encoder.Encode(message));

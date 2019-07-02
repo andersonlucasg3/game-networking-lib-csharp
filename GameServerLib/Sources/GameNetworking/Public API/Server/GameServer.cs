@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Messages.Coders;
+using Messages.Models;
 using System;
 
 namespace GameNetworking {
@@ -19,9 +19,7 @@ namespace GameNetworking {
 
         internal readonly NetworkingServer networkingServer;
 
-        public readonly GameServerMovementController movementController;
-
-        IMovementController IGameInstance.MovementController { get { return this.movementController; } }
+        internal readonly GameServerSyncController syncController;
 
         public IGameServerDelegate Delegate {
             get { return this.weakDelegate?.Target as IGameServerDelegate; }
@@ -41,7 +39,7 @@ namespace GameNetworking {
             this.clientAcceptor = new GameServerClientAcceptor(this);
             this.router = new GameServerMessageRouter(this);
 
-            this.movementController = new GameServerMovementController(this, this.playersStorage);
+            this.syncController = new GameServerSyncController(this, this.playersStorage);
         }
 
         public void Listen(int port) {
@@ -55,7 +53,7 @@ namespace GameNetworking {
         }
 
         public void Update() {
-            this.movementController.Update();
+            this.syncController.Update();
             
             this.networkingServer.AcceptClient();
             this.playersStorage.ForEach((each) => { 
@@ -84,11 +82,11 @@ namespace GameNetworking {
             return this.playersStorage.Players;
         }
 
-        internal void SendBroadcast(IEncodable message) {
+        internal void SendBroadcast(ITypedMessage message) {
             this.networkingServer.SendBroadcast(message, this.playersStorage.ConvertAll(c => c.Client));
         }
 
-        internal void SendBroadcast(IEncodable message, NetworkClient excludeClient) {
+        internal void SendBroadcast(ITypedMessage message, NetworkClient excludeClient) {
             List<NetworkClient> clientList = this.playersStorage.ConvertFindingAll(
                 player => player.Client != excludeClient, 
                 player => player.Client
@@ -96,7 +94,7 @@ namespace GameNetworking {
             this.networkingServer.SendBroadcast(message, clientList);
         }
 
-        internal void Send(IEncodable message, NetworkClient client) {
+        internal void Send(ITypedMessage message, NetworkClient client) {
             this.networkingServer.Send(message, client);
         }
     }

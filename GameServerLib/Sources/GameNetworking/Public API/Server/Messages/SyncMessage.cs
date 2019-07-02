@@ -1,7 +1,16 @@
 ﻿using Messages.Coders;
+using Messages.Models;
 
 namespace GameNetworking.Messages.Server {
-    public class SyncMessage: ICodable {
+    public class SyncMessage: ITypedMessage {
+        public static int Type {
+            get { return (int)MessageType.SYNC; }
+        }
+
+        int ITypedMessage.Type {
+            get { return SyncMessage.Type; }
+        }
+
         public int playerId;
         public Vec3 position;
         public Vec3 rotation;

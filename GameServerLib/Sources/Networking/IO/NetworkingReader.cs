@@ -4,30 +4,34 @@ using System.Collections.Generic;
 namespace Networking.IO {
     public sealed class NetworkingReader : IReader {
         private readonly Socket socket;
-        private readonly Queue<byte[]> readQueue;
+        private byte[] buffer;
 
         private bool isReceiving;
         
         internal NetworkingReader(Socket socket) {
             this.socket = socket;
             
-            this.readQueue = new Queue<byte[]>();
+            this.buffer = new byte[0];
         }
 
         private void Receive() {
             if (this.isReceiving) { return; } else { this.isReceiving = true; }
 
-            byte[] buffer = new byte[4096];
-            this.socket.BeginReceive(buffer, 0, 4096, SocketFlags.Partial, (ar) => {
+            var bufferSize = 4096 * 2;
+
+            byte[] buffer = new byte[bufferSize];
+            this.socket.BeginReceive(buffer, 0, bufferSize, SocketFlags.Partial, (ar) => {
                 int count = this.socket.EndReceive(ar);
 
-                if (count > 0 && count < 4096) {
+                List<byte> listBuffer = new List<byte>(this.buffer);
+                if (count > 0 && count < bufferSize) {
                     byte[] shrinked = new byte[count];
                     this.Copy(buffer, ref shrinked);
-                    this.readQueue.Enqueue(shrinked);
+                    listBuffer.AddRange(shrinked);
                 } else if (buffer.Length == count) {
-                    this.readQueue.Enqueue(buffer);
+                    listBuffer.AddRange(buffer);
                 }
+                this.buffer = listBuffer.ToArray();
 
                 this.isReceiving = false;
             }, this);
@@ -36,11 +40,12 @@ namespace Networking.IO {
         public byte[] Read() {
             this.Receive();
 
-            byte[] bytes = new byte[0];
-            if (this.readQueue.Count > 0) {
-                bytes = this.readQueue.Dequeue();
+            if (this.buffer.Length > 0) {
+                var retBuffer = this.buffer;
+                this.buffer = new byte[0];
+                return retBuffer;
             }
-            return bytes;
+            return new byte[0];
         }
 
         private void Copy(byte[] source, ref byte[] destination) {

@@ -48,11 +48,11 @@ namespace GameNetworking.Networking {
             if (container != null) { this.MessagesDelegate?.NetworkingServerDidReadMessage(container, client); }
         }
 
-        public void Send(IEncodable encodable, NetworkClient client) {
+        public void Send(ITypedMessage encodable, NetworkClient client) {
             client.Write(encodable);
         }
 
-        public void SendBroadcast(IEncodable encodable, List<NetworkClient> clients) {
+        public void SendBroadcast(ITypedMessage encodable, List<NetworkClient> clients) {
             var writer = new MessageStreamWriter();
             var buffer = writer.Write(encodable);
             clients.ForEach(c => this.networking.Send(c.Client, buffer));

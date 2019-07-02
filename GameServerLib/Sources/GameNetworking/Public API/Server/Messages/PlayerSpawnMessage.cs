@@ -1,9 +1,16 @@
 ﻿using Messages.Coders;
+using Messages.Models;
 
 namespace GameNetworking.Messages.Server {
-    using Models;
+    public class PlayerSpawnMessage: ITypedMessage {
+        public static int Type {
+            get { return (int)MessageType.SPAWN_REQUEST; }
+        }
 
-    public class PlayerSpawnMessage: ICodable {
+        int ITypedMessage.Type {
+            get { return PlayerSpawnMessage.Type; }
+        }
+
         public int spawnId;
         public int playerId;
         public Vec3 position;

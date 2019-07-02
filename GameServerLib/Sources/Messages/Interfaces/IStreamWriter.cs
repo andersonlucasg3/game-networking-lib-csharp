@@ -1,7 +1,7 @@
 ﻿namespace Messages.Streams {
-    using Coders;
+    using Models;
 
     public interface IStreamWriter {
-        byte[] Write<Message>(Message message) where Message : IEncodable;
+        byte[] Write<Message>(Message message) where Message : ITypedMessage;
     }
 }

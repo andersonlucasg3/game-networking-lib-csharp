@@ -1,7 +1,16 @@
 ﻿using Messages.Coders;
+using Messages.Models;
 
 namespace GameNetworking.Messages {
-    public class MoveRequestMessage: ICodable {
+    public class MoveRequestMessage: ITypedMessage {
+        public static int Type {
+            get { return (int)MessageType.MOVE_REQUEST; }
+        }
+
+        int ITypedMessage.Type {
+            get { return MoveRequestMessage.Type; }
+        }
+
         public Vec3 direction;
         public int playerId;
 

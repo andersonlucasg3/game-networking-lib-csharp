@@ -3,7 +3,8 @@ using System.Collections.Generic;
 
 namespace GameNetworking.Models {
     using Server;
-    internal class NetworkPlayersStorage {
+    
+    public class NetworkPlayersStorage {
         private List<NetworkPlayer> players;
 
         public List<NetworkPlayer> Players {
@@ -24,6 +25,12 @@ namespace GameNetworking.Models {
 
         public void ForEach(Action<NetworkPlayer> action) {
             this.players.ForEach(action);
+        }
+
+        public void ForEachConverted<TOutput>(Converter<NetworkPlayer, TOutput> converter, Action<TOutput> action) {
+            this.players.ForEach(player => {
+                action.Invoke(converter.Invoke(player));
+            });
         }
 
         public List<TOutput> ConvertAll<TOutput>(Converter<NetworkPlayer, TOutput> converter) {

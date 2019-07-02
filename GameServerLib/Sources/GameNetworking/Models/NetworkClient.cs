@@ -1,6 +1,6 @@
 ﻿using Networking.Models;
 using Messages.Streams;
-using Messages.Coders;
+using Messages.Models;
 
 namespace GameNetworking.Models {
     
@@ -15,7 +15,7 @@ namespace GameNetworking.Models {
             this.Writer = writer;
         }
 
-        internal void Write<Message>(Message message) where Message: IEncodable {
+        internal void Write<Message>(Message message) where Message: ITypedMessage {
             this.Client.writer.Write(this.Writer.Write(message));
         }
 

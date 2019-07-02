@@ -44,7 +44,7 @@ namespace GameNetworking.Networking {
             return null;
         }
 
-        public void Send(IEncodable message) {
+        public void Send(ITypedMessage message) {
             this.client?.Write(message);
         }
 

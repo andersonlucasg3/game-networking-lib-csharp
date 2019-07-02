@@ -7,12 +7,17 @@ namespace Messages.Models {
     public sealed class MessageContainer {
         private readonly List<byte> messageBytes;
 
-        internal MessageContainer(List<byte> messageBytes) {
-            this.messageBytes = messageBytes;
+        public int Type {
+            get; private set;
         }
 
-        public bool Is(Type type) {
-            return CoderHelper.IsType(type, this.messageBytes);
+        internal MessageContainer(List<byte> messageBytes) {
+            this.messageBytes = messageBytes;
+            this.Type = CoderHelper.ReadHeader(messageBytes);
+        }
+
+        public bool Is(int type) {
+            return type == this.Type;
         }
 
         public Message Parse<Message>() where Message : class, IDecodable, new() {

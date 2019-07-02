@@ -25,6 +25,8 @@ namespace GameNetworking.Models {
                 internal set { this.weakGameObject = new WeakReference(value); }
             }
 
+            internal InputState inputState = new InputState();
+
             internal NetworkPlayer(NetworkClient client) {
                 this.PlayerId = random.Next();
                 this.Client = client;

@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Messages.Coders;
+using Messages.Models;
 using System;
 
 namespace GameNetworking {
@@ -8,20 +8,27 @@ namespace GameNetworking {
     using Models.Server;
     using Messages;
 
-    public class GameServer {
+    public class GameServer: IGameInstance {
         private readonly NetworkPlayersStorage playersStorage;
 
         private readonly GameServerClientAcceptor clientAcceptor;
         private readonly GameServerMessageRouter router;
 
         private WeakReference weakDelegate;
+        private WeakReference weakInstanceDelegate;
 
         internal readonly NetworkingServer networkingServer;
-        internal readonly MovementController movementController;
+
+        internal readonly GameServerSyncController syncController;
 
         public IGameServerDelegate Delegate {
             get { return this.weakDelegate?.Target as IGameServerDelegate; }
             set { this.weakDelegate = new WeakReference(value); }
+        }
+
+        public IGameInstanceDelegate InstanceDelegate {
+            get { return this.weakInstanceDelegate?.Target as IGameInstanceDelegate; }
+            set { this.weakInstanceDelegate = new WeakReference(value); }
         }
 
         public GameServer() {
@@ -32,7 +39,7 @@ namespace GameNetworking {
             this.clientAcceptor = new GameServerClientAcceptor(this);
             this.router = new GameServerMessageRouter(this);
 
-            this.movementController = new MovementController(this, this.playersStorage);
+            this.syncController = new GameServerSyncController(this, this.playersStorage);
         }
 
         public void Listen(int port) {
@@ -46,12 +53,13 @@ namespace GameNetworking {
         }
 
         public void Update() {
+            this.syncController.Update();
+            
             this.networkingServer.AcceptClient();
             this.playersStorage.ForEach((each) => { 
                 this.networkingServer.Read(each.Client); 
                 this.networkingServer.Flush(each.Client);    
             });
-            this.movementController.Update();
         }
 
         internal void AddPlayer(NetworkPlayer player) {
@@ -74,11 +82,11 @@ namespace GameNetworking {
             return this.playersStorage.Players;
         }
 
-        internal void SendBroadcast(IEncodable message) {
+        internal void SendBroadcast(ITypedMessage message) {
             this.networkingServer.SendBroadcast(message, this.playersStorage.ConvertAll(c => c.Client));
         }
 
-        internal void SendBroadcast(IEncodable message, NetworkClient excludeClient) {
+        internal void SendBroadcast(ITypedMessage message, NetworkClient excludeClient) {
             List<NetworkClient> clientList = this.playersStorage.ConvertFindingAll(
                 player => player.Client != excludeClient, 
                 player => player.Client
@@ -86,18 +94,8 @@ namespace GameNetworking {
             this.networkingServer.SendBroadcast(message, clientList);
         }
 
-        internal void Send(IEncodable message, NetworkClient client) {
+        internal void Send(ITypedMessage message, NetworkClient client) {
             this.networkingServer.Send(message, client);
-        }
-    }
-
-    internal abstract class BaseServerWorker {
-        private readonly WeakReference weakServer;
-
-        protected GameServer Server => this.weakServer?.Target as GameServer;
-
-        protected BaseServerWorker(GameServer server) {
-            this.weakServer = new WeakReference(server);
         }
     }
 }

@@ -3,10 +3,11 @@ using System;
 
 namespace GameNetworking {
     using Models;
+    using Messages;
     using Messages.Client;
     using Executors.Server;
 
-    internal class GameServerMessageRouter: BaseServerWorker, INetworkingServerMessagesDelegate {
+    internal class GameServerMessageRouter: BaseWorker<GameServer>, INetworkingServerMessagesDelegate {
         internal GameServerMessageRouter(GameServer server) : base(server) {
             server.networkingServer.MessagesDelegate = this;
         }
@@ -14,14 +15,19 @@ namespace GameNetworking {
         #region INetworkingServerMessagesDelegate
 
         void INetworkingServerMessagesDelegate.NetworkingServerDidReadMessage(MessageContainer container, NetworkClient client) {
-            var player = this.Server.FindPlayer(client);
+            var player = this.Instance.FindPlayer(client);
 
-            if (container.Is(typeof(SpawnRequestMessage))) {
-                new SpawnRequestExecutor(this.Server, container.Parse<SpawnRequestMessage>(), player).Execute();
-            } else if (container.Is(typeof(MoveRequestMessage))) {
-                new MoveRequestExecutor(this.Server, player, container.Parse<MoveRequestMessage>()).Execute();
-            } else {
-                this.Server.Delegate?.GameServerDidReceiveClientMessage(container, player);
+            switch ((MessageType)container.Type) {
+                case MessageType.SPAWN_REQUEST:
+                    new SpawnRequestExecutor(this.Instance, container.Parse<SpawnRequestMessage>(), player).Execute();
+                    break;
+                case MessageType.MOVE_REQUEST:
+                    new ServerMoveRequestExecutor(this.Instance, player, container.Parse<MoveRequestMessage>()).Execute();
+                    break;
+
+                default:
+                    this.Instance.Delegate?.GameServerDidReceiveClientMessage(container, player);
+                    break;
             }
         }
 

@@ -23,14 +23,16 @@ namespace Messages.Coders {
             buffer.RemoveRange(0, delimiterIndex + 3);
         }
 
-        internal static void WriteHeader(Type type, ref List<byte> buffer) {
-            buffer.AddRange(BitConverter.GetBytes(type.ToString().GetHashCode()));
+        internal static void WriteHeader(int type, ref List<byte> buffer) {
+            buffer.AddRange(BitConverter.GetBytes(type));
         }
 
-        internal static bool IsType(Type type, List<byte> buffer) {
-            byte[] messageTypeBytes = buffer.GetRange(0, sizeof(int)).ToArray();
-            byte[] typeBytes = BitConverter.GetBytes(type.ToString().GetHashCode());
-            return ArraySearch.ContentEquals(typeBytes, messageTypeBytes);
+        internal static int ReadHeader(List<byte> buffer) {
+            return BitConverter.ToInt32(buffer.GetRange(0, sizeof(int)).ToArray(), 0);
+        }
+
+        internal static bool IsType(int type, List<byte> buffer) {
+            return type == ReadHeader(buffer);
         }
     }
 

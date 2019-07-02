@@ -1,7 +1,16 @@
 ﻿using Messages.Coders;
+using Messages.Models;
 
 namespace GameNetworking.Messages.Server {
-    public class ConnectedPlayerMessage: ICodable {
+    public class ConnectedPlayerMessage: ITypedMessage {
+        public static int Type {
+            get { return (int)MessageType.CONNECTED_PLAYER; }
+        }
+
+        int ITypedMessage.Type {
+            get { return ConnectedPlayerMessage.Type; }
+        }
+
         public int playerId;
         public bool isMe = false;
 

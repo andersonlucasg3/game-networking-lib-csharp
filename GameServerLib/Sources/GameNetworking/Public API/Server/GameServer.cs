@@ -51,7 +51,11 @@ namespace GameNetworking {
             });
         }
 
-        public void Update() {
+        public int GetPing(NetworkPlayer player) {
+            return this.pingController.GetPingValue(player);
+        }
+
+        internal void Update() {
             this.networkingServer.AcceptClient();
             this.playersStorage.ForEach((each) => { 
                 this.networkingServer.Read(each.Client); 

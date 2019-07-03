@@ -8,14 +8,18 @@ namespace GameNetworking {
     using Messages.Server;
     using Commons;
 
-    internal class GameServerPingController: BaseWorker<GameServer>, INetworkPlayerStorageChangeDelegate {
+    public class GameServerPingController: BaseWorker<GameServer>, INetworkPlayerStorageChangeDelegate {
         private readonly List<PingPlayer> pingPlayers = new List<PingPlayer>();
 
         public GameServerPingController(GameServer instance, NetworkPlayersStorage storage) : base(instance) {
             storage.Add(this);
         }
 
-        public void Update() {
+        public int GetPingValue(NetworkPlayer player) {
+            return this.pingPlayers.Find(each => each.Player == player).PingValue;
+        }
+
+        internal void Update() {
             this.pingPlayers.ForEach(ping => {
                 if (!ping.PingSent && ping.CanSendNextPing) {
                     ping.SendingPing();

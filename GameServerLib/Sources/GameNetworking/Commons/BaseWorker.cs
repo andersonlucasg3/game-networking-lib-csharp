@@ -1,6 +1,6 @@
 using System;
 
-namespace GameNetworking {
+namespace GameNetworking.Commons {
     public abstract class BaseWorker<GameType> where GameType: class, IGameInstance {
         private readonly WeakReference weakServer;
 

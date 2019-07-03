@@ -4,20 +4,14 @@ using Networking;
 namespace MatchMaking {
     using Connection;
     using Models;
+    using Commons;
 
-    public class MatchMakingClient<MMClient>: IClientConnectionDelegate<MMClient> where MMClient: Client, new() {
+    public class MatchMakingClient<MMClient>: WeakDelegate<IMatchMakingClientDelegate<MMClient>>, IClientConnectionDelegate<MMClient> where MMClient: Client, new() {
         private ClientConnection<MMClient> connection;
-
-        private WeakReference weakDelegate;
 
         public bool IsConnecting { get { return this.connection?.IsConnecting ?? false; } }
 
         public bool IsConnected { get { return this.connection?.IsConnected ?? false; } }
-
-        public IMatchMakingClientDelegate<MMClient> Delegate {
-            get { return this.weakDelegate?.Target as IMatchMakingClientDelegate<MMClient>; }
-            set { this.weakDelegate = new WeakReference(value); }
-        }
 
         public void Start(string host, int port) {
             if (!(this.connection?.IsConnecting ?? false)) {

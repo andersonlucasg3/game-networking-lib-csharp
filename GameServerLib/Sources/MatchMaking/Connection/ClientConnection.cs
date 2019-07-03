@@ -5,21 +5,16 @@ using Google.Protobuf;
 namespace MatchMaking.Connection {
     using Models;
     using Protobuf.Coders;
+    using Commons;
 
-    public sealed class ClientConnection<MMClient>: INetworkingDelegate where MMClient: Client, new() {
+    public sealed class ClientConnection<MMClient>: WeakDelegate<IClientConnectionDelegate<MMClient>>, INetworkingDelegate where MMClient: Client, new() {
         private readonly INetworking networking;
 
         private MMClient client;
-        private WeakReference weakDelegate;
-
+        
         public bool IsConnecting { get; private set; }
 
         public bool IsConnected { get { return this.client?.IsConnected ?? false; } }
-
-        public IClientConnectionDelegate<MMClient> Delegate {
-            get { return this.weakDelegate?.Target as IClientConnectionDelegate<MMClient>; }
-            set { this.weakDelegate = new WeakReference(value); }
-        }
 
         public ClientConnection(INetworking networking) {
             this.networking = networking;

@@ -2,6 +2,7 @@
 
 namespace GameNetworking {
     using Networking;
+    using Commons;
 
     internal class GameClientConnector: BaseWorker<GameClient>, INetworkingClientDelegate {
         internal GameClientConnector(GameClient client) : base(client) {

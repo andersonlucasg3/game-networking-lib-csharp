@@ -16,7 +16,10 @@ namespace Networking.IO {
 
         private void Write() {
             if (this.socket.Connected) {
-                if (this.isSending) { return; } else { this.isSending = true; }
+                if (this.isSending) { return; }
+
+                this.isSending = true;
+
                 this.socket.BeginSend(this.buffer, 0, this.buffer.Length, SocketFlags.Partial, (ar) => {
                     int written = this.socket.EndSend(ar);
                     if (written > 0) { this.ShrinkBuffer(written); }

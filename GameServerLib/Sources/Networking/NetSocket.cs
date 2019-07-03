@@ -4,21 +4,15 @@ using System.Net.Sockets;
 using System.Collections.Generic;
 
 namespace Networking {
+    using Commons;
     using Models;
     using IO.Extensions;
 
-    public sealed class NetSocket : INetworking {
+    public sealed class NetSocket : WeakDelegate<INetworkingDelegate>, INetworking {
         private readonly Socket socket;
         private readonly Queue<Socket> acceptedQueue;
 
-        private WeakReference weakDelegate;
-        
         public int Port { get; private set; }
-
-        public INetworkingDelegate Delegate {
-            get { return this.weakDelegate?.Target as INetworkingDelegate; }
-            set { this.weakDelegate = new WeakReference(value); }
-        }
 
         public NetSocket() {
             this.acceptedQueue = new Queue<Socket>();

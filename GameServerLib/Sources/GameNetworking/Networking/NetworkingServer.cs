@@ -2,23 +2,17 @@
 using Networking.Models;
 using Messages.Streams;
 using Messages.Models;
-using Messages.Coders;
 using System;
 using System.Collections.Generic;
+using Commons;
 
 namespace GameNetworking.Networking {
     using Models;
 
-    internal class NetworkingServer {
+    internal class NetworkingServer: WeakDelegate<INetworkingServerDelegate> {
         private readonly INetworking networking;
 
-        private WeakReference weakDelegate;
         private WeakReference weakMessagesDelegate;
-
-        public INetworkingServerDelegate Delegate {
-            get { return this.weakDelegate?.Target as INetworkingServerDelegate; }
-            set { this.weakDelegate = new WeakReference(value); }
-        }
 
         public INetworkingServerMessagesDelegate MessagesDelegate {
             get { return this.weakMessagesDelegate?.Target as INetworkingServerMessagesDelegate; }
@@ -44,8 +38,14 @@ namespace GameNetworking.Networking {
         public void Read(NetworkClient client) {
             byte[] bytes = this.networking.Read(client.Client);
             client.Reader.Add(bytes);
-            var container = client.Reader.Decode();
-            if (container != null) { this.MessagesDelegate?.NetworkingServerDidReadMessage(container, client); }
+
+            MessageContainer message = null;
+            do {
+                message = client.Reader.Decode();
+                if (message != null) {
+                    this.MessagesDelegate?.NetworkingServerDidReadMessage(message, client);
+                }
+            } while (message != null);
         }
 
         public void Send(ITypedMessage encodable, NetworkClient client) {

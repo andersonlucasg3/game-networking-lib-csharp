@@ -35,14 +35,20 @@ namespace GameNetworking {
         }
 
         private void SendSync(NetworkPlayer player) {
-            if (player.GameObject?.transform == null) { return; }
+            if (player.Transform == null) { return; }
+
+            float pingValueInSeconds = this.Instance.pingController.GetPingValue(player);
 
             var syncMessage = new SyncMessage {
                 playerId = player.PlayerId
             };
-            player.GameObject.transform.position.CopyToVec3(ref syncMessage.position);
+            this.FuturePosition(pingValueInSeconds, player).CopyToVec3(ref syncMessage.position);
             player.GameObject.transform.eulerAngles.CopyToVec3(ref syncMessage.rotation);
             this.Instance.SendBroadcast(syncMessage);
+        }
+
+        private Vector3 FuturePosition(float pingValueInSeconds, NetworkPlayer player) {
+            return player.Transform.position + player.inputState.direction * pingValueInSeconds;
         }
     }
 }

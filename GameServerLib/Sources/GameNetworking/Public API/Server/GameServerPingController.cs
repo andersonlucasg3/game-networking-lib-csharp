@@ -15,7 +15,7 @@ namespace GameNetworking {
             storage.Add(this);
         }
 
-        public int GetPingValue(NetworkPlayer player) {
+        public float GetPingValue(NetworkPlayer player) {
             return this.pingPlayers.Find(each => each.Player == player).PingValue;
         }
 
@@ -52,7 +52,7 @@ namespace GameNetworking {
 
         internal bool PingSent { get; private set; }
         internal bool CanSendNextPing { get { return this.PingElapsedTime > 0.5F; } }
-        internal int PingValue { get; private set; }
+        internal float PingValue { get; private set; }
 
         internal NetworkPlayer Player { get { return this.Target as NetworkPlayer; } }
 
@@ -65,7 +65,7 @@ namespace GameNetworking {
 
         internal void ReceivedPong() {
             this.PingSent = false;
-            this.PingValue = (int)(this.PingElapsedTime * 1000);
+            this.PingValue = this.PingElapsedTime;
         }
 
         public override bool Equals(object obj) {

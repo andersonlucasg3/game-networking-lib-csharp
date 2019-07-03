@@ -51,7 +51,7 @@ namespace GameNetworking {
             });
         }
 
-        public int GetPing(NetworkPlayer player) {
+        public float GetPing(NetworkPlayer player) {
             return this.pingController.GetPingValue(player);
         }
 

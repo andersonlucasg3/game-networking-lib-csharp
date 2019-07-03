@@ -48,7 +48,7 @@ namespace GameNetworking {
         }
 
         private Vector3 FuturePosition(float pingValueInSeconds, NetworkPlayer player) {
-            return player.Transform.position + player.inputState.direction * pingValueInSeconds;
+            return player.Transform.position + player.inputState.direction * pingValueInSeconds * Time.deltaTime;
         }
     }
 }

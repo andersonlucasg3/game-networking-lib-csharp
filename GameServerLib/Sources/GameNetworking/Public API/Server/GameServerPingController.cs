@@ -31,8 +31,6 @@ namespace GameNetworking {
         public void PongReceived(NetworkPlayer player) {
             var ping = this.pingPlayers.Find(each => each.Player == player);
             ping?.ReceivedPong();
-
-            Logging.Logger.Log(this.GetType(), string.Format("Ping value {0}, for playerId {1}", ping?.PingValue, ping?.Player?.PlayerId));
         }
 
         void INetworkPlayerStorageChangeDelegate.PlayerStorageDidAdd(NetworkPlayer player) {

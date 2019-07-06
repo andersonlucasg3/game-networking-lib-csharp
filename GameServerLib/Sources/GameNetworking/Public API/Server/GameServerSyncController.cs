@@ -43,7 +43,7 @@ namespace GameNetworking {
                 playerId = player.PlayerId
             };
             this.FuturePosition(pingValueInSeconds, player).CopyToVec3(ref syncMessage.position);
-            player.GameObject.transform.eulerAngles.CopyToVec3(ref syncMessage.rotation);
+            player.Transform.eulerAngles.CopyToVec3(ref syncMessage.rotation);
             this.Instance.SendBroadcast(syncMessage);
         }
 

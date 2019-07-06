@@ -3,22 +3,14 @@ using Networking.Models;
 using Messages.Coders;
 using Messages.Models;
 using Messages.Streams;
-using System;
+using Commons;
 
 namespace GameNetworking.Networking {
     using Models;
 
-    internal class NetworkingClient: INetworkingDelegate {
+    internal class NetworkingClient: WeakDelegate<INetworkingClientDelegate>, INetworkingDelegate {
         private INetworking networking;
-
         private NetworkClient client;
-
-        private WeakReference weakDelegate;
-
-        public INetworkingClientDelegate Delegate {
-            get { return this.weakDelegate?.Target as INetworkingClientDelegate; }
-            set { this.weakDelegate = new WeakReference(value); }
-        }
 
         public NetworkingClient() {
             this.networking = new NetSocket();

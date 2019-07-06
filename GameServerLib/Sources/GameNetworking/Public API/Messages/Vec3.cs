@@ -24,6 +24,10 @@ namespace GameNetworking.Messages {
             instance.y = this.y;
             instance.z = this.z;
         }
+
+        public override string ToString() {
+            return string.Format("({0}, {1}, {2})", this.x, this.y, this.z);
+        }
     }
 
     internal static class Vector3Ext {

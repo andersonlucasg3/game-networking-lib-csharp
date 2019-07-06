@@ -25,6 +25,10 @@ namespace GameNetworking.Models {
                 internal set { this.weakGameObject = new WeakReference(value); }
             }
 
+            public Transform Transform {
+                get { return this.GameObject?.transform; }
+            }
+
             internal InputState inputState = new InputState();
 
             internal NetworkPlayer(NetworkClient client) {

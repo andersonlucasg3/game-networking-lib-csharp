@@ -22,7 +22,8 @@ namespace GameNetworking.Models {
         public override bool Equals(object obj) {
             if (obj is NetworkClient) {
                 return this.Client == ((NetworkClient)obj).Client;
-            } else if (obj is NetClient) {
+            }
+            if (obj is NetClient) {
                 return this.Client == obj;
             }
             return object.Equals(this, obj);

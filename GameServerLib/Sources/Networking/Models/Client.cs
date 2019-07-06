@@ -20,7 +20,8 @@ namespace Networking.Models {
         public override bool Equals(object obj) {
             if (obj is NetClient) {
                 return this.socket == ((NetClient)obj).socket;
-            } else if (obj is Socket) {
+            }
+            if (obj is Socket) {
                 return this.socket == obj;
             }
             return object.Equals(this, obj);

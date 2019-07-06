@@ -12,7 +12,7 @@ namespace GameNetworking.Messages.Server {
         }
 
         public int playerId;
-        public bool isMe = false;
+        public bool isMe;
 
         void IDecodable.Decode(IDecoder decoder) {
             this.playerId = decoder.Int();

@@ -15,21 +15,23 @@ namespace Networking.IO {
         }
 
         private void Receive() {
-            if (this.isReceiving) { return; } else { this.isReceiving = true; }
+            if (this.isReceiving) { return; }
+
+            this.isReceiving = true;
 
             var bufferSize = 4096 * 2;
 
-            byte[] buffer = new byte[bufferSize];
-            this.socket.BeginReceive(buffer, 0, bufferSize, SocketFlags.Partial, (ar) => {
+            byte[] receiveBuffer = new byte[bufferSize];
+            this.socket.BeginReceive(receiveBuffer, 0, bufferSize, SocketFlags.Partial, (ar) => {
                 int count = this.socket.EndReceive(ar);
 
                 List<byte> listBuffer = new List<byte>(this.buffer);
                 if (count > 0 && count < bufferSize) {
                     byte[] shrinked = new byte[count];
-                    this.Copy(buffer, ref shrinked);
+                    this.Copy(receiveBuffer, ref shrinked);
                     listBuffer.AddRange(shrinked);
-                } else if (buffer.Length == count) {
-                    listBuffer.AddRange(buffer);
+                } else if (receiveBuffer.Length == count) {
+                    listBuffer.AddRange(receiveBuffer);
                 }
                 this.buffer = listBuffer.ToArray();
 

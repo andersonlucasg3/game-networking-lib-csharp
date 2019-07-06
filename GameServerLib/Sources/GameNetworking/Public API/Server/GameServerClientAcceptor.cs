@@ -2,15 +2,12 @@
     using Models;
     using Models.Server;
     using Messages.Server;
+    using Commons;
 
-    internal class GameServerClientAcceptor: BaseWorker<GameServer>, INetworkingServerDelegate {
-        public GameServerClientAcceptor(GameServer server) : base(server) {
-            this.Instance.networkingServer.Delegate = this;
-        }
+    internal class GameServerClientAcceptor: BaseWorker<GameServer> {
+        public GameServerClientAcceptor(GameServer server) : base(server) { }
 
-        #region INetworkingServerDelegate
-
-        void INetworkingServerDelegate.NetworkingServerDidAcceptClient(NetworkClient client) {
+        public void AcceptClient(NetworkClient client) {
             NetworkPlayer player = new NetworkPlayer(client);
             this.Instance.SendBroadcast(new ConnectedPlayerMessage { playerId = player.PlayerId, isMe = false });
             this.Instance.AddPlayer(player);
@@ -25,11 +22,9 @@
             });
         }
 
-        void INetworkingServerDelegate.NetworkingServerClientDidDisconnect(NetworkClient client) {
+        public void Disconnect(NetworkClient client) {
             var player = this.Instance.FindPlayer(client);
             if (player != null) { this.Instance.Delegate?.GameServerPlayerDidDisconnect(player); }
         }
-
-        #endregion
     }
 }

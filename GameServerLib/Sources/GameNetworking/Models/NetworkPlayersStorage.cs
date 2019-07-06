@@ -1,10 +1,16 @@
 using System;
 using System.Collections.Generic;
+using Commons;
 
 namespace GameNetworking.Models {
     using Server;
-    
-    public class NetworkPlayersStorage {
+
+    public interface INetworkPlayerStorageChangeDelegate {
+        void PlayerStorageDidAdd(NetworkPlayer player);
+        void PlayerStorageDidRemove(NetworkPlayer player);
+    }
+
+    public class NetworkPlayersStorage: WeakDelegates<INetworkPlayerStorageChangeDelegate> {
         private List<NetworkPlayer> players;
 
         public List<NetworkPlayer> Players {
@@ -17,10 +23,16 @@ namespace GameNetworking.Models {
 
         public void Add(NetworkPlayer player) {
             this.players.Add(player);
+            this.ForEach((INetworkPlayerStorageChangeDelegate del) => {
+                del.PlayerStorageDidAdd(player);
+            });
         }
 
         public void Remove(NetworkPlayer player) {
             this.players.Remove(player);
+            this.ForEach((INetworkPlayerStorageChangeDelegate del) => {
+                del.PlayerStorageDidRemove(player);
+            });
         }
 
         public void ForEach(Action<NetworkPlayer> action) {

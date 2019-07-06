@@ -1,27 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using Messages.Models;
+using Commons;
 
 namespace GameNetworking {
     using Networking;
     using Models;
     using Models.Client;
 
-    public class GameClient: IGameInstance {
+    public class GameClient: WeakDelegate<IGameClientDelegate>, IGameInstance {
         private readonly NetworkPlayersStorage playersStorage;
         private readonly GameClientConnector connector;
         private readonly GameClientMessageRouter router;
         private readonly GameClientPlayersMovementController movementController;
         
-        private WeakReference weakDelegate;
         private WeakReference weakInstanceDelegate;
 
         internal readonly NetworkingClient networkingClient;
-
-        public IGameClientDelegate Delegate {
-            get { return this.weakDelegate?.Target as IGameClientDelegate; }
-            set { this.weakDelegate = new WeakReference(value); }
-        }
 
         public IGameInstanceDelegate InstanceDelegate {
             get { return this.weakInstanceDelegate?.Target as IGameInstanceDelegate; }
@@ -47,7 +42,14 @@ namespace GameNetworking {
         }
 
         public void Update() {
-            this.router.Route(this.networkingClient.Read());
+            MessageContainer message = null;
+            do {
+                message = this.networkingClient.Read();
+                if (message != null) {
+                    this.router.Route(message);
+                }
+            } while (message != null);
+            
             this.networkingClient.Flush();
 
             this.movementController.Update();

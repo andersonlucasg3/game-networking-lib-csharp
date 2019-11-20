@@ -8,7 +8,7 @@ namespace GameNetworking {
     using Executors;
     using Commons;
 
-    internal class GameServerMessageRouter: BaseWorker<GameServer> {
+    internal class GameServerMessageRouter : BaseWorker<GameServer> {
         internal GameServerMessageRouter(GameServer server) : base(server) { }
 
         private void Execute(IExecutor executor) {
@@ -32,7 +32,9 @@ namespace GameNetworking {
                 break;
 
             default:
-                this.Instance.Delegate?.GameServerDidReceiveClientMessage(container, player);
+                UnityMainThreadDispatcher.Instance().Enqueue(() => {
+                    this.Instance.Delegate?.GameServerDidReceiveClientMessage(container, player);
+                });
                 break;
             }
         }

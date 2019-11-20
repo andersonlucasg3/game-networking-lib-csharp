@@ -18,25 +18,27 @@ namespace GameNetworking {
             if (container == null) { return; }
 
             switch ((MessageType)container.Type) {
-                case MessageType.CONNECTED_PLAYER:
-                    Execute(new ConnectedPlayerExecutor(this.Instance, container.Parse<ConnectedPlayerMessage>()));
-                    break;
-                case MessageType.SPAWN_REQUEST:
-                    Execute(new PlayerSpawnExecutor(this.Instance, container.Parse<PlayerSpawnMessage>()));
-                    break;
-                case MessageType.SYNC:
-                    Execute(new SyncExecutor(this.Instance, container.Parse<SyncMessage>()));
-                    break;
-                case MessageType.MOVE_REQUEST:
-                    Execute(new ClientMoveRequestExecutor(this.Instance, container.Parse<MoveRequestMessage>()));
-                    break;
-                case MessageType.PING:
-                    Execute(new PingRequestExecutor(this.Instance));
-                    break;
+            case MessageType.CONNECTED_PLAYER:
+                Execute(new ConnectedPlayerExecutor(this.Instance, container.Parse<ConnectedPlayerMessage>()));
+                break;
+            case MessageType.SPAWN_REQUEST:
+                Execute(new PlayerSpawnExecutor(this.Instance, container.Parse<PlayerSpawnMessage>()));
+                break;
+            case MessageType.SYNC:
+                Execute(new SyncExecutor(this.Instance, container.Parse<SyncMessage>()));
+                break;
+            case MessageType.MOVE_REQUEST:
+                Execute(new ClientMoveRequestExecutor(this.Instance, container.Parse<MoveRequestMessage>()));
+                break;
+            case MessageType.PING:
+                Execute(new PingRequestExecutor(this.Instance));
+                break;
 
-                default:
+            default:
+                UnityMainThreadDispatcher.Instance().Enqueue(() => {
                     this.Instance?.Delegate?.GameClientDidReceiveMessage(container);
-                    break;
+                });
+                break;
             }
         }
     }

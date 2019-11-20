@@ -7,11 +7,11 @@ namespace GameNetworking {
     using Executors;
     using Commons;
 
-    internal class GameClientMessageRouter: BaseWorker<GameClient> {
+    internal class GameClientMessageRouter : BaseWorker<GameClient> {
         internal GameClientMessageRouter(GameClient client) : base(client) { }
 
         private void Execute(IExecutor executor) {
-            executor.Execute();
+            UnityMainThreadDispatcher.Instance().Enqueue(executor.Execute);
         }
 
         internal void Route(MessageContainer container) {
@@ -33,7 +33,7 @@ namespace GameNetworking {
                 case MessageType.PING:
                     Execute(new PingRequestExecutor(this.Instance));
                     break;
-                    
+
                 default:
                     this.Instance?.Delegate?.GameClientDidReceiveMessage(container);
                     break;

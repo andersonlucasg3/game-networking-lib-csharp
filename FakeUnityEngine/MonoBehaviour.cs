@@ -2,9 +2,9 @@ using System.Collections;
 
 namespace UnityEngine {
     public abstract class MonoBehaviour {
-        public GameObject gameObject;
-        public Transform transform;
-        public bool enabled;
+        public GameObject gameObject { get; }
+        public Transform transform { get; }
+        public bool enabled { get; set; }
 
         public void StartCoroutine(IEnumerator action) {
 

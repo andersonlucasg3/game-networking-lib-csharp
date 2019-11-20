@@ -1,7 +1,7 @@
 namespace UnityEngine {
     public class Time {
-        public static float deltaTime;
-        public static float fixedDeltaTime;
-        public static float time;
+        public static float deltaTime { get; }
+        public static float fixedDeltaTime { get; }
+        public static float time { get; }
     }
 }

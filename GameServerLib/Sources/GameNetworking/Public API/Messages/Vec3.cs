@@ -30,8 +30,8 @@ namespace GameNetworking.Messages {
         }
     }
 
-    internal static class Vector3Ext {
-        internal static void CopyToVec3(this Vector3 op, ref Vec3 instance) {
+    public static class Vector3Ext {
+        public static void CopyToVec3(this Vector3 op, ref Vec3 instance) {
             instance.x = op.x;
             instance.y = op.y;
             instance.z = op.z;

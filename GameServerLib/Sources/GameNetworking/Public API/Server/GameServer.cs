@@ -55,7 +55,7 @@ namespace GameNetworking {
             return this.pingController.GetPingValue(player);
         }
 
-        internal void Update() {
+        public void Update() {
             this.syncController.Update();
             this.pingController.Update();
         }

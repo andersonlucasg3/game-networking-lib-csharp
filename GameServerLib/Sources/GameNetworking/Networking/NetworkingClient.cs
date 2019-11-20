@@ -4,7 +4,9 @@ using Messages.Coders;
 using Messages.Models;
 using Messages.Streams;
 using Commons;
+using System;
 using System.Threading;
+using System.Collections.Generic;
 
 namespace GameNetworking.Networking {
     using Models;
@@ -14,10 +16,12 @@ namespace GameNetworking.Networking {
         private NetworkClient client;
 
         private Thread proletariatTherad;
+        private Queue<Action> workerActions;
 
         public NetworkingClient() {
             this.networking = new NetSocket();
             this.networking.Delegate = this;
+            workerActions = new Queue<Action>();
         }
 
         public void Connect(string host, int port) {
@@ -31,7 +35,11 @@ namespace GameNetworking.Networking {
         }
 
         public void Send(ITypedMessage message) {
-            this.client?.Write(message);
+            lock(workerActions) {
+                workerActions.Enqueue(() => {
+                    this.client?.Write(message);
+                });
+            }
         }
 
         #region Private Methods
@@ -48,6 +56,12 @@ namespace GameNetworking.Networking {
 
         private void ThreadWork() {
             do {
+                lock (workerActions) {
+                    if (workerActions.Count > 0) {
+                        workerActions.Dequeue().Invoke();
+                    }
+                }
+
                 if (this.client?.Client != null) {
                     byte[] bytes = this.networking.Read(this.client.Client);
                     this.client.Reader.Add(bytes);

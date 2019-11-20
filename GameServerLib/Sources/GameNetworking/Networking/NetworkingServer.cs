@@ -17,6 +17,7 @@ namespace GameNetworking.Networking {
         private readonly List<NetworkClient> clientsStorage;
 
         private Thread proletariatThread;
+        private readonly Queue<Action> workerActions;
 
         public INetworkingServerMessagesDelegate MessagesDelegate {
             get { return this.weakMessagesDelegate?.Target as INetworkingServerMessagesDelegate; }
@@ -26,6 +27,7 @@ namespace GameNetworking.Networking {
         public NetworkingServer() {
             this.networking = new NetSocket();
             clientsStorage = new List<NetworkClient>();
+            workerActions = new Queue<Action>();
         }
 
         public void Listen(int port) {
@@ -43,13 +45,21 @@ namespace GameNetworking.Networking {
         }
 
         public void Send(ITypedMessage encodable, NetworkClient client) {
-            client.Write(encodable);
+            lock(workerActions) {
+                workerActions.Enqueue(() => {
+                    client.Write(encodable);
+                });
+            }
         }
 
         public void SendBroadcast(ITypedMessage encodable, List<NetworkClient> clients) {
-            var writer = new MessageStreamWriter();
-            var buffer = writer.Write(encodable);
-            clients.ForEach(c => this.networking.Send(c.Client, buffer));
+            lock(workerActions) {
+                workerActions.Enqueue(() => {
+                    var writer = new MessageStreamWriter();
+                    var buffer = writer.Write(encodable);
+                    clients.ForEach(c => this.networking.Send(c.Client, buffer));
+                });
+            }
         }
 
         #region Private Methods
@@ -69,6 +79,12 @@ namespace GameNetworking.Networking {
 
         private void ThreadWork() {
             do {
+                lock(workerActions) {
+                    while (workerActions.Count > 0) {
+                        workerActions.Dequeue().Invoke();
+                    }
+                }
+
                 this.AcceptClient();
                 this.clientsStorage.ForEach((each) => {
                     this.Read(each);

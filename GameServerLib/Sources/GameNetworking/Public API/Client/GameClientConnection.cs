@@ -1,13 +1,13 @@
-﻿using System;
+﻿using Messages.Models;
 
 namespace GameNetworking {
     using Networking;
     using Commons;
 
-    internal class GameClientConnector: BaseWorker<GameClient>, INetworkingClientDelegate {
-        internal GameClientConnector(GameClient client) : base(client) {
+    internal class GameClientConnection : BaseWorker<GameClient>, INetworkingClientDelegate {
+        internal GameClientConnection(GameClient client) : base(client) {
             client.networkingClient.Delegate = this;
-        }        
+        }
 
         internal void Connect(string host, int port) {
             this.Instance?.networkingClient.Connect(host, port);
@@ -29,6 +29,10 @@ namespace GameNetworking {
 
         void INetworkingClientDelegate.NetworkingClientDidDisconnect() {
             this.Instance?.Delegate?.GameClientDidDisconnect();
+        }
+
+        void INetworkingClientDelegate.NetworkingClientDidReadMessage(MessageContainer container) {
+            this.Instance?.GameClientConnectionDidReceiveMessage(container);
         }
 
         #endregion

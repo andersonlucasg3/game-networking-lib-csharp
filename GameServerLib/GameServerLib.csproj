@@ -1,11 +1,11 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <OutputPath>..\..\medieval-game-unity\Assets\Plugins</OutputPath>
+    <OutputPath></OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <OutputPath>..\..\medieval-game-unity\Assets\Plugins</OutputPath>
@@ -31,9 +31,8 @@
     <PackageReference Include="Google.Protobuf.Tools" Version="3.8.0" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="UnityEngine">
-      <HintPath>..\..\..\..\..\..\Applications\Unity\Hub\Editor\2019.2.1f1\Unity.app\Contents\Managed\UnityEngine.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
+    <ProjectReference Include="..\FakeUnityEngine\FakeUnityEngine.csproj">
+      <Private>false</Private>
+    </ProjectReference>
   </ItemGroup>
 </Project>

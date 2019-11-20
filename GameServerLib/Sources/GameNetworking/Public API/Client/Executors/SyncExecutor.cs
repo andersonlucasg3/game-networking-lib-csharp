@@ -21,11 +21,10 @@ namespace GameNetworking.Executors.Client {
         }
 
         private void Synchronize(GameObject player) {
-            var charController = player.GetComponent<CharacterController>();
-
-            if (charController == null) {
+            CharacterController charController;
+            if (!player.TryGetComponent(out charController)) {
                 Position(player.transform);
-                return;
+                return; 
             }
 
             charController.enabled = false;

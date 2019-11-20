@@ -18,7 +18,7 @@ namespace GameNetworking {
 
         public void Update() {
             this.storage.ForEachConverted(player => player as Models.Client.NetworkPlayer, player => {
-                if (!player.IsLocalPlayer && player.inputState.HasMovement) { 
+                if (!player.IsLocalPlayer) { 
                     this.Instance.InstanceDelegate?.GameInstanceMovePlayer(player, player.inputState.direction); 
                 }
             });

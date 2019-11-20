@@ -22,9 +22,7 @@ namespace GameNetworking {
 
         public void Update() {
             this.storage.ForEach(player => {
-                if (player.inputState.HasMovement) {
-                    this.Instance.InstanceDelegate?.GameInstanceMovePlayer(player, player.inputState.direction);
-                }
+                this.Instance.InstanceDelegate?.GameInstanceMovePlayer(player, player.inputState.direction);
             });
 
             if (Time.time - this.lastSyncTime > this.SyncIntervalMs) {

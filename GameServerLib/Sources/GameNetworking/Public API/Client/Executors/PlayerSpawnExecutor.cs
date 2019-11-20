@@ -26,11 +26,10 @@ namespace GameNetworking.Executors.Client {
         }
 
         private void SetupCharacterControllerIfNeeded(GameObject spawned) {
-            var charController = spawned.GetComponent<CharacterController>();
-
-            if (charController == null) {
+            CharacterController charController;
+            if (!spawned.TryGetComponent(out charController)) {
                 Position(spawned.transform);
-                return; 
+                return;
             }
 
             charController.enabled = false;

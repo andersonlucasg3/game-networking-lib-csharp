@@ -18,8 +18,9 @@ namespace GameNetworking {
         private WeakReference weakInstanceDelegate;
 
         internal readonly NetworkingServer networkingServer;
-        internal readonly GameServerSyncController syncController;
         internal readonly GameServerPingController pingController;
+        
+        public readonly GameServerSyncController syncController;
 
         public IGameInstanceDelegate InstanceDelegate {
             get { return this.weakInstanceDelegate?.Target as IGameInstanceDelegate; }

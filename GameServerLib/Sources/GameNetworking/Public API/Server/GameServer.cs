@@ -56,12 +56,6 @@ namespace GameNetworking {
         }
 
         internal void Update() {
-            this.networkingServer.AcceptClient();
-            this.playersStorage.ForEach((each) => { 
-                this.networkingServer.Read(each.Client); 
-                this.networkingServer.Flush(each.Client);    
-            });
-
             this.syncController.Update();
             this.pingController.Update();
         }

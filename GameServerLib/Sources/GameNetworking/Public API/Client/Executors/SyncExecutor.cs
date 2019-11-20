@@ -14,21 +14,34 @@ namespace GameNetworking.Executors.Client {
 
         public void Execute() {
             var player = this.gameClient.FindPlayer(this.message.playerId);
-            
-            var charController = player?.GameObject?.GetComponent<CharacterController>();
 
-            if (charController == null) { return; }
+            if (player?.GameObject == null) { return; }
+
+            Synchronize(player.GameObject);
+        }
+
+        private void Synchronize(GameObject player) {
+            var charController = player.GetComponent<CharacterController>();
+
+            if (charController == null) {
+                Position(player.transform);
+                return;
+            }
 
             charController.enabled = false;
-            
+
+            Position(player.transform);
+
+            charController.enabled = true;
+        }
+
+        private void Position(Transform transform) {
             Vector3 pos = Vector3.zero;
             Vector3 euler = Vector3.zero;
             this.message.position.CopyToVector3(ref pos);
             this.message.rotation.CopyToVector3(ref euler);
-            charController.transform.position = pos;
-            charController.transform.eulerAngles = euler;
-            
-            charController.enabled = true;
+            transform.position = pos;
+            transform.eulerAngles = euler;
         }
     }
 }

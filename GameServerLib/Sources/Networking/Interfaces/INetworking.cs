@@ -13,7 +13,7 @@ namespace Networking {
         void Connect(string host, int port);
         void Disconnect(NetClient client);
 
-        byte[] Read(NetClient client);
+        void Read(NetClient client);
         void Send(NetClient client, byte[] message);
         void Flush(NetClient client);
     }

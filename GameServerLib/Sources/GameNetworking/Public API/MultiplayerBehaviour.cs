@@ -12,7 +12,7 @@ public enum MultiplayerBehaviourType {
     CLIENT
 }
 
-public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameClientDelegate, IGameInstanceDelegate {
+public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameClientDelegate, IGameClientInstanceDelegate {
     protected GameServer server;
     protected GameClient client;
 
@@ -43,7 +43,7 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameCli
 
     protected virtual void StartServer() {
         this.server = new GameServer { Delegate = this, InstanceDelegate = this };
-        this.server.syncController.SyncIntervalMs = this.syncIntervalMs / 1000.0F;
+        this.server.syncController.SyncInterval = this.syncIntervalMs / 1000.0F;
         this.server.Listen(this.port);
     }
 
@@ -104,8 +104,12 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameCli
 
     #region IGameInstance
 
-    public virtual void GameInstanceMovePlayer(GameNetworking.Models.Server.NetworkPlayer player, Vector3 direction) {
+    public virtual void GameInstanceMovePlayer(GameNetworking.Models.Server.NetworkPlayer player, Vector3 direction, Vector3 position) {
         
+    }
+
+    public virtual bool GameInstanceSyncPlayer(GameNetworking.Models.Client.NetworkPlayer player, Vector3 position, Vector3 eulerAngles) {
+        return false;
     }
 
     #endregion

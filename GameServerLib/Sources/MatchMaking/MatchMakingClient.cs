@@ -46,8 +46,7 @@ namespace MatchMaking {
         }
 
         public void Read() {
-            MessageContainer container = this.connection?.Read();
-            if (container != null) { this.RouteMessage(container); }
+            this.connection?.Read();
         }
 
         public void Flush() {
@@ -76,6 +75,10 @@ namespace MatchMaking {
         void IClientConnectionDelegate<MMClient>.ClientConnectionDidDisconnect() {
             this.connection = null;
             this.Delegate?.MatchMakingClientDidDisconnect(this);
+        }
+
+        void IClientConnectionDelegate<MMClient>.ClientDidReadMessage(MessageContainer container) {
+            if (container != null) { this.RouteMessage(container); }
         }
 
         #endregion

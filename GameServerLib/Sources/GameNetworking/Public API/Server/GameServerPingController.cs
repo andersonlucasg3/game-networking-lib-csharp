@@ -11,6 +11,8 @@ namespace GameNetworking {
     public class GameServerPingController: BaseWorker<GameServer>, INetworkPlayerStorageChangeDelegate {
         private readonly List<PingPlayer> pingPlayers = new List<PingPlayer>();
 
+        public float PingInterval { get; set; }
+
         public GameServerPingController(GameServer instance, NetworkPlayersStorage storage) : base(instance) {
             storage.Add(this);
         }
@@ -28,9 +30,9 @@ namespace GameNetworking {
             });
         }
 
-        public void PongReceived(NetworkPlayer player) {
+        public float PongReceived(NetworkPlayer player) {
             var ping = this.pingPlayers.Find(each => each.Player == player);
-            ping?.ReceivedPong();
+            return ping?.ReceivedPong() ?? 0F;
         }
 
         void INetworkPlayerStorageChangeDelegate.PlayerStorageDidAdd(NetworkPlayer player) {
@@ -44,15 +46,25 @@ namespace GameNetworking {
     }
 
     internal class PingPlayer: WeakReference {
+        private WeakReference pingController;
+
         private float pingSentTime;
 
         private float PingElapsedTime {  get { return Time.time - this.pingSentTime; } }
 
         internal bool PingSent { get; private set; }
-        internal bool CanSendNextPing { get { return this.PingElapsedTime > 0.5F; } }
+        internal bool CanSendNextPing { get { return this.PingElapsedTime > (PingController?.PingInterval ?? 0.5F); } }
         internal float PingValue { get; private set; }
 
         internal NetworkPlayer Player { get { return this.Target as NetworkPlayer; } }
+
+        internal GameServerPingController PingController {
+            get { return pingController?.Target as GameServerPingController; }
+            set {
+                if (value == null) { pingController = null; return; }
+                pingController = new WeakReference(value);
+            }
+        }
 
         internal PingPlayer(NetworkPlayer instance) : base(instance) { }
 
@@ -61,9 +73,10 @@ namespace GameNetworking {
             this.pingSentTime = Time.time;
         }
 
-        internal void ReceivedPong() {
+        internal float ReceivedPong() {
             this.PingSent = false;
             this.PingValue = this.PingElapsedTime;
+            return this.PingValue;
         }
 
         public override bool Equals(object obj) {

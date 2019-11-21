@@ -21,18 +21,31 @@ namespace GameNetworking.Executors.Client {
 
             var spawned = this.gameClient.Delegate?.GameClientSpawnCharacter(player);
             player.GameObject = spawned;
-            
-            var charController = spawned.GetComponent<CharacterController>();
+
+            SetupCharacterControllerIfNeeded(spawned);
+        }
+
+        private void SetupCharacterControllerIfNeeded(GameObject spawned) {
+            CharacterController charController;
+            if (!spawned.TryGetComponent(out charController)) {
+                Position(spawned.transform);
+                return;
+            }
+
             charController.enabled = false;
-            
+
+            Position(spawned.transform);
+
+            charController.enabled = true;
+        }
+
+        private void Position(Transform transform) {
             Vector3 pos = Vector3.zero;
             Vector3 euler = Vector3.zero;
             this.spawnMessage.position.CopyToVector3(ref pos);
             this.spawnMessage.rotation.CopyToVector3(ref euler);
-            spawned.transform.position = pos;
-            spawned.transform.eulerAngles = euler;
-
-            charController.enabled = true;
+            transform.position = pos;
+            transform.eulerAngles = euler;
         }
     }
 }

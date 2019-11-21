@@ -1,6 +1,9 @@
+using System.Collections;
+
 namespace UnityEngine {
-    public abstract class MonoBehaviour {
-        public Transform transform;
-        public bool enabled;
+    public abstract class MonoBehaviour: Behaviour {
+        public Coroutine StartCoroutine(IEnumerator routine) {
+            return new Coroutine();
+        }
     }
 }

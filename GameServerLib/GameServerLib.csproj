@@ -6,33 +6,50 @@
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <OutputPath></OutputPath>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+    <GenerateSerializationAssemblies>On</GenerateSerializationAssemblies>
+    <DebugType>embedded</DebugType>
+    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <OutputPath>..\..\medieval-game-unity\Assets\Plugins</OutputPath>
+    <OutputPath></OutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <Folder Include="Sources\" />
-    <Folder Include="Sources\GameNetworking\" />
     <Folder Include="Sources\MatchMaking\Connection\" />
     <Folder Include="Sources\GameNetworking\Interfaces\" />
     <Folder Include="Sources\GameNetworking\Networking\" />
     <Folder Include="Sources\GameNetworking\Models\" />
-    <Folder Include="Sources\GameNetworking\Public API\" />
-    <Folder Include="Sources\GameNetworking\Public API\Client\" />
-    <Folder Include="Sources\GameNetworking\Public API\Server\" />
     <Folder Include="Sources\GameNetworking\Public API\Client\Messages\" />
     <Folder Include="Sources\GameNetworking\Public API\Messages\" />
-    <Folder Include="Sources\GameNetworking\Public API\Server\Messages\" />
     <Folder Include="Sources\GameNetworking\Public API\Server\Executors\" />
-    <Folder Include="Sources\GameNetworking\Public API\Client\Executors\" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Google.Protobuf" Version="3.8.0" />
-    <PackageReference Include="Google.Protobuf.Tools" Version="3.8.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FakeUnityEngine\FakeUnityEngine.csproj">
       <Private>false</Private>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <EmbedInteropTypes>false</EmbedInteropTypes>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Google.Protobuf">
+      <HintPath>..\..\..\.nuget\packages\google.protobuf\3.10.1\lib\netstandard2.0\Google.Protobuf.dll</HintPath>
+      <Private>true</Private>
+      <EmbedInteropTypes></EmbedInteropTypes>
+    </Reference>
+    <Reference Include="System.Buffers">
+      <HintPath>..\..\..\.nuget\packages\system.buffers\4.4.0\lib\netstandard2.0\System.Buffers.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="System.Memory">
+      <HintPath>..\..\..\.nuget\packages\system.memory\4.5.2\lib\netstandard2.0\System.Memory.dll</HintPath>
+      <Private>true</Private>
+      <EmbedInteropTypes></EmbedInteropTypes>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe">
+      <HintPath>..\..\..\.nuget\packages\system.runtime.compilerservices.unsafe\4.5.2\lib\netstandard2.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+  </ItemGroup>
 </Project>
+

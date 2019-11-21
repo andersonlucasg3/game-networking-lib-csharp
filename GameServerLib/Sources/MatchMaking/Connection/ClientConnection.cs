@@ -1,13 +1,14 @@
 ﻿using System;
 using Networking;
 using Google.Protobuf;
+using Commons;
 
 namespace MatchMaking.Connection {
     using Models;
+    using Networking.Models;
     using Protobuf.Coders;
-    using Commons;
 
-    public sealed class ClientConnection<MMClient>: WeakDelegate<IClientConnectionDelegate<MMClient>>, INetworkingDelegate where MMClient: Client, new() {
+    public sealed class ClientConnection<MMClient>: WeakDelegate<IClientConnectionDelegate<MMClient>>, INetworkingDelegate, INetClientReadDelegate where MMClient: Client, new() {
         private readonly INetworking networking;
 
         private MMClient client;
@@ -25,13 +26,10 @@ namespace MatchMaking.Connection {
             this.networking.Connect(host, port);
         }
 
-        public MessageContainer Read() {
+        public void Read() {
             if (this.client?.client != null) {
-                byte[] bytes = this.networking.Read(this.client.client);
-                this.client.decoder.Add(bytes);
-                return this.client.decoder.Decode();
+                this.networking.Read(this.client.client);
             }
-            return null;
         }
 
         public void Send<Message>(Message message) where Message: IMessage {
@@ -52,6 +50,19 @@ namespace MatchMaking.Connection {
                 this.networking?.Disconnect(this.client.client);
             }
         }
+
+        #region INetClientReadDelegate
+
+        void INetClientReadDelegate.ClientDidReadBytes(NetClient client, byte[] bytes) {
+            this.client.decoder.Add(bytes);
+            MessageContainer message = null;
+            do {
+                message = this.client.decoder.Decode();
+                this.Delegate?.ClientDidReadMessage(message);
+            } while (message != null);
+        }
+
+        #endregion
 
         #region INetworkingDelegate
 

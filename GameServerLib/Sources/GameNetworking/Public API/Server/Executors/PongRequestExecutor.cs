@@ -1,5 +1,6 @@
 namespace GameNetworking.Executors.Server {
     using Models.Server;
+    using Messages.Server;
 
     internal struct PongRequestExecutor : IExecutor {
         private GameServer server;
@@ -11,7 +12,9 @@ namespace GameNetworking.Executors.Server {
         }
 
         public void Execute() {
-            this.server.pingController.PongReceived(this.player);
+            var pingValue = this.server.pingController.PongReceived(this.player);
+
+            this.server.Send(new PingResultRequestMessage(pingValue), this.player.Client);
         }
     }
 }

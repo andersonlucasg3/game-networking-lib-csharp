@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Collections.Generic;
 using Messages.Models;
 using Commons;
@@ -8,18 +9,20 @@ namespace GameNetworking {
     using Models;
     using Models.Client;
 
-    public class GameClient: WeakDelegate<IGameClientDelegate>, IGameInstance {
+    public class GameClient : WeakDelegate<IGameClientDelegate>, IGameClientInstance {
         private readonly NetworkPlayersStorage playersStorage;
-        private readonly GameClientConnector connector;
+        private readonly GameClientConnection connector;
         private readonly GameClientMessageRouter router;
         private readonly GameClientPlayersMovementController movementController;
-        
+
         private WeakReference weakInstanceDelegate;
 
         internal readonly NetworkingClient networkingClient;
 
-        public IGameInstanceDelegate InstanceDelegate {
-            get { return this.weakInstanceDelegate?.Target as IGameInstanceDelegate; }
+        public float MostRecentPingValue { get; internal set; }
+
+        public IGameClientInstanceDelegate InstanceDelegate {
+            get { return this.weakInstanceDelegate?.Target as IGameClientInstanceDelegate; }
             set { this.weakInstanceDelegate = new WeakReference(value); }
         }
 
@@ -29,7 +32,7 @@ namespace GameNetworking {
 
             this.networkingClient = new NetworkingClient();
 
-            this.connector = new GameClientConnector(this);
+            this.connector = new GameClientConnection(this);
             this.router = new GameClientMessageRouter(this);
         }
 
@@ -42,16 +45,7 @@ namespace GameNetworking {
         }
 
         public void Update() {
-            MessageContainer message = null;
-            do {
-                message = this.networkingClient.Read();
-                if (message != null) {
-                    this.router.Route(message);
-                }
-            } while (message != null);
-            
-            this.networkingClient.Flush();
-
+            this.networkingClient.Update();
             this.movementController.Update();
         }
 
@@ -65,6 +59,10 @@ namespace GameNetworking {
 
         internal List<GameNetworking.Models.Server.NetworkPlayer> AllPlayers() {
             return this.playersStorage.Players;
+        }
+
+        internal void GameClientConnectionDidReceiveMessage(MessageContainer container) {
+            this.router.Route(container);
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace GameNetworking.Executors.Server {
+﻿using UnityEngine;
+
+namespace GameNetworking.Executors.Server {
     using Models.Server;
     using Messages;
 
@@ -15,8 +17,12 @@
 
         public void Execute() {
             this.message.direction.CopyToVector3(ref this.player.inputState.direction);
+            var position = Vector3.zero;
+            this.message.position.CopyToVector3(ref position);
             
             this.message.playerId = this.player.PlayerId;
+
+            server.InstanceDelegate?.GameInstanceMovePlayer(player, player.inputState.direction, position);
 
             var self = this;
             this.server.AllPlayers().ForEach(player => {

@@ -11,23 +11,17 @@ namespace GameNetworking {
         private NetworkPlayersStorage storage;
         private float lastSyncTime;
 
-        public float SyncIntervalMs {
+        public float SyncInterval {
             get; set;
         }
 
         internal GameServerSyncController(GameServer instance, NetworkPlayersStorage storage) : base(instance) {
             this.storage = storage;
-            this.SyncIntervalMs = 0.2f;
+            this.SyncInterval = 0.2f;
         }
 
         public void Update() {
-            this.storage.ForEach(player => {
-                if (player.inputState.HasMovement) {
-                    this.Instance.InstanceDelegate?.GameInstanceMovePlayer(player, player.inputState.direction);
-                }
-            });
-
-            if (Time.time - this.lastSyncTime > this.SyncIntervalMs) {
+            if (Time.time - this.lastSyncTime > this.SyncInterval) {
                 this.lastSyncTime = Time.time;
 
                 this.storage?.ForEach(player => this.SendSync(player));

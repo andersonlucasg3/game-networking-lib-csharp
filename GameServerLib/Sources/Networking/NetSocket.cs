@@ -78,8 +78,8 @@ namespace Networking {
             }, this);
         }
 
-        public byte[] Read(NetClient client) {
-            return client.reader.Read();
+        public void Read(NetClient client) {
+            client.reader.Read();
         }
 
         public void Send(NetClient client, byte[] message) {

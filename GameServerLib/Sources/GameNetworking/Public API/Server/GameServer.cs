@@ -18,8 +18,9 @@ namespace GameNetworking {
         private WeakReference weakInstanceDelegate;
 
         internal readonly NetworkingServer networkingServer;
-        internal readonly GameServerSyncController syncController;
-        internal readonly GameServerPingController pingController;
+        
+        public readonly GameServerPingController pingController;
+        public readonly GameServerSyncController syncController;
 
         public IGameInstanceDelegate InstanceDelegate {
             get { return this.weakInstanceDelegate?.Target as IGameInstanceDelegate; }
@@ -55,13 +56,8 @@ namespace GameNetworking {
             return this.pingController.GetPingValue(player);
         }
 
-        internal void Update() {
-            this.networkingServer.AcceptClient();
-            this.playersStorage.ForEach((each) => { 
-                this.networkingServer.Read(each.Client); 
-                this.networkingServer.Flush(each.Client);    
-            });
-
+        public void Update() {
+            this.networkingServer.Update();
             this.syncController.Update();
             this.pingController.Update();
         }

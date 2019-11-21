@@ -4,11 +4,14 @@ using Messages.Coders;
 using Messages.Models;
 using Messages.Streams;
 using Commons;
+using System;
+using System.Threading;
+using System.Collections.Generic;
 
 namespace GameNetworking.Networking {
     using Models;
 
-    internal class NetworkingClient: WeakDelegate<INetworkingClientDelegate>, INetworkingDelegate {
+    internal class NetworkingClient : WeakDelegate<INetworkingClientDelegate>, INetworkingDelegate, INetClientReadDelegate {
         private INetworking networking;
         private NetworkClient client;
 
@@ -27,28 +30,30 @@ namespace GameNetworking.Networking {
             }
         }
 
-        public MessageContainer Read() {
-            if (this.client?.Client != null) {
-                byte[] bytes = this.networking.Read(this.client.Client);
-                this.client.Reader.Add(bytes);
-                return this.client.Reader.Decode();
-            }
-            return null;
-        }
-
         public void Send(ITypedMessage message) {
             this.client?.Write(message);
         }
 
-        public void Flush() {
-            if (this.client?.Client != null) {
-                this.networking.Flush(this.client.Client);
-            }
+        public void Update() {
+            this.networking.Read(this.client.Client);
+            this.networking.Flush(this.client.Client);
         }
+
+        #region INetClientReadDelegate
+
+        void INetClientReadDelegate.ClientDidReadBytes(NetClient client, byte[] bytes) {
+            this.client.Reader.Add(bytes);
+            var message = this.client.Reader.Decode();
+            this.Delegate?.NetworkingClientDidReadMessage(message);
+        }
+
+        #endregion
 
         #region INetworkingDelegate
 
         void INetworkingDelegate.NetworkingDidConnect(NetClient client) {
+            client.Delegate = this;
+
             this.client = new NetworkClient(client, new MessageStreamReader(), new MessageStreamWriter());
             this.Delegate?.NetworkingClientDidConnect();
         }

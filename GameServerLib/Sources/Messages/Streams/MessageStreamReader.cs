@@ -12,16 +12,20 @@ namespace Messages.Streams {
         }
 
         public void Add(byte[] buffer) {
-            this.buffer.AddRange(buffer);
+            lock (this.buffer) {
+                this.buffer.AddRange(buffer);
+            }
         }
 
         public MessageContainer Decode() {
-            int delimiterIndex = CoderHelper.CheckForDelimiter(this.buffer.ToArray());
-            if (delimiterIndex != -1) {
-                byte[] bytes = CoderHelper.PackageBytes(delimiterIndex, this.buffer);
-                var container = new MessageContainer(new List<byte>(bytes));
-                CoderHelper.SliceBuffer(delimiterIndex, ref this.buffer);
-                return container;
+            lock (this.buffer) {
+                int delimiterIndex = CoderHelper.CheckForDelimiter(this.buffer.ToArray());
+                if (delimiterIndex != -1) {
+                    byte[] bytes = CoderHelper.PackageBytes(delimiterIndex, this.buffer);
+                    var container = new MessageContainer(new List<byte>(bytes));
+                    CoderHelper.SliceBuffer(delimiterIndex, ref this.buffer);
+                    return container;
+                }
             }
             return null;
         }

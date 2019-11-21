@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace GameNetworking {
     public interface IGameInstanceDelegate {
-        void GameInstanceMovePlayer(Models.Server.NetworkPlayer player, Vector3 direction, Vector3 position);
+        void GameInstanceMovePlayer(Models.Server.NetworkPlayer player, Vector3 direction);
     }
 
     public interface IGameClientInstanceDelegate: IGameInstanceDelegate {

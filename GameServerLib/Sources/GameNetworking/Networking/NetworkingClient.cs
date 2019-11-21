@@ -43,8 +43,11 @@ namespace GameNetworking.Networking {
 
         void INetClientReadDelegate.ClientDidReadBytes(NetClient client, byte[] bytes) {
             this.client.Reader.Add(bytes);
-            var message = this.client.Reader.Decode();
-            this.Delegate?.NetworkingClientDidReadMessage(message);
+            MessageContainer container = null;
+            do {
+                container = this.client.Reader.Decode();
+                this.Delegate?.NetworkingClientDidReadMessage(container);
+            } while (container != null);
         }
 
         #endregion

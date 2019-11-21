@@ -14,8 +14,6 @@ namespace GameNetworking.Executors.Client {
 
         void IExecutor.Execute() {
             client.MostRecentPingValue = message.pingValue;
-
-            Logging.Logger.Log(this.GetType(), $"Setting MostRecentPingValue {message.pingValue}");
         }
     }
 }

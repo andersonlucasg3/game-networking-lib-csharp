@@ -5,13 +5,18 @@ using Commons;
 namespace Networking.IO {
     public sealed class NetworkingReader : WeakDelegate<IReaderDelegate>, IReader {
         private readonly Socket socket;
-        private bool hasStartedReading = false;
+
+        private bool isReceiving;
         
         internal NetworkingReader(Socket socket) {
             this.socket = socket;
         }
 
         private void Receive() {
+            if (this.isReceiving) { return; }
+
+            this.isReceiving = true;
+
             var bufferSize = 4096 * 2;
 
             byte[] receiveBuffer = new byte[bufferSize];
@@ -23,17 +28,12 @@ namespace Networking.IO {
 
                 this.Delegate?.ClientDidSendBytes(bytesRead);
 
-                if (socket.Connected) {
-                    Receive();
-                }
+                this.isReceiving = false;
             }, this);
         }
 
         public void Read() {
-            if (!hasStartedReading) {
-                hasStartedReading = true;
-                this.Receive();
-            }
+            this.Receive();
         }
 
         private void Copy(byte[] source, ref byte[] destination) {

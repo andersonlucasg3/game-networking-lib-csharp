@@ -104,7 +104,7 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameCli
 
     #region IGameInstance
 
-    public virtual void GameInstanceMovePlayer(GameNetworking.Models.Server.NetworkPlayer player, Vector3 direction) {
+    public virtual void GameInstanceMovePlayer(GameNetworking.Models.Server.NetworkPlayer player, Vector3 direction, Vector3 position) {
         
     }
 

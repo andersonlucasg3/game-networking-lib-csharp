@@ -20,22 +20,18 @@ namespace Networking.IO {
 
                 this.isSending = true;
 
-                lock (this.buffer) {
-                    this.socket.BeginSend(this.buffer, 0, this.buffer.Length, SocketFlags.Partial, (ar) => {
-                        int written = this.socket.EndSend(ar);
-                        if (written > 0) { this.ShrinkBuffer(written); }
-                        this.isSending = false;
-                    }, this);
-                }
+                this.socket.BeginSend(this.buffer, 0, this.buffer.Length, SocketFlags.Partial, (ar) => {
+                    int written = this.socket.EndSend(ar);
+                    if (written > 0) { this.ShrinkBuffer(written); }
+                    this.isSending = false;
+                }, this);
             }
         }
 
         public void Write(byte[] data) {
-            lock (this.buffer) {
-                List<byte> bytes = new List<byte>(this.buffer);
-                bytes.AddRange(data);
-                this.buffer = bytes.ToArray();
-            }
+            List<byte> bytes = new List<byte>(this.buffer);
+            bytes.AddRange(data);
+            this.buffer = bytes.ToArray();
             this.Write();
         }
 
@@ -44,11 +40,9 @@ namespace Networking.IO {
         }
 
         private void ShrinkBuffer(int written) {
-            lock (this.buffer) {
-                List<byte> bytes = new List<byte>(this.buffer);
-                bytes.RemoveRange(0, written);
-                this.buffer = bytes.ToArray();
-            }
+            List<byte> bytes = new List<byte>(this.buffer);
+            bytes.RemoveRange(0, written);
+            this.buffer = bytes.ToArray();
         }
     }
 

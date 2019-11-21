@@ -11,17 +11,13 @@ using System.Collections.Generic;
 namespace GameNetworking.Networking {
     using Models;
 
-    internal class NetworkingClient : WeakDelegate<INetworkingClientDelegate>, INetworkingDelegate {
+    internal class NetworkingClient : WeakDelegate<INetworkingClientDelegate>, INetworkingDelegate, INetClientReadDelegate {
         private INetworking networking;
         private NetworkClient client;
-
-        private Thread proletariatTherad;
-        private Queue<Action> workerActions;
 
         public NetworkingClient() {
             this.networking = new NetSocket();
             this.networking.Delegate = this;
-            workerActions = new Queue<Action>();
         }
 
         public void Connect(string host, int port) {
@@ -35,48 +31,20 @@ namespace GameNetworking.Networking {
         }
 
         public void Send(ITypedMessage message) {
-            lock(workerActions) {
-                workerActions.Enqueue(() => {
-                    this.client?.Write(message);
-                });
-            }
+            this.client?.Write(message);
         }
 
-        #region Private Methods
-
-        private void CreateAndStartThread() {
-            proletariatTherad = new Thread(ThreadWork);
-            proletariatTherad.Start();
+        public void Update() {
+            this.networking.Read(this.client.Client);
+            this.networking.Flush(this.client.Client);
         }
 
-        private void AbortWork() {
-            proletariatTherad?.Abort();
-            proletariatTherad = null;
-        }
+        #region INetClientReadDelegate
 
-        private void ThreadWork() {
-            do {
-                lock (workerActions) {
-                    if (workerActions.Count > 0) {
-                        workerActions.Dequeue().Invoke();
-                    }
-                }
-
-                if (this.client?.Client != null) {
-                    byte[] bytes = this.networking.Read(this.client.Client);
-                    this.client.Reader.Add(bytes);
-                    var message = this.client.Reader.Decode();
-                    this.Delegate?.NetworkingClientDidReadMessage(message);
-
-                    this.networking.Flush(this.client.Client);
-                }
-            } while (ShouldKeepWorking());
-        }
-
-        private bool ShouldKeepWorking() {
-            var connected = this.client?.Client?.IsConnected ?? false;
-            var isAborted = this.proletariatTherad?.ThreadState == ThreadState.Aborted || this.proletariatTherad.ThreadState == ThreadState.AbortRequested;
-            return connected || !isAborted;
+        void INetClientReadDelegate.ClientDidReadBytes(NetClient client, byte[] bytes) {
+            this.client.Reader.Add(bytes);
+            var message = this.client.Reader.Decode();
+            this.Delegate?.NetworkingClientDidReadMessage(message);
         }
 
         #endregion
@@ -84,10 +52,10 @@ namespace GameNetworking.Networking {
         #region INetworkingDelegate
 
         void INetworkingDelegate.NetworkingDidConnect(NetClient client) {
+            client.Delegate = this;
+
             this.client = new NetworkClient(client, new MessageStreamReader(), new MessageStreamWriter());
             this.Delegate?.NetworkingClientDidConnect();
-
-            this.CreateAndStartThread();
         }
 
         void INetworkingDelegate.NetworkingConnectDidTimeout() {
@@ -98,8 +66,6 @@ namespace GameNetworking.Networking {
         void INetworkingDelegate.NetworkingDidDisconnect(NetClient client) {
             this.client = null;
             this.Delegate?.NetworkingClientDidDisconnect();
-
-            this.AbortWork();
         }
 
         #endregion

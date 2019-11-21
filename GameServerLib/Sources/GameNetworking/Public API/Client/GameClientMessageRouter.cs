@@ -33,6 +33,9 @@ namespace GameNetworking {
             case MessageType.PING:
                 Execute(new PingRequestExecutor(this.Instance));
                 break;
+            case MessageType.PING_RESULT:
+                Execute(new PingResultRequestExecutor(this.Instance, container.Parse<PingResultRequestMessage>()));
+                break;
 
             default:
                 UnityMainThreadDispatcher.Instance().Enqueue(() => {

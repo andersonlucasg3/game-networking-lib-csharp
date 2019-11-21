@@ -6,6 +6,7 @@ namespace GameNetworking.Messages {
         SYNC = 103,
         START_GAME = 104,
         PING = 105,
-        PONG = 106
+        PONG = 106,
+        PING_RESULT = 107
     }
 }

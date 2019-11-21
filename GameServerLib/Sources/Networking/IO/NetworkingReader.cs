@@ -1,17 +1,15 @@
 using System.Net.Sockets;
 using System.Collections.Generic;
+using Commons;
 
 namespace Networking.IO {
-    public sealed class NetworkingReader : IReader {
+    public sealed class NetworkingReader : WeakDelegate<IReaderDelegate>, IReader {
         private readonly Socket socket;
-        private byte[] buffer;
 
         private bool isReceiving;
         
         internal NetworkingReader(Socket socket) {
             this.socket = socket;
-            
-            this.buffer = new byte[0];
         }
 
         private void Receive() {
@@ -25,29 +23,17 @@ namespace Networking.IO {
             this.socket.BeginReceive(receiveBuffer, 0, bufferSize, SocketFlags.Partial, (ar) => {
                 int count = this.socket.EndReceive(ar);
 
-                List<byte> listBuffer = new List<byte>(this.buffer);
-                if (count > 0 && count < bufferSize) {
-                    byte[] shrinked = new byte[count];
-                    this.Copy(receiveBuffer, ref shrinked);
-                    listBuffer.AddRange(shrinked);
-                } else if (receiveBuffer.Length == count) {
-                    listBuffer.AddRange(receiveBuffer);
-                }
-                this.buffer = listBuffer.ToArray();
+                byte[] bytesRead = new byte[count];
+                this.Copy(receiveBuffer, ref bytesRead);
+
+                this.Delegate?.ClientDidSendBytes(bytesRead);
 
                 this.isReceiving = false;
             }, this);
         }
 
-        public byte[] Read() {
+        public void Read() {
             this.Receive();
-
-            if (this.buffer.Length > 0) {
-                var retBuffer = this.buffer;
-                this.buffer = new byte[0];
-                return retBuffer;
-            }
-            return new byte[0];
         }
 
         private void Copy(byte[] source, ref byte[] destination) {

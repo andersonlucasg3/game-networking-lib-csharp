@@ -7,5 +7,7 @@
         void ClientConnectionDidTimeout();
 
         void ClientConnectionDidDisconnect();
+
+        void ClientDidReadMessage(MessageContainer container);
     }
 }

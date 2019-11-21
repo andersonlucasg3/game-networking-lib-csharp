@@ -10,14 +10,11 @@ using System.Threading;
 namespace GameNetworking.Networking {
     using Models;
 
-    internal class NetworkingServer: WeakDelegate<INetworkingServerDelegate> {
+    internal class NetworkingServer: WeakDelegate<INetworkingServerDelegate>, INetClientReadDelegate {
         private readonly INetworking networking;
         private WeakReference weakMessagesDelegate;
 
         private readonly List<NetworkClient> clientsStorage;
-
-        private Thread proletariatThread;
-        private readonly Queue<Action> workerActions;
 
         public INetworkingServerMessagesDelegate MessagesDelegate {
             get { return this.weakMessagesDelegate?.Target as INetworkingServerMessagesDelegate; }
@@ -27,17 +24,16 @@ namespace GameNetworking.Networking {
         public NetworkingServer() {
             this.networking = new NetSocket();
             clientsStorage = new List<NetworkClient>();
-            workerActions = new Queue<Action>();
         }
 
         public void Listen(int port) {
             this.networking.Start(port);
-            CreateAndStartThread();
         }
 
         private void AcceptClient() {
             NetClient client = this.networking.Accept();
             if (client != null) {
+                client.Delegate = this;
                 NetworkClient networkClient = new NetworkClient(client, new MessageStreamReader(), new MessageStreamWriter());
                 clientsStorage.Add(networkClient);
                 this.Delegate?.NetworkingServerDidAcceptClient(networkClient);
@@ -45,65 +41,27 @@ namespace GameNetworking.Networking {
         }
 
         public void Send(ITypedMessage encodable, NetworkClient client) {
-            lock(workerActions) {
-                workerActions.Enqueue(() => {
-                    client.Write(encodable);
-                });
-            }
+            client.Write(encodable);
         }
 
         public void SendBroadcast(ITypedMessage encodable, List<NetworkClient> clients) {
-            lock(workerActions) {
-                workerActions.Enqueue(() => {
-                    var writer = new MessageStreamWriter();
-                    var buffer = writer.Write(encodable);
-                    clients.ForEach(c => this.networking.Send(c.Client, buffer));
-                });
-            }
+            var writer = new MessageStreamWriter();
+            var buffer = writer.Write(encodable);
+            clients.ForEach(c => this.networking.Send(c.Client, buffer));
+        }
+
+        public void Update() {
+            this.AcceptClient();
+            this.clientsStorage.ForEach((each) => {
+                this.Read(each);
+                this.Flush(each);
+            });
         }
 
         #region Private Methods
 
-        private void CreateAndStartThread() {
-            proletariatThread = new Thread(ThreadWork);
-            proletariatThread.Start();
-        }
-
-        private bool ShouldKeepWorking() {
-            // TODO:
-            // there is no way to stop a server yet
-            // when there is, add the check here
-            var isAborted = this.proletariatThread?.ThreadState == ThreadState.AbortRequested || this.proletariatThread?.ThreadState == ThreadState.Aborted;
-            return !isAborted;
-        }
-
-        private void ThreadWork() {
-            do {
-                lock(workerActions) {
-                    while (workerActions.Count > 0) {
-                        workerActions.Dequeue().Invoke();
-                    }
-                }
-
-                this.AcceptClient();
-                this.clientsStorage.ForEach((each) => {
-                    this.Read(each);
-                    this.Flush(each);
-                });
-            } while (ShouldKeepWorking());
-        }
-
         private void Read(NetworkClient client) {
-            byte[] bytes = this.networking.Read(client.Client);
-            client.Reader.Add(bytes);
-
-            MessageContainer message = null;
-            do {
-                message = client.Reader.Decode();
-                if (message != null) {
-                    this.MessagesDelegate?.NetworkingServerDidReadMessage(message, client);
-                }
-            } while (message != null);
+            this.networking.Read(client.Client);
         }
 
         private void Flush(NetworkClient client) {
@@ -113,6 +71,23 @@ namespace GameNetworking.Networking {
                 this.Delegate?.NetworkingServerClientDidDisconnect(client);
                 this.clientsStorage.Remove(client);
             }
+        }
+
+        #endregion
+
+        #region INetClientReadDelegate
+
+        void INetClientReadDelegate.ClientDidReadBytes(NetClient client, byte[] bytes) {
+            var n_client = clientsStorage.Find((c) => c.Equals(client));
+            n_client.Reader.Add(bytes);
+
+            MessageContainer message = null;
+            do {
+                message = n_client.Reader.Decode();
+                if (message != null) {
+                    this.MessagesDelegate?.NetworkingServerDidReadMessage(message, n_client);
+                }
+            } while (message != null);
         }
 
         #endregion

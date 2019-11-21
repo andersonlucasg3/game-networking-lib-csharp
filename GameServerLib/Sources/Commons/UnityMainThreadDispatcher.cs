@@ -30,24 +30,24 @@ public class UnityMainThreadDispatcher : MonoBehaviour {
     private static UnityMainThreadDispatcher instance = null;
 
     public static UnityMainThreadDispatcher Instance() {
-        if (!Exists()) {
-            throw new Exception("UnityMainThreadDispatcher could not find the UnityMainThreadDispatcher object. Please ensure you have added the MainThreadExecutor Prefab to your scene.");
+        if (instance == null) {
+            instance = new GameObject("MainThreadDispatcher").AddComponent<UnityMainThreadDispatcher>();
         }
         return instance;
     }
 
-    void Awake() {
+    protected virtual void Awake() {
         if (instance == null) {
             instance = this;
-            DontDestroyOnLoad(this.gameObject);
         }
+        DontDestroyOnLoad(this.gameObject);
     }
 
-    void OnDestroy() {
+    protected virtual void OnDestroy() {
         instance = null;
     }
 
-    public void Update() {
+    protected virtual void Update() {
         lock (executionQueue) {
             while (executionQueue.Count > 0) {
                 executionQueue.Dequeue().Invoke();
@@ -55,24 +55,9 @@ public class UnityMainThreadDispatcher : MonoBehaviour {
         }
     }
 
-    public void Enqueue(IEnumerator action) {
-        lock (executionQueue) {
-            executionQueue.Enqueue(() => {
-                StartCoroutine(action);
-            });
-        }
-    }
-
     public void Enqueue(Action action) {
-        Enqueue(ActionWrapper(action));
-    }
-
-    IEnumerator ActionWrapper(Action action) {
-        action.Invoke();
-        yield return null;
-    }
-
-    public static bool Exists() {
-        return instance != null;
+        lock (executionQueue) {
+            executionQueue.Enqueue(action);
+        }
     }
 }

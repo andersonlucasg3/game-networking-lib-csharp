@@ -12,7 +12,7 @@ public enum MultiplayerBehaviourType {
     CLIENT
 }
 
-public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameClientDelegate, IGameInstanceDelegate {
+public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameClientDelegate, IGameClientInstanceDelegate {
     protected GameServer server;
     protected GameClient client;
 
@@ -106,6 +106,10 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameCli
 
     public virtual void GameInstanceMovePlayer(GameNetworking.Models.Server.NetworkPlayer player, Vector3 direction, Vector3 position) {
         
+    }
+
+    public virtual bool GameInstanceSyncPlayer(GameNetworking.Models.Client.NetworkPlayer player, Vector3 position, Vector3 eulerAngles) {
+        return false;
     }
 
     #endregion

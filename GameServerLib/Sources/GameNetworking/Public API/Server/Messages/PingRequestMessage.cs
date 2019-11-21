@@ -8,7 +8,7 @@ namespace GameNetworking.Messages.Server {
         }
 
         int ITypedMessage.Type {
-            get { return PingRequestMessage.Type; }
+            get { return PingResultRequestMessage.Type; }
         }
 
         public void Encode(IEncoder encoder) { }

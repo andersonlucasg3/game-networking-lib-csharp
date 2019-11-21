@@ -2,8 +2,13 @@ using System.Net.Sockets;
 
 namespace Networking.Models {
     using IO;
+    using Commons;
 
-    public sealed class NetClient {
+    public interface INetClientReadDelegate {
+        void ClientDidReadBytes(NetClient client, byte[] bytes);
+    }
+
+    public sealed class NetClient: WeakDelegate<INetClientReadDelegate>, IReaderDelegate {
         internal Socket socket;
 
         internal IReader reader;
@@ -15,6 +20,8 @@ namespace Networking.Models {
             this.socket = socket;
             this.reader = reader;
             this.writer = writer;
+
+            this.reader.Delegate = this;
         }
 
         public override bool Equals(object obj) {
@@ -29,6 +36,10 @@ namespace Networking.Models {
 
         public override int GetHashCode() {
             return base.GetHashCode();
+        }
+
+        void IReaderDelegate.ClientDidSendBytes(byte[] bytes) {
+            Delegate?.ClientDidReadBytes(this, bytes);
         }
     }
 }

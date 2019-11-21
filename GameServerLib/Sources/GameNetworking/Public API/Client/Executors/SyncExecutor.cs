@@ -2,6 +2,7 @@
 
 namespace GameNetworking.Executors.Client {
     using Messages.Server;
+    using Models.Client;
 
     internal struct SyncExecutor: IExecutor {
         private readonly GameClient gameClient;
@@ -17,30 +18,33 @@ namespace GameNetworking.Executors.Client {
 
             if (player?.GameObject == null) { return; }
 
-            Synchronize(player.GameObject);
+            Synchronize(player);
         }
 
-        private void Synchronize(GameObject player) {
+        private void Synchronize(NetworkPlayer player) {
             CharacterController charController;
-            if (!player.TryGetComponent(out charController)) {
-                Position(player.transform);
+            if (!player.GameObject.TryGetComponent(out charController)) {
+                Position(player);
                 return; 
             }
 
             charController.enabled = false;
 
-            Position(player.transform);
+            Position(player);
 
             charController.enabled = true;
         }
 
-        private void Position(Transform transform) {
+        private void Position(NetworkPlayer player) {
             Vector3 pos = Vector3.zero;
             Vector3 euler = Vector3.zero;
             this.message.position.CopyToVector3(ref pos);
             this.message.rotation.CopyToVector3(ref euler);
-            transform.position = pos;
-            transform.eulerAngles = euler;
+
+            if (gameClient.InstanceDelegate?.GameInstanceSyncPlayer(player, pos, euler) ?? false) { return; }
+
+            player.Transform.position = pos;
+            player.Transform.eulerAngles = euler;
         }
     }
 }

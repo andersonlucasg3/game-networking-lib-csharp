@@ -71,7 +71,7 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameCli
         this.client?.Send(message);
     }
 
-    public void Send(ITypedMessage encodable, GameNetworking.Models.Server.NetworkPlayer player) {
+    public void Send(ITypedMessage encodable, GameNetworking.Models.Server.NetworkPlayer player = null) {
         switch (this.behaviourType) {
         case MultiplayerBehaviourType.CLIENT: this.client?.Send(encodable); break;
         case MultiplayerBehaviourType.SERVER: this.server?.Send(encodable, player.Client); break;

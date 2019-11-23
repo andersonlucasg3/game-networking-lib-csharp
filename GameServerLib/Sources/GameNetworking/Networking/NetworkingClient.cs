@@ -35,6 +35,7 @@ namespace GameNetworking.Networking {
         }
 
         public void Update() {
+            if (this.client?.Client == null) { return; }
             this.networking.Read(this.client.Client);
             this.networking.Flush(this.client.Client);
         }

@@ -42,7 +42,7 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameCli
     }
 
     protected virtual void StartServer() {
-        this.server = new GameServer { Delegate = this, InstanceDelegate = this };
+        this.server = new GameServer { Delegate = this };
         this.server.syncController.SyncInterval = this.syncIntervalMs / 1000.0F;
         this.server.Listen(this.port);
     }

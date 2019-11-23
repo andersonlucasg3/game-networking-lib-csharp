@@ -13,7 +13,6 @@ namespace GameNetworking {
         private readonly NetworkPlayersStorage playersStorage;
         private readonly GameClientConnection connector;
         private readonly GameClientMessageRouter router;
-        private readonly GameClientPlayersMovementController movementController;
 
         private WeakReference weakInstanceDelegate;
 
@@ -28,7 +27,6 @@ namespace GameNetworking {
 
         public GameClient() {
             this.playersStorage = new NetworkPlayersStorage();
-            this.movementController = new GameClientPlayersMovementController(this, this.playersStorage);
 
             this.networkingClient = new NetworkingClient();
 
@@ -46,7 +44,6 @@ namespace GameNetworking {
 
         public void Update() {
             this.networkingClient.Update();
-            this.movementController.Update();
         }
 
         internal void AddPlayer(NetworkPlayer player) {
@@ -57,7 +54,7 @@ namespace GameNetworking {
             return this.playersStorage.Find(player => player.PlayerId == playerId) as NetworkPlayer;
         }
 
-        internal List<GameNetworking.Models.Server.NetworkPlayer> AllPlayers() {
+        internal List<Models.Server.NetworkPlayer> AllPlayers() {
             return this.playersStorage.Players;
         }
 

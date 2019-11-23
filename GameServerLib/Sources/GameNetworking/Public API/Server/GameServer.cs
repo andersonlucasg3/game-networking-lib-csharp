@@ -15,17 +15,10 @@ namespace GameNetworking {
         private readonly GameServerClientAcceptor clientAcceptor;
         private readonly GameServerMessageRouter router;
 
-        private WeakReference weakInstanceDelegate;
-
         internal readonly NetworkingServer networkingServer;
         
         public readonly GameServerPingController pingController;
         public readonly GameServerSyncController syncController;
-
-        public IGameInstanceDelegate InstanceDelegate {
-            get { return this.weakInstanceDelegate?.Target as IGameInstanceDelegate; }
-            set { this.weakInstanceDelegate = new WeakReference(value); }
-        }
 
         public GameServer() {
             this.playersStorage = new NetworkPlayersStorage();

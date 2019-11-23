@@ -22,8 +22,6 @@ namespace GameNetworking.Executors.Server {
             
             this.message.playerId = this.player.PlayerId;
 
-            server.InstanceDelegate?.GameInstanceMovePlayer(player, player.inputState.direction, position);
-
             var self = this;
             this.server.AllPlayers().ForEach(player => {
                 if (player.PlayerId == self.player.PlayerId) { return; }

@@ -65,12 +65,6 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameCli
         this.client?.Send(new SpawnRequestMessage { spawnObjectId = spawnId });
     }
 
-    public void Move(Vector3 direction) {
-        MoveRequestMessage message = new MoveRequestMessage();
-        direction.CopyToVec3(ref message.direction);
-        this.client?.Send(message);
-    }
-
     public void Send(ITypedMessage encodable, GameNetworking.Models.Server.NetworkPlayer player = null) {
         switch (this.behaviourType) {
         case MultiplayerBehaviourType.CLIENT: this.client?.Send(encodable); break;

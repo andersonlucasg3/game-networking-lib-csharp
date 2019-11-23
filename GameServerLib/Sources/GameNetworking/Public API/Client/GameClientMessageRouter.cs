@@ -27,9 +27,6 @@ namespace GameNetworking {
             case MessageType.SYNC:
                 Execute(new SyncExecutor(this.Instance, container.Parse<SyncMessage>()));
                 break;
-            case MessageType.MOVE_REQUEST:
-                Execute(new ClientMoveRequestExecutor(this.Instance, container.Parse<MoveRequestMessage>()));
-                break;
             case MessageType.PING:
                 Execute(new PingRequestExecutor(this.Instance));
                 break;

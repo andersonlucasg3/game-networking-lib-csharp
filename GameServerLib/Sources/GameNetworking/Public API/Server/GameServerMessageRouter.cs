@@ -29,9 +29,7 @@ namespace GameNetworking {
                 break;
 
             default:
-                UnityMainThreadDispatcher.Instance().Enqueue(() => {
-                    this.Instance.Delegate?.GameServerDidReceiveClientMessage(container, player);
-                });
+                this.Instance.Delegate?.GameServerDidReceiveClientMessage(container, player);
                 break;
             }
         }

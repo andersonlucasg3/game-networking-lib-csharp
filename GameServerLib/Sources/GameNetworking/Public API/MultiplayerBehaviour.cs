@@ -83,7 +83,7 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameCli
     public GameNetworking.Models.Server.NetworkPlayer FindPlayer(int playerId) {
         switch (this.behaviourType) {
         case MultiplayerBehaviourType.CLIENT: return this.client.FindPlayer(playerId);
-        case MultiplayerBehaviourType.SERVER: return this.client.FindPlayer(playerId);
+        case MultiplayerBehaviourType.SERVER: return this.server.FindPlayer(playerId);
         }
         return null;
     }

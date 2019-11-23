@@ -17,7 +17,11 @@
             var player = new NetworkPlayer(this.message.playerId) {
                 IsLocalPlayer = this.message.isMe
             };
-            this.gameClient.AddPlayer(player);
+            if (this.message.isMe) {
+                this.gameClient.Player = player;
+            } else {
+                this.gameClient.AddPlayer(player);
+            }
         }
     }
 }

@@ -18,6 +18,7 @@ namespace GameNetworking {
 
         internal readonly NetworkingClient networkingClient;
 
+        public NetworkPlayer Player { get; internal set; }
         public float MostRecentPingValue { get; internal set; }
 
         public IGameClientInstanceDelegate InstanceDelegate {

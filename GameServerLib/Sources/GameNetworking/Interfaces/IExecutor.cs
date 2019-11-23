@@ -1,5 +1,5 @@
 ﻿namespace GameNetworking.Executors {
-    internal interface IExecutor {
+    public interface IExecutor {
         void Execute();
     }
 }

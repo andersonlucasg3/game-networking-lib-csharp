@@ -14,7 +14,12 @@ namespace GameNetworking.Executors.Client {
         }
 
         public void Execute() {
-            var player = this.gameClient.FindPlayer(this.message.playerId);
+            NetworkPlayer player;
+            if (this.message.playerId == this.gameClient.Player.PlayerId) {
+                player = this.gameClient.Player;
+            } else {
+                player = this.gameClient.FindPlayer(this.message.playerId);
+            }
 
             if (player?.GameObject == null) { return; }
 
@@ -22,10 +27,9 @@ namespace GameNetworking.Executors.Client {
         }
 
         private void Synchronize(NetworkPlayer player) {
-            CharacterController charController;
-            if (!player.GameObject.TryGetComponent(out charController)) {
+            if (!player.GameObject.TryGetComponent(out CharacterController charController)) {
                 Position(player);
-                return; 
+                return;
             }
 
             charController.enabled = false;

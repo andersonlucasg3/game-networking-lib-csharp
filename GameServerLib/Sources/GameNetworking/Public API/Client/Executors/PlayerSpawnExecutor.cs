@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 
 namespace GameNetworking.Executors.Client {
+    using GameNetworking.Models.Client;
     using Messages.Server;
 
     internal struct PlayerSpawnExecutor: IExecutor {
@@ -15,7 +16,12 @@ namespace GameNetworking.Executors.Client {
         public void Execute() {
             Logging.Logger.Log(this.GetType(), string.Format("Executing for playerId {0}", this.spawnMessage.playerId));
 
-            var player = this.gameClient.FindPlayer(this.spawnMessage.playerId);
+            NetworkPlayer player;
+            if (this.spawnMessage.playerId == this.gameClient.Player.PlayerId) {
+                player = this.gameClient.Player;
+            } else {
+                player = this.gameClient.FindPlayer(this.spawnMessage.playerId);
+            }
 
             player.SpawnId = this.spawnMessage.spawnId;
 
@@ -26,8 +32,7 @@ namespace GameNetworking.Executors.Client {
         }
 
         private void SetupCharacterControllerIfNeeded(GameObject spawned) {
-            CharacterController charController;
-            if (!spawned.TryGetComponent(out charController)) {
+            if (!spawned.TryGetComponent(out CharacterController charController)) {
                 Position(spawned.transform);
                 return;
             }

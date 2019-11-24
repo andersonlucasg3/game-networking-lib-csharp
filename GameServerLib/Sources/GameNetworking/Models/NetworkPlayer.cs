@@ -40,6 +40,11 @@ namespace GameNetworking.Models {
                 this.PlayerId = playerId;
             }
 
+            public void Despawn() {
+                GameObject.Destroy(this.GameObject);
+                this.GameObject = null;
+            }
+
             public override bool Equals(object obj) {
                 if (obj is NetworkPlayer) {
                     return this.PlayerId == ((NetworkPlayer)obj).PlayerId;

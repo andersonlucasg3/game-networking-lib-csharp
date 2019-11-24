@@ -33,7 +33,7 @@
 
             var self = this;
             this.server.AllPlayers().ForEach(each => {
-                if (each == self.player) { return; }
+                if (each == self.player || each.GameObject == null) { return; }
                 var spawn = new PlayerSpawnMessage();
                 spawn.playerId = each.PlayerId;
                 spawn.spawnId = each.SpawnId;

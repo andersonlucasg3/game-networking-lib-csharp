@@ -25,7 +25,10 @@
         public void Disconnect(NetworkClient client) {
             var player = this.Instance.FindPlayer(client);
             this.Instance.RemovePlayer(player);
-            if (player != null) { this.Instance.Delegate?.GameServerPlayerDidDisconnect(player); }
+            if (player != null) { 
+                this.Instance.Delegate?.GameServerPlayerDidDisconnect(player);
+                this.Instance.SendBroadcast(new DisconnectedPlayerMessage() { playerId = player.PlayerId });
+            }
         }
     }
 }

@@ -5,6 +5,7 @@ using Messages.Models;
 using GameNetworking;
 using GameNetworking.Messages.Client;
 using GameNetworking.Messages;
+using GameNetworking.Models.Client;
 
 [Serializable]
 public enum MultiplayerBehaviourType {
@@ -149,11 +150,15 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameCli
 
     }
 
-    public virtual GameObject GameClientSpawnCharacter(GameNetworking.Models.Client.NetworkPlayer player) {
+    public virtual GameObject GameClientSpawnCharacter(NetworkPlayer player) {
         return null;
     }
 
     public virtual void GameClientDidReceiveMessage(MessageContainer container) {
+
+    }
+
+    public virtual void GameClientNetworkPlayerDidDisconnect(NetworkPlayer player) {
 
     }
 

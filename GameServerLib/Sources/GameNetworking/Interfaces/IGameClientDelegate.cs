@@ -13,5 +13,7 @@ namespace GameNetworking {
         void GameClientDidReceiveMessage(MessageContainer container);
 
         GameObject GameClientSpawnCharacter(NetworkPlayer player);
+
+        void GameClientNetworkPlayerDidDisconnect(NetworkPlayer player);
     }
 }

@@ -55,6 +55,14 @@ namespace GameNetworking {
             this.playersStorage.Add(player);
         }
 
+        internal NetworkPlayer RemovePlayer(int playerId) {
+            var player = this.FindPlayer(playerId);
+            if (player != null) {
+                this.playersStorage.Remove(player);
+            }
+            return player;
+        }
+
         internal NetworkPlayer FindPlayer(int playerId) {
             return this.playersStorage.Find(player => player.PlayerId == playerId) as NetworkPlayer;
         }

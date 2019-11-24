@@ -12,7 +12,7 @@ namespace GameNetworking {
         internal GameServerMessageRouter(GameServer server) : base(server) { }
 
         private void Execute(IExecutor executor) {
-            UnityMainThreadDispatcher.Instance().Enqueue(executor.Execute);
+            UnityMainThreadDispatcher.instance.Enqueue(executor.Execute);
         }
 
         public void Route(MessageContainer container, NetworkClient client) {

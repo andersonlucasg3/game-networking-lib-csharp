@@ -11,7 +11,7 @@ namespace GameNetworking {
         internal GameClientMessageRouter(GameClient client) : base(client) { }
 
         private void Execute(IExecutor executor) {
-            UnityMainThreadDispatcher.Instance().Enqueue(executor.Execute);
+            UnityMainThreadDispatcher.instance.Enqueue(executor.Execute);
         }
 
         internal void Route(MessageContainer container) {

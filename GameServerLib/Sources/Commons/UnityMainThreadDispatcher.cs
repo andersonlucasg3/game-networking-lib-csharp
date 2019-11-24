@@ -25,22 +25,17 @@ using System;
 /// things such as UI Manipulation in Unity. It was developed for use in combination with the Firebase Unity plugin, which uses separate threads for event handling
 /// </summary>
 public class UnityMainThreadDispatcher : MonoBehaviour {
+    public static UnityMainThreadDispatcher instance { get; private set; }
 
-    private static readonly Queue<Action> executionQueue = new Queue<Action>();
-    private static UnityMainThreadDispatcher instance = null;
-
-    public static UnityMainThreadDispatcher Instance() {
-        if (instance == null) {
-            instance = new GameObject("MainThreadDispatcher").AddComponent<UnityMainThreadDispatcher>();
-        }
-        return instance;
-    }
+    private readonly Queue<Action> executionQueue = new Queue<Action>();
 
     protected virtual void Awake() {
         if (instance == null) {
             instance = this;
+            DontDestroyOnLoad(this.gameObject);
+        } else {
+            Destroy(this.gameObject);
         }
-        DontDestroyOnLoad(this.gameObject);
     }
 
     protected virtual void OnDestroy() {

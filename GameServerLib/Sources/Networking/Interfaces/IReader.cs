@@ -1,12 +1,12 @@
 using System;
 
 namespace Networking.IO {
-    public interface IReaderDelegate {
-        void ClientDidSendBytes(byte[] bytes);
+    public interface IReaderListener {
+        void ClientDidRead(byte[] bytes);
     }
 
     public interface IReader {
-        IReaderDelegate Delegate { get; set; }
+        IReaderListener listener { get; set; }
 
         void Read();
     }

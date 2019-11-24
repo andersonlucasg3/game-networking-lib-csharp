@@ -51,5 +51,8 @@
       <Private>true</Private>
     </Reference>
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.10.1" />
+  </ItemGroup>
 </Project>
 

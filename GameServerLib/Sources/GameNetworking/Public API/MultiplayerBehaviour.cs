@@ -4,8 +4,9 @@ using System.Collections.Generic;
 using Messages.Models;
 using GameNetworking;
 using GameNetworking.Messages.Client;
-using GameNetworking.Messages;
 using GameNetworking.Models.Client;
+using Networking;
+using Networking.IO;
 
 [Serializable]
 public enum MultiplayerBehaviourType {
@@ -50,7 +51,7 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameCli
     }
 
     protected virtual void StartServer() {
-        this.server = new GameServer { Delegate = this };
+        this.server = new GameServer(new NetSocket(new TCPNonBlockingSocket())) { listener = this };
         this.server.syncController.SyncInterval = this.syncIntervalMs / 1000.0F;
         this.server.Listen(this.port);
     }
@@ -60,7 +61,7 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameCli
     }
 
     protected virtual void StartClient() {
-        this.client = new GameClient { Delegate = this, InstanceDelegate = this };
+        this.client = new GameClient(new NetSocket(new TCPNonBlockingSocket())) { listener = this, InstanceDelegate = this };
         this.client.Connect(this.connectToHost, this.port);
     }
 
@@ -123,7 +124,7 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameCli
     #region IGameServerDelegate
 
     public virtual void GameServerPlayerDidDisconnect(GameNetworking.Models.Server.NetworkPlayer player) {
-        
+
     }
 
     public virtual GameObject GameServerSpawnCharacter(GameNetworking.Models.Server.NetworkPlayer player) {

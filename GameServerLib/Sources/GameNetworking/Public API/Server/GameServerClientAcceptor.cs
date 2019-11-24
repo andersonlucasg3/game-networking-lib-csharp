@@ -31,7 +31,7 @@
             Logging.Logger.Log(this.GetType(), $"(Disconnect) count {this.Instance.AllPlayers().Count}");
 
             if (player != null) { 
-                this.Instance.Delegate?.GameServerPlayerDidDisconnect(player);
+                this.Instance.listener?.GameServerPlayerDidDisconnect(player);
                 this.Instance.SendBroadcast(new DisconnectedPlayerMessage() { playerId = player.PlayerId });
             }
         }

@@ -29,7 +29,7 @@ namespace GameNetworking {
                 break;
 
             default:
-                this.Instance.Delegate?.GameServerDidReceiveClientMessage(container, player);
+                this.Instance.listener?.GameServerDidReceiveClientMessage(container, player);
                 break;
             }
         }

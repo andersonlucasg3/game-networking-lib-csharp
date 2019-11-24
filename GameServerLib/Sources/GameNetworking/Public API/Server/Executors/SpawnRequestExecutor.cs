@@ -20,7 +20,7 @@
 
             this.player.SpawnId = this.message.spawnObjectId;
 
-            var spawned = this.server.Delegate?.GameServerSpawnCharacter(this.player);
+            var spawned = this.server.listener?.GameServerSpawnCharacter(this.player);
             this.player.GameObject = spawned;
 
             var playerSpawn = new PlayerSpawnMessage {

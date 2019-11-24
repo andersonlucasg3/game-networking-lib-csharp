@@ -6,7 +6,7 @@ namespace GameNetworking {
 
     internal class GameClientConnection : BaseWorker<GameClient>, INetworkingClientDelegate {
         internal GameClientConnection(GameClient client) : base(client) {
-            client.networkingClient.Delegate = this;
+            client.networkingClient.listener = this;
         }
 
         internal void Connect(string host, int port) {
@@ -20,15 +20,15 @@ namespace GameNetworking {
         #region INetworkingClientDelegate
 
         void INetworkingClientDelegate.NetworkingClientDidConnect() {
-            this.Instance?.Delegate?.GameClientDidConnect();
+            this.Instance?.listener?.GameClientDidConnect();
         }
 
         void INetworkingClientDelegate.NetworkingClientConnectDidTimeout() {
-            this.Instance?.Delegate?.GameClientConnectDidTimeout();
+            this.Instance?.listener?.GameClientConnectDidTimeout();
         }
 
         void INetworkingClientDelegate.NetworkingClientDidDisconnect() {
-            this.Instance?.Delegate?.GameClientDidDisconnect();
+            this.Instance?.listener?.GameClientDidDisconnect();
         }
 
         void INetworkingClientDelegate.NetworkingClientDidReadMessage(MessageContainer container) {

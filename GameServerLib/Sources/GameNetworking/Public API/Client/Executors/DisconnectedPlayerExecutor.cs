@@ -16,7 +16,7 @@
             Logger.Log(this.GetType(), string.Format("Executing for playerId {0}", this.message.playerId));
 
             var player = this.gameClient.RemovePlayer(this.message.playerId);
-            if (player != null) { this.gameClient.Delegate?.GameClientNetworkPlayerDidDisconnect(player); }
+            if (player != null) { this.gameClient.listener?.GameClientNetworkPlayerDidDisconnect(player); }
         }
     }
 }

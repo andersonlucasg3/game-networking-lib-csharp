@@ -4,17 +4,17 @@ namespace Networking {
     public interface INetworking {
         int Port { get; }
 
-        INetworkingDelegate Delegate { get; set; }
+        INetworkingListener listener { get; set; }
 
-        void Start(int port);
-        NetClient Accept();
+        void StartServer(int port);
+        INetClient Accept();
         void Stop();
 
         void Connect(string host, int port);
-        void Disconnect(NetClient client);
+        void Disconnect(INetClient client);
 
-        void Read(NetClient client);
-        void Send(NetClient client, byte[] message);
-        void Flush(NetClient client);
+        void Read(INetClient client);
+        void Send(INetClient client, byte[] message);
+        void Flush(INetClient client);
     }
 }

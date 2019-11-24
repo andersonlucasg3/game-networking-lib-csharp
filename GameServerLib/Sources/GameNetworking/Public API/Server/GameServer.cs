@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Messages.Models;
-using System;
 using Commons;
+using Networking;
 
 namespace GameNetworking {
     using Networking;
@@ -9,21 +9,21 @@ namespace GameNetworking {
     using Models.Server;
     using Messages;
 
-    public class GameServer: WeakDelegate<IGameServerDelegate>, IGameInstance, INetworkingServerDelegate, INetworkingServerMessagesDelegate {
+    public class GameServer : WeakListener<IGameServerDelegate>, IGameInstance, INetworkingServerDelegate, INetworkingServerMessagesDelegate {
         private readonly NetworkPlayersStorage playersStorage;
 
         private readonly GameServerClientAcceptor clientAcceptor;
         private readonly GameServerMessageRouter router;
 
         internal readonly NetworkingServer networkingServer;
-        
+
         public readonly GameServerPingController pingController;
         public readonly GameServerSyncController syncController;
 
-        public GameServer() {
+        public GameServer(INetworking backend) {
             this.playersStorage = new NetworkPlayersStorage();
 
-            this.networkingServer = new NetworkingServer();
+            this.networkingServer = new NetworkingServer(backend);
 
             this.clientAcceptor = new GameServerClientAcceptor(this);
             this.router = new GameServerMessageRouter(this);
@@ -31,7 +31,7 @@ namespace GameNetworking {
             this.syncController = new GameServerSyncController(this, this.playersStorage);
             this.pingController = new GameServerPingController(this, this.playersStorage);
 
-            this.networkingServer.Delegate = this;
+            this.networkingServer.listener = this;
             this.networkingServer.MessagesDelegate = this;
         }
 
@@ -89,7 +89,7 @@ namespace GameNetworking {
 
         internal void SendBroadcast(ITypedMessage message, NetworkClient excludeClient) {
             List<NetworkClient> clientList = this.playersStorage.ConvertFindingAll(
-                player => player.Client != excludeClient, 
+                player => player.Client != excludeClient,
                 player => player.Client
             );
             this.networkingServer.SendBroadcast(message, clientList);

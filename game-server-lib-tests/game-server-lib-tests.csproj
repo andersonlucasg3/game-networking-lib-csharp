@@ -18,6 +18,8 @@
     <Folder Include="Tests\" />
     <Folder Include="Tests\IO\" />
     <Folder Include="Tests\Protobuf\" />
+    <Folder Include="Tests\Core\" />
+    <Folder Include="Tests\Core\Model\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\GameServerLib\GameServerLib.csproj" />

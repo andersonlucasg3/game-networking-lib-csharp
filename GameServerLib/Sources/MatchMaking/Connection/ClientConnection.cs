@@ -8,7 +8,7 @@ namespace MatchMaking.Connection {
     using Networking.Models;
     using Protobuf.Coders;
 
-    public sealed class ClientConnection<MMClient>: WeakDelegate<IClientConnectionDelegate<MMClient>>, INetworkingDelegate, INetClientReadDelegate where MMClient: Client, new() {
+    public sealed class ClientConnection<MMClient>: WeakListener<IClientConnectionDelegate<MMClient>>, INetworkingListener, INetClientReadListener where MMClient: Client, new() {
         private readonly INetworking networking;
 
         private MMClient client;
@@ -53,12 +53,12 @@ namespace MatchMaking.Connection {
 
         #region INetClientReadDelegate
 
-        void INetClientReadDelegate.ClientDidReadBytes(NetClient client, byte[] bytes) {
+        void INetClientReadListener.ClientDidReadBytes(NetClient client, byte[] bytes) {
             this.client.decoder.Add(bytes);
             MessageContainer message = null;
             do {
                 message = this.client.decoder.Decode();
-                this.Delegate?.ClientDidReadMessage(message);
+                this.listener?.ClientDidReadMessage(message);
             } while (message != null);
         }
 
@@ -66,22 +66,22 @@ namespace MatchMaking.Connection {
 
         #region INetworkingDelegate
 
-        void INetworkingDelegate.NetworkingDidConnect(Networking.Models.NetClient client) {
+        void INetworkingListener.NetworkingDidConnect(INetClient client) {
             this.client = Client.Create<MMClient>(client, new MessageDecoder(), new MessageEncoder());
             this.IsConnecting = false;
-            this.Delegate?.ClientConnectionDidConnect();
+            this.listener?.ClientConnectionDidConnect();
         }
 
-        void INetworkingDelegate.NetworkingConnectDidTimeout() {
+        void INetworkingListener.NetworkingConnectDidTimeout() {
             this.client = null;
             this.IsConnecting = false;
-            this.Delegate?.ClientConnectionDidTimeout();
+            this.listener?.ClientConnectionDidTimeout();
         }
 
-        void INetworkingDelegate.NetworkingDidDisconnect(Networking.Models.NetClient client) {
+        void INetworkingListener.NetworkingDidDisconnect(INetClient client) {
             this.client = null;
             this.IsConnecting = false;
-            this.Delegate?.ClientConnectionDidDisconnect();
+            this.listener?.ClientConnectionDidDisconnect();
         }
 
         #endregion

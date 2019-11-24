@@ -1,15 +1,15 @@
 ﻿using System;
-using UnityEngine;
 using System.Collections.Generic;
 using Messages.Models;
 using Commons;
+using Networking;
 
 namespace GameNetworking {
     using Networking;
     using Models;
     using Models.Client;
 
-    public class GameClient : WeakDelegate<IGameClientDelegate>, IGameClientInstance {
+    public class GameClient : WeakListener<IGameClientDelegate>, IGameClientInstance {
         private readonly NetworkPlayersStorage playersStorage;
         private readonly GameClientConnection connection;
         private readonly GameClientMessageRouter router;
@@ -26,10 +26,10 @@ namespace GameNetworking {
             set { this.weakInstanceDelegate = new WeakReference(value); }
         }
 
-        public GameClient() {
+        public GameClient(INetworking backend) {
             this.playersStorage = new NetworkPlayersStorage();
 
-            this.networkingClient = new NetworkingClient();
+            this.networkingClient = new NetworkingClient(backend);
 
             this.connection = new GameClientConnection(this);
             this.router = new GameClientMessageRouter(this);

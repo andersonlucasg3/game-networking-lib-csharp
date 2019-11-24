@@ -33,8 +33,12 @@ namespace GameNetworking.Networking {
         }
 
         public void Stop() {
-            this.clientsStorage.ForEach((each) => each.Disconnect());
+            this.clientsStorage.ForEach((each) => this.Disconnect(each));
             this.networking.Stop();
+        }
+
+        public void Disconnect(NetworkClient client) {
+            this.networking.Disconnect(client.Client);
         }
 
         private void AcceptClient() {

@@ -44,7 +44,7 @@ namespace GameNetworking.Networking {
 
         void INetClientReadDelegate.ClientDidReadBytes(NetClient client, byte[] bytes) {
             this.client.Reader.Add(bytes);
-            MessageContainer container = null;
+            MessageContainer container;
             do {
                 container = this.client.Reader.Decode();
                 this.Delegate?.NetworkingClientDidReadMessage(container);

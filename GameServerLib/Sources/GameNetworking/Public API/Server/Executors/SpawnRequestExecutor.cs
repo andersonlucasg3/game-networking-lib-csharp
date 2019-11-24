@@ -16,7 +16,7 @@
         }
 
         public void Execute() {
-            Logging.Logger.Log(this.GetType(), "Executing...");
+            Logging.Logger.Log(this.GetType(), $"Executing spawn for playerid-{this.player.PlayerId}");
 
             this.player.SpawnId = this.message.spawnObjectId;
 

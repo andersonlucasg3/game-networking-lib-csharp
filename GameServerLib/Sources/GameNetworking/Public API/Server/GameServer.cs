@@ -53,6 +53,10 @@ namespace GameNetworking {
             return this.pingController.GetPingValue(player);
         }
 
+        public void Disconnect(NetworkPlayer player) {
+            this.networkingServer.Disconnect(player.Client);
+        }
+
         public void Update() {
             this.networkingServer.Update();
             this.syncController.Update();

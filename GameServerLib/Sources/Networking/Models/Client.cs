@@ -24,6 +24,10 @@ namespace Networking.Models {
             this.reader.Delegate = this;
         }
 
+        internal void Disconnect() {
+            this.socket.Disconnect(false);
+        }
+
         public override bool Equals(object obj) {
             if (obj is NetClient) {
                 return this.socket == ((NetClient)obj).socket;

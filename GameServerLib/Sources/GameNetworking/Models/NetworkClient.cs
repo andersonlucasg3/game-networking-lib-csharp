@@ -19,6 +19,10 @@ namespace GameNetworking.Models {
             this.Client.writer.Write(this.Writer.Write(message));
         }
 
+        internal void Disconnect() {
+            this.Client.Disconnect();
+        }
+
         public override bool Equals(object obj) {
             if (obj is NetworkClient) {
                 return this.Client == ((NetworkClient)obj).Client;

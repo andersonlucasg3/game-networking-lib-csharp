@@ -41,15 +41,30 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameCli
         }
     }
 
+    protected virtual void Stop() {
+        switch (this.behaviourType) {
+        case MultiplayerBehaviourType.SERVER: this.StopServer(); break;
+        case MultiplayerBehaviourType.CLIENT: this.StopClient(); break;
+        }
+    }
+
     protected virtual void StartServer() {
         this.server = new GameServer { Delegate = this };
         this.server.syncController.SyncInterval = this.syncIntervalMs / 1000.0F;
         this.server.Listen(this.port);
     }
 
+    protected virtual void StopServer() {
+        this.server.Stop();
+    }
+
     protected virtual void StartClient() {
         this.client = new GameClient { Delegate = this, InstanceDelegate = this };
         this.client.Connect(this.connectToHost, this.port);
+    }
+
+    protected virtual void StopClient() {
+        this.client.Disconnect();
     }
 
     private void UpdateServer() {

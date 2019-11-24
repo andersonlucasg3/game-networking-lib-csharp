@@ -11,7 +11,7 @@ namespace GameNetworking {
 
     public class GameClient : WeakDelegate<IGameClientDelegate>, IGameClientInstance {
         private readonly NetworkPlayersStorage playersStorage;
-        private readonly GameClientConnection connector;
+        private readonly GameClientConnection connection;
         private readonly GameClientMessageRouter router;
 
         private WeakReference weakInstanceDelegate;
@@ -31,12 +31,16 @@ namespace GameNetworking {
 
             this.networkingClient = new NetworkingClient();
 
-            this.connector = new GameClientConnection(this);
+            this.connection = new GameClientConnection(this);
             this.router = new GameClientMessageRouter(this);
         }
 
         public void Connect(string host, int port) {
-            this.connector.Connect(host, port);
+            this.connection.Connect(host, port);
+        }
+
+        public void Disconnect() {
+            this.connection.Disconnect();
         }
 
         public void Send(ITypedMessage message) {

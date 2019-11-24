@@ -39,6 +39,10 @@ namespace GameNetworking {
             this.networkingServer.Listen(port);
         }
 
+        public void Stop() {
+            this.networkingServer.Stop();
+        }
+
         public void StartGame() {
             this.playersStorage.ForEach((each) => {
                 this.networkingServer.Send(new StartGameMessage(), each.Client);

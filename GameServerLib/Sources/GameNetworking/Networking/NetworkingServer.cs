@@ -32,8 +32,13 @@ namespace GameNetworking.Networking {
             this.networking.Start(port);
         }
 
+        public void Stop() {
+            this.clientsStorage.ForEach((each) => each.Disconnect());
+            this.networking.Stop();
+        }
+
         private void AcceptClient() {
-            NetClient client = this.networking.Accept();
+            NetClient client = this.networking?.Accept();
             if (client != null) {
                 client.Delegate = this;
                 NetworkClient networkClient = new NetworkClient(client, new MessageStreamReader(), new MessageStreamWriter());

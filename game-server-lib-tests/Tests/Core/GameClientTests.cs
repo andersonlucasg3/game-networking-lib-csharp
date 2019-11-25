@@ -247,6 +247,65 @@ namespace Tests.Core {
 
             Assert.AreEqual(3, listener_s.spawnObjectIds.Count);
         }
+
+        [Test]
+        public void TestClientReconnect() {
+            this.New(out GameClient client1, out ClientListener listener1_c);
+            this.New(out GameClient client2, out ClientListener listener2_c);
+            this.New(out GameServer server, out ServerListener listener_s);
+
+            void update() {
+                this.Update(server);
+                this.Update(server);
+                this.Update(client1);
+                this.Update(client2);
+            }
+
+            server.Listen(this.port);
+
+            client1.Connect(this.host, this.port);
+            client2.Connect(this.host, this.port);
+
+            update();
+
+            var spawnId = 1;
+
+            client1.Send(new SpawnRequestMessage { spawnObjectId = spawnId });
+            client2.Send(new SpawnRequestMessage { spawnObjectId = spawnId });
+
+            update();
+
+            var disconnectedPlayerId = client2.player.playerId;
+
+            client2.Disconnect();
+
+            update();
+
+            Assert.IsNull(server.FindPlayer(client2.player.playerId));
+
+            this.New(out client2, out listener2_c);
+
+            client2.Connect(this.host, this.port);
+
+            update();
+
+            var newSpawnId = 2;
+
+            client2.Send(new SpawnRequestMessage { spawnObjectId = newSpawnId });
+
+            update();
+
+            Assert.AreEqual(spawnId, client1.player.spawnId);
+            Assert.AreEqual(newSpawnId, client2.player.spawnId);
+
+            Assert.AreEqual(2, listener1_c.spawnObjectIds.Count);
+            Assert.AreEqual(2, listener2_c.spawnObjectIds.Count);
+
+            Assert.AreEqual(1, listener1_c.disconnectedPlayers.Count);
+            Assert.AreEqual(0, listener2_c.disconnectedPlayers.Count);
+
+            Assert.AreEqual(disconnectedPlayerId, listener1_c.disconnectedPlayers[0].playerId);
+        }
     }
 
     class ClientListener : IGameClientListener, IGameClientInstanceListener {
@@ -282,6 +341,7 @@ namespace Tests.Core {
 
         void IGameClientListener.GameClientNetworkPlayerDidDisconnect(NetworkPlayer player) {
             this.disconnectedPlayers.Add(player);
+            this.spawnObjectIds.Remove(player.playerId);
         }
 
         bool IGameClientInstanceListener.GameInstanceSyncPlayer(NetworkPlayer player, Vector3 position, Vector3 eulerAngles) {
@@ -299,6 +359,7 @@ namespace Tests.Core {
 
         void IGameServerListener.GameServerPlayerDidDisconnect(GameNetworking.Models.Server.NetworkPlayer player) {
             this.disconnectedPlayers.Add(player);
+            this.spawnObjectIds.Remove(player.playerId);
         }
 
         GameObject IGameServerListener.GameServerSpawnCharacter(GameNetworking.Models.Server.NetworkPlayer player) {

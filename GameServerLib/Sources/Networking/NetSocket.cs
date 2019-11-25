@@ -33,9 +33,11 @@ namespace Networking {
             this.isAccepting = true;
 
             this.socket.Accept((accepted) => {
-                accepted.noDelay = true;
-                accepted.blocking = false;
-                this.acceptedQueue.Enqueue(accepted);
+                if (accepted != null) {
+                    accepted.noDelay = true;
+                    accepted.blocking = false;
+                    this.acceptedQueue.Enqueue(accepted);
+                }
 
                 this.isAccepting = false;
             });

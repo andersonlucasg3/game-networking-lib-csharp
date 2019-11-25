@@ -29,8 +29,8 @@ namespace Tests.Core.Model {
         public void Accept(Action<ISocket> acceptAction) {
             if (pendingAcceptClients.TryDequeue(out SocketMock socket)) {
                 connectedClients.Add(socket);
-                acceptAction?.Invoke(socket);
             }
+            acceptAction?.Invoke(socket);
         }
 
         public void Close() {

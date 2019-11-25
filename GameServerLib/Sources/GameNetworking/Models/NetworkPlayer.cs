@@ -20,13 +20,13 @@ namespace GameNetworking.Models {
                 get; set;
             }
 
-            public GameObject GameObject {
+            public GameObject gameObject {
                 get { return this.weakGameObject?.Target as GameObject; }
                 internal set { this.weakGameObject = new WeakReference(value); }
             }
 
-            public Transform Transform {
-                get { return this.GameObject?.transform; }
+            public Transform transform {
+                get { return this.gameObject?.transform; }
             }
 
             internal InputState inputState = new InputState();
@@ -41,8 +41,8 @@ namespace GameNetworking.Models {
             }
 
             public void Despawn() {
-                GameObject.Destroy(this.GameObject);
-                this.GameObject = null;
+                GameObject.Destroy(this.gameObject);
+                this.gameObject = null;
             }
 
             public override bool Equals(object obj) {
@@ -59,7 +59,7 @@ namespace GameNetworking.Models {
     }
 
     namespace Client {
-        public class NetworkPlayer: Server.NetworkPlayer {
+        public class NetworkPlayer : Server.NetworkPlayer {
             public bool IsLocalPlayer {
                 get; internal set;
             }

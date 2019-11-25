@@ -4,7 +4,7 @@ namespace Messages.Streams {
     using Coders;
     using Models;
 
-    public class MessageStreamReader: IStreamReader {
+    public class MessageStreamReader : IStreamReader {
         private List<byte> buffer;
 
         public MessageStreamReader() {
@@ -12,6 +12,7 @@ namespace Messages.Streams {
         }
 
         public void Add(byte[] buffer) {
+            if (buffer == null) { return; }
             this.buffer.AddRange(buffer);
         }
 

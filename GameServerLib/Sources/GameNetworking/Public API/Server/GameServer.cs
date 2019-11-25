@@ -9,7 +9,7 @@ namespace GameNetworking {
     using Models.Server;
     using Messages;
 
-    public class GameServer : WeakListener<IGameServerDelegate>, IGameInstance, INetworkingServerDelegate, INetworkingServerMessagesDelegate {
+    public class GameServer : WeakListener<IGameServerListener>, IGameInstance, INetworkingServerDelegate, INetworkingServerMessagesDelegate {
         private readonly NetworkPlayersStorage playersStorage;
 
         private readonly GameServerClientAcceptor clientAcceptor;
@@ -71,15 +71,15 @@ namespace GameNetworking {
             this.playersStorage.Remove(player);
         }
 
-        internal NetworkPlayer FindPlayer(NetworkClient client) {
+        public NetworkPlayer FindPlayer(NetworkClient client) {
             return this.playersStorage.Find(player => player.Client == client);
         }
 
-        internal NetworkPlayer FindPlayer(int playerId) {
+        public NetworkPlayer FindPlayer(int playerId) {
             return this.playersStorage.Find(player => player.PlayerId == playerId);
         }
 
-        internal List<NetworkPlayer> AllPlayers() {
+        public List<NetworkPlayer> AllPlayers() {
             return this.playersStorage.Players;
         }
 

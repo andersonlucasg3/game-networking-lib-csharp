@@ -7,7 +7,9 @@ namespace Tests.Core.Model {
     class SocketMock : ISocket {
         private static Queue<SocketMock> pendingAcceptClients = new Queue<SocketMock>();
         private static List<SocketMock> connectedClients = new List<SocketMock>();
-        private static Dictionary<SocketMock, byte[]> socketBuffers = new Dictionary<SocketMock, byte[]>();
+
+        private byte[] buffer;
+        private SocketMock serverCounterPart;
 
         public bool isConnected { get; private set; }
         public bool isBound { get; private set; }
@@ -22,7 +24,6 @@ namespace Tests.Core.Model {
         public void Listen(int backlog) {
             pendingAcceptClients.Clear();
             connectedClients.Clear();
-            socketBuffers.Clear();
         }
 
         public void Accept(Action<ISocket> acceptAction) {
@@ -38,29 +39,39 @@ namespace Tests.Core.Model {
         }
 
         public void Connect(NetEndPoint endPoint, Action connectAction) {
-            pendingAcceptClients.Enqueue(this);
+            this.serverCounterPart = new SocketMock() {
+                blocking = false,
+                noDelay = true,
+                isConnected = true,
+                serverCounterPart = this
+            };
+            pendingAcceptClients.Enqueue(this.serverCounterPart);
             this.isConnected = true;
             connectAction?.Invoke();
         }
 
         public void Disconnect(Action disconnectAction) {
             connectedClients.Remove(this);
+
+            var counterPart = this.serverCounterPart;
+            this.serverCounterPart = null;
+            counterPart?.Disconnect(null);
+
             this.isConnected = false;
             disconnectAction?.Invoke();
         }
 
         public void Read(Action<byte[]> readAction) {
-            socketBuffers.TryGetValue(this, out byte[] buffer);
-            readAction?.Invoke(buffer);
+            readAction?.Invoke(this.buffer);
         }
 
         public void Write(byte[] bytes, Action<int> writeAction) {
-            if (socketBuffers.TryGetValue(this, out byte[] buffer)) {
-                List<byte> mutableBuffer = new List<byte>(buffer);
-                mutableBuffer.AddRange(bytes);
-                socketBuffers[this] = mutableBuffer.ToArray();
+            if (this.serverCounterPart.buffer == null) {
+                this.serverCounterPart.buffer = bytes;
             } else {
-                socketBuffers[this] = bytes;
+                List<byte> mutableBuffer = new List<byte>(this.serverCounterPart.buffer);
+                mutableBuffer.AddRange(bytes);
+                this.serverCounterPart.buffer = mutableBuffer.ToArray();
             }
             writeAction?.Invoke(bytes.Length);
         }

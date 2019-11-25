@@ -4,7 +4,7 @@
     using Messages.Server;
     using Commons;
 
-    internal class GameServerClientAcceptor: BaseWorker<GameServer> {
+    internal class GameServerClientAcceptor : BaseWorker<GameServer> {
         public GameServerClientAcceptor(GameServer server) : base(server) { }
 
         public void AcceptClient(NetworkClient client) {
@@ -17,10 +17,10 @@
 
             this.Instance.AllPlayers().ForEach(each => {
                 if (each.Client == client) { return; }
-                var connected = new ConnectedPlayerMessage();
-                connected.playerId = each.PlayerId;
-                connected.isMe = false;
-                this.Instance.Send(connected, client);
+                this.Instance.Send(new ConnectedPlayerMessage {
+                    playerId = each.PlayerId,
+                    isMe = false
+                }, client);
             });
         }
 
@@ -30,9 +30,9 @@
 
             Logging.Logger.Log(this.GetType(), $"(Disconnect) count {this.Instance.AllPlayers().Count}");
 
-            if (player != null) { 
+            if (player != null) {
                 this.Instance.listener?.GameServerPlayerDidDisconnect(player);
-                this.Instance.SendBroadcast(new DisconnectedPlayerMessage() { playerId = player.PlayerId });
+                this.Instance.SendBroadcast(new DisconnectedPlayerMessage { playerId = player.PlayerId });
             }
         }
     }

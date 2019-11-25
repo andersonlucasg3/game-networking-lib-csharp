@@ -30,13 +30,13 @@ namespace GameNetworking {
         }
 
         private void SendSync(NetworkPlayer player) {
-            if (player.Transform == null) { return; }
+            if (player.transform == null) { return; }
 
             var syncMessage = new SyncMessage {
                 playerId = player.PlayerId
             };
-            player.Transform.position.CopyToVec3(ref syncMessage.position);
-            player.Transform.eulerAngles.CopyToVec3(ref syncMessage.rotation);
+            player.transform.position.CopyToVec3(ref syncMessage.position);
+            player.transform.eulerAngles.CopyToVec3(ref syncMessage.rotation);
             this.Instance.SendBroadcast(syncMessage);
         }
     }

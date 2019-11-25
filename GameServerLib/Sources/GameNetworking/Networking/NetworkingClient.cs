@@ -43,6 +43,7 @@ namespace GameNetworking.Networking {
             MessageContainer container;
             do {
                 container = this.client.Reader.Decode();
+                if (container == null) { continue; }
                 this.listener?.NetworkingClientDidReadMessage(container);
             } while (container != null);
         }

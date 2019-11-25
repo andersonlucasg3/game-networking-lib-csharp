@@ -11,6 +11,7 @@ namespace Networking {
     public sealed class NetSocket : WeakListener<INetworkingListener>, INetworking {
         private readonly ISocket socket;
         private readonly Queue<ISocket> acceptedQueue;
+        private bool isAccepting = false;
 
         public int Port { get; private set; }
 
@@ -24,21 +25,25 @@ namespace Networking {
             NetEndPoint ep = new NetEndPoint(IPAddress.Any.ToString(), port);
             this.socket.Bind(ep);
             this.socket.Listen(10);
-
-            this.AcceptNewClient();
         }
 
         private void AcceptNewClient() {
+            if (this.isAccepting) { return; }
+
+            this.isAccepting = true;
+
             this.socket.Accept((accepted) => {
                 accepted.noDelay = true;
                 accepted.blocking = false;
                 this.acceptedQueue.Enqueue(accepted);
 
-                this.AcceptNewClient();
+                this.isAccepting = false;
             });
         }
 
         public INetClient Accept() {
+            this.AcceptNewClient();
+
             if (this.acceptedQueue.Count > 0) {
                 var accepted = this.acceptedQueue.Dequeue();
                 return new NetClient(accepted, accepted.Reader(), accepted.Writer());

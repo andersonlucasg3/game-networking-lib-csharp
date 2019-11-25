@@ -14,7 +14,7 @@ public enum MultiplayerBehaviourType {
     CLIENT
 }
 
-public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameClientDelegate, IGameClientInstanceDelegate {
+public class MultiplayerBehaviour : MonoBehaviour, IGameServerListener, IGameClientListener, IGameClientInstanceListener {
     protected GameServer server;
     protected GameClient client;
 
@@ -61,7 +61,7 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameCli
     }
 
     protected virtual void StartClient() {
-        this.client = new GameClient(new NetSocket(new TCPNonBlockingSocket())) { listener = this, InstanceDelegate = this };
+        this.client = new GameClient(new NetSocket(new TCPNonBlockingSocket())) { listener = this, instanceListener = this };
         this.client.Connect(this.connectToHost, this.port);
     }
 

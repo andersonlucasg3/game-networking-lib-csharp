@@ -9,7 +9,7 @@ namespace GameNetworking {
     using Models;
     using Models.Client;
 
-    public class GameClient : WeakListener<IGameClientDelegate>, IGameClientInstance {
+    public class GameClient : WeakListener<IGameClientListener>, IGameClientInstance {
         private readonly NetworkPlayersStorage playersStorage;
         private readonly GameClientConnection connection;
         private readonly GameClientMessageRouter router;
@@ -21,8 +21,8 @@ namespace GameNetworking {
         public NetworkPlayer Player { get; internal set; }
         public float MostRecentPingValue { get; internal set; }
 
-        public IGameClientInstanceDelegate InstanceDelegate {
-            get { return this.weakInstanceDelegate?.Target as IGameClientInstanceDelegate; }
+        public IGameClientInstanceListener instanceListener {
+            get { return this.weakInstanceDelegate?.Target as IGameClientInstanceListener; }
             set { this.weakInstanceDelegate = new WeakReference(value); }
         }
 

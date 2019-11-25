@@ -26,7 +26,7 @@ namespace GameNetworking.Executors.Client {
             player.SpawnId = this.spawnMessage.spawnId;
 
             var spawned = this.gameClient.listener?.GameClientSpawnCharacter(player);
-            player.GameObject = spawned;
+            player.gameObject = spawned;
 
             SetupCharacterControllerIfNeeded(spawned);
         }

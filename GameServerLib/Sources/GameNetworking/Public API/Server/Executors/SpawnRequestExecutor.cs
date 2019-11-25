@@ -21,7 +21,7 @@
             this.player.SpawnId = this.message.spawnObjectId;
 
             var spawned = this.server.listener?.GameServerSpawnCharacter(this.player);
-            this.player.GameObject = spawned;
+            this.player.gameObject = spawned;
 
             var playerSpawn = new PlayerSpawnMessage {
                 playerId = this.player.PlayerId,
@@ -33,12 +33,12 @@
 
             var self = this;
             this.server.AllPlayers().ForEach(each => {
-                if (each == self.player || each.GameObject == null) { return; }
+                if (each == self.player || each.gameObject == null) { return; }
                 var spawn = new PlayerSpawnMessage();
                 spawn.playerId = each.PlayerId;
                 spawn.spawnId = each.SpawnId;
-                each.GameObject.transform.position.CopyToVec3(ref spawn.position);
-                each.GameObject.transform.eulerAngles.CopyToVec3(ref spawn.rotation);
+                each.gameObject.transform.position.CopyToVec3(ref spawn.position);
+                each.gameObject.transform.eulerAngles.CopyToVec3(ref spawn.rotation);
                 self.server.Send(spawn, self.player.Client);
             });
         }

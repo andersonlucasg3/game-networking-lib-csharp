@@ -7,6 +7,7 @@ namespace Networking {
     using Models;
     using IO.Extensions;
     using Networking.IO;
+    using Logging;
 
     public sealed class NetSocket : WeakListener<INetworkingListener>, INetworking {
         private readonly ISocket socket;
@@ -69,7 +70,7 @@ namespace Networking {
                 }
             });
 
-            Logging.Logger.Log(this.GetType(), "Trying to connect to " + host + "-" + port);
+            Logger.Log($"Trying to connect to {host}-{port}");
         }
 
         public void Disconnect(INetClient client) {

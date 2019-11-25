@@ -7,6 +7,7 @@ using GameNetworking.Messages.Client;
 using GameNetworking.Models.Client;
 using Networking;
 using Networking.IO;
+using Logging;
 
 [Serializable]
 public enum MultiplayerBehaviourType {
@@ -78,7 +79,7 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerListener, IGameCli
     }
 
     public void RequestSpawn(int spawnId) {
-        Logging.Logger.Log(this.GetType(), string.Format("RequestSpawn | spawnId: {0}", spawnId));
+        Logger.Log($"RequestSpawn | spawnId: {spawnId}");
         this.client?.Send(new SpawnRequestMessage { spawnObjectId = spawnId });
     }
 

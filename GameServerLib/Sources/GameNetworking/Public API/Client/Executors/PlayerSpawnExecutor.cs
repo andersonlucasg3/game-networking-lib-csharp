@@ -2,6 +2,7 @@
 
 namespace GameNetworking.Executors.Client {
     using GameNetworking.Models.Client;
+    using Logging;
     using Messages.Server;
 
     internal struct PlayerSpawnExecutor: IExecutor {
@@ -14,7 +15,7 @@ namespace GameNetworking.Executors.Client {
         }
 
         public void Execute() {
-            Logging.Logger.Log(this.GetType(), string.Format("Executing for playerId {0}", this.spawnMessage.playerId));
+            Logger.Log($"Executing for playerId {this.spawnMessage.playerId}");
 
             NetworkPlayer player;
             if (this.spawnMessage.playerId == this.gameClient.player.playerId) {

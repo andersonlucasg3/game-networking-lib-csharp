@@ -2,7 +2,8 @@
     using Models.Server;
     using Messages.Client;
     using Messages.Server;
-    
+    using Logging;
+
     internal struct SpawnRequestExecutor: IExecutor {
         private readonly GameServer server;
         private readonly SpawnRequestMessage message;
@@ -15,7 +16,7 @@
         }
 
         public void Execute() {
-            Logging.Logger.Log(this.GetType(), $"Executing spawn for playerid-{this.player.playerId}");
+            Logger.Log($"Executing spawn for playerid-{this.player.playerId}");
 
             this.player.spawnId = this.message.spawnObjectId;
 

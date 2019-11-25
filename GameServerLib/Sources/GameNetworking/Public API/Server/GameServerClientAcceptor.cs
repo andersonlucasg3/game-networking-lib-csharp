@@ -3,6 +3,7 @@
     using Models.Server;
     using Messages.Server;
     using Commons;
+    using Logging;
 
     internal class GameServerClientAcceptor : BaseWorker<GameServer> {
         public GameServerClientAcceptor(GameServer server) : base(server) { }
@@ -11,7 +12,7 @@
             NetworkPlayer player = new NetworkPlayer(client);
             this.instance.AddPlayer(player);
             
-            Logging.Logger.Log(this.GetType(), $"(AcceptClient) count {this.instance.AllPlayers().Count}");
+            Logger.Log($"(AcceptClient) count {this.instance.AllPlayers().Count}");
 
 
             this.instance.AllPlayers().ForEach(each => {
@@ -35,7 +36,7 @@
             var player = this.instance.FindPlayer(client);
             this.instance.RemovePlayer(player);
 
-            Logging.Logger.Log(this.GetType(), $"(Disconnect) count {this.instance.AllPlayers().Count}");
+            Logger.Log($"(Disconnect) count {this.instance.AllPlayers().Count}");
 
             if (player != null) {
                 this.instance.listener?.GameServerPlayerDidDisconnect(player);

@@ -1,5 +1,4 @@
 ﻿namespace GameNetworking.Executors.Server {
-    using Messages;
     using Models.Server;
     using Messages.Client;
     using Messages.Server;
@@ -16,30 +15,36 @@
         }
 
         public void Execute() {
-            Logging.Logger.Log(this.GetType(), $"Executing spawn for playerid-{this.player.PlayerId}");
+            Logging.Logger.Log(this.GetType(), $"Executing spawn for playerid-{this.player.playerId}");
 
-            this.player.SpawnId = this.message.spawnObjectId;
+            this.player.spawnId = this.message.spawnObjectId;
 
             var spawned = this.server.listener?.GameServerSpawnCharacter(this.player);
             this.player.gameObject = spawned;
 
-            var playerSpawn = new PlayerSpawnMessage {
-                playerId = this.player.PlayerId,
-                spawnId = this.player.SpawnId
-            };
-            spawned.transform.position.CopyToVec3(ref playerSpawn.position);
-            spawned.transform.eulerAngles.CopyToVec3(ref playerSpawn.rotation);
-            this.server.SendBroadcast(playerSpawn);
-
             var self = this;
             this.server.AllPlayers().ForEach(each => {
-                if (each == self.player || each.gameObject == null) { return; }
-                var spawn = new PlayerSpawnMessage();
-                spawn.playerId = each.PlayerId;
-                spawn.spawnId = each.SpawnId;
-                each.gameObject.transform.position.CopyToVec3(ref spawn.position);
-                each.gameObject.transform.eulerAngles.CopyToVec3(ref spawn.rotation);
-                self.server.Send(spawn, self.player.Client);
+                if (each.gameObject == null) { return; }
+
+                // Sends the spawn message to all players
+                var playerSpawn = new PlayerSpawnMessage {
+                    playerId = self.player.playerId,
+                    spawnId = self.player.spawnId,
+                    position = spawned.transform.position,
+                    rotation = spawned.transform.eulerAngles
+                };
+                self.server.Send(playerSpawn, each.client);
+
+                if (each == self.player) { return; }
+
+                // Sends the existing players spawn message to the player that just requested
+                var spawn = new PlayerSpawnMessage {
+                    playerId = each.playerId,
+                    spawnId = each.spawnId,
+                    position = each.transform.position,
+                    rotation = each.transform.eulerAngles
+                };
+                self.server.Send(spawn, self.player.client);
             });
         }
     }

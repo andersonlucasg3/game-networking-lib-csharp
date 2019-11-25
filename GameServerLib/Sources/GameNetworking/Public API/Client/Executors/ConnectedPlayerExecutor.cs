@@ -18,7 +18,7 @@
                 IsLocalPlayer = this.message.isMe
             };
             if (this.message.isMe) {
-                this.gameClient.Player = player;
+                this.gameClient.player = player;
             } else {
                 this.gameClient.AddPlayer(player);
             }

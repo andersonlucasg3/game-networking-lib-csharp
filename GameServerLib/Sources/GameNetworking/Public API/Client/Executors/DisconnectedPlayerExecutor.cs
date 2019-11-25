@@ -1,7 +1,6 @@
 ﻿namespace GameNetworking.Executors.Client {
     using Logging;
     using Messages.Server;
-    using Models.Client;
 
     internal struct DisconnectedPlayerExecutor : IExecutor {
         private readonly GameClient gameClient;

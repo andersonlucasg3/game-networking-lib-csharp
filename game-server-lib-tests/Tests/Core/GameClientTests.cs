@@ -7,6 +7,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using GameNetworking.Models.Client;
 using GameNetworking.Messages.Client;
+using System;
 
 namespace Tests.Core {
     public class GameServerClientTests {
@@ -63,10 +64,9 @@ namespace Tests.Core {
 
             Assert.IsTrue(clientListener.connectedCalled);
 
-            var playerId = client.Player.PlayerId;
+            var playerId = client.player.playerId;
             var serverPlayer = server.FindPlayer(playerId);
 
-            Assert.IsNotNull(client.Player);
             Assert.IsNotNull(serverPlayer);
 
             client.Disconnect();
@@ -79,7 +79,71 @@ namespace Tests.Core {
             Assert.IsTrue(clientListener.disconnectCalled);
             Assert.IsNull(notServerPlayer);
 
-            Assert.AreEqual(client.Player.PlayerId, serverListener.disconnectedPlayers[0].PlayerId);
+            Assert.AreEqual(client.player.playerId, serverListener.disconnectedPlayers[0].playerId);
+
+            Assert.AreEqual(0, clientListener.disconnectedPlayers.Count);
+        }
+
+        [Test]
+        public void TestMultiPlayerConnectDisconnect() {
+            this.New(out GameClient client1, out ClientListener clientListener1);
+            this.New(out GameClient client2, out ClientListener clientListener2);
+            this.New(out GameClient client3, out ClientListener clientListener3);
+            this.New(out GameServer server, out ServerListener serverListener);
+
+            void updateAction() {
+                this.Update(server);
+                this.Update(server);
+                this.Update(server);
+                this.Update(client1);
+                this.Update(client2);
+                this.Update(client3);
+            }
+
+            server.Listen(this.port);
+
+            client1.Connect(this.host, this.port);
+            client2.Connect(this.host, this.port);
+            client3.Connect(this.host, this.port);
+
+            updateAction();
+
+            Assert.IsTrue(clientListener1.connectedCalled);
+            Assert.IsTrue(clientListener2.connectedCalled);
+            Assert.IsTrue(clientListener3.connectedCalled);
+
+            var playerId1 = client1.player.playerId;
+            var playerId2 = client2.player.playerId;
+            var playerId3 = client3.player.playerId;
+
+            var serverPlayer1 = server.FindPlayer(playerId1);
+            var serverPlayer2 = server.FindPlayer(playerId2);
+            var serverPlayer3 = server.FindPlayer(playerId3);
+
+            Assert.IsNotNull(serverPlayer1);
+            Assert.IsNotNull(serverPlayer2);
+            Assert.IsNotNull(serverPlayer3);
+
+            client3.Disconnect();
+
+            updateAction();
+
+            Assert.IsNotNull(server.FindPlayer(playerId1));
+            Assert.IsNotNull(server.FindPlayer(playerId2));
+            Assert.IsNull(server.FindPlayer(playerId3));
+
+            Assert.IsFalse(clientListener1.disconnectCalled);
+            Assert.IsFalse(clientListener2.disconnectCalled);
+            Assert.IsTrue(clientListener3.disconnectCalled);
+
+            Assert.AreEqual(1, clientListener1.disconnectedPlayers.Count);
+            Assert.AreEqual(1, clientListener2.disconnectedPlayers.Count);
+            Assert.AreEqual(0, clientListener3.disconnectedPlayers.Count);
+
+            Assert.AreEqual(client3.player.playerId, clientListener1.disconnectedPlayers[0].playerId);
+            Assert.AreEqual(client3.player.playerId, clientListener2.disconnectedPlayers[0].playerId);
+
+            Assert.AreEqual(1, serverListener.disconnectedPlayers.Count);
         }
 
         [Test]
@@ -96,27 +160,99 @@ namespace Tests.Core {
 
             var spawnId = 1024;
 
+            var playerId = client.player.playerId;
+
             client.Send(new SpawnRequestMessage { spawnObjectId = spawnId });
 
             this.Update(server);
             this.Update(client);
 
-            Assert.IsTrue(serverListener.spawnObjectIds.Contains(spawnId));
+            Assert.IsTrue(serverListener.spawnObjectIds.ContainsKey(playerId));
+            Assert.AreEqual(spawnId, serverListener.spawnObjectIds[playerId]);
             Assert.AreEqual(1, serverListener.spawnObjectIds.Count);
-            Assert.IsNotNull(server.FindPlayer(client.Player.PlayerId).gameObject);
+            Assert.IsNotNull(server.FindPlayer(client.player.playerId).gameObject);
 
             this.Update(server);
             this.Update(client);
 
-            Assert.IsTrue(clientListener.spawnObjectIds.Contains(spawnId));
+            Assert.IsTrue(clientListener.spawnObjectIds.ContainsKey(playerId));
+            Assert.AreEqual(spawnId, clientListener.spawnObjectIds[playerId]);
             Assert.AreEqual(1, clientListener.spawnObjectIds.Count);
-            Assert.IsNotNull(client.Player.gameObject);
+            Assert.IsNotNull(client.player.gameObject);
+        }
+
+        [Test]
+        public void TestMultiPlayerSpawnObject() {
+            this.New(out GameClient client1, out ClientListener listener1_c);
+            this.New(out GameClient client2, out ClientListener listener2_c);
+            this.New(out GameClient client3, out ClientListener listener3_c);
+            this.New(out GameServer server, out ServerListener listener_s);
+
+            void update() {
+                this.Update(server);
+                this.Update(server);
+                this.Update(server);
+                this.Update(client1);
+                this.Update(client2);
+                this.Update(client3);
+            }
+
+            server.Listen(this.port);
+
+            client1.Connect(this.host, this.port);
+            client2.Connect(this.host, this.port);
+            client3.Connect(this.host, this.port);
+
+            update();
+
+            var spawnId1 = 1234;
+            var spawnId2 = 4321;
+            var spawnId3 = 6169;
+
+            var playerId1 = client1.player.playerId;
+            var playerId2 = client2.player.playerId;
+            var playerId3 = client3.player.playerId;
+
+            client1.Send(new SpawnRequestMessage { spawnObjectId = spawnId1 });
+            client2.Send(new SpawnRequestMessage { spawnObjectId = spawnId2 });
+            client3.Send(new SpawnRequestMessage { spawnObjectId = spawnId3 });
+
+            update();
+
+            Assert.IsNotNull(client1.player.gameObject);
+            Assert.IsNotNull(client2.player.gameObject);
+            Assert.IsNotNull(client3.player.gameObject);
+
+            Assert.AreEqual(spawnId1, client1.player.spawnId);
+            Assert.AreEqual(spawnId2, client2.player.spawnId);
+            Assert.AreEqual(spawnId3, client3.player.spawnId);
+
+            void assertComplex(int pId, int sId) {
+                Assert.AreEqual(sId, listener1_c.spawnObjectIds[pId]);
+                Assert.AreEqual(sId, listener2_c.spawnObjectIds[pId]);
+                Assert.AreEqual(sId, listener3_c.spawnObjectIds[pId]);
+            }
+
+            assertComplex(playerId1, spawnId1);
+            assertComplex(playerId2, spawnId2);
+            assertComplex(playerId3, spawnId3);
+
+            Assert.AreEqual(3, listener1_c.spawnObjectIds.Count);
+            Assert.AreEqual(3, listener2_c.spawnObjectIds.Count);
+            Assert.AreEqual(3, listener3_c.spawnObjectIds.Count);
+
+            Assert.AreEqual(spawnId1, listener_s.spawnObjectIds[playerId1]);
+            Assert.AreEqual(spawnId2, listener_s.spawnObjectIds[playerId2]);
+            Assert.AreEqual(spawnId3, listener_s.spawnObjectIds[playerId3]);
+
+            Assert.AreEqual(3, listener_s.spawnObjectIds.Count);
         }
     }
 
     class ClientListener : IGameClientListener, IGameClientInstanceListener {
         public readonly Queue<MessageContainer> receivedMessages = new Queue<MessageContainer>();
-        public readonly List<int> spawnObjectIds = new List<int>();
+        public readonly List<NetworkPlayer> disconnectedPlayers = new List<NetworkPlayer>();
+        public readonly Dictionary<int, int> spawnObjectIds = new Dictionary<int, int>();
         public bool connectedCalled { get; private set; }
         public bool connectTimeoutCalled { get; private set; }
         public bool disconnectCalled { get; private set; }
@@ -140,12 +276,12 @@ namespace Tests.Core {
         }
 
         GameObject IGameClientListener.GameClientSpawnCharacter(NetworkPlayer player) {
-            this.spawnObjectIds.Add(player.SpawnId);
+            this.spawnObjectIds[player.playerId] = player.spawnId;
             return new GameObject();
         }
 
         void IGameClientListener.GameClientNetworkPlayerDidDisconnect(NetworkPlayer player) {
-
+            this.disconnectedPlayers.Add(player);
         }
 
         bool IGameClientInstanceListener.GameInstanceSyncPlayer(NetworkPlayer player, Vector3 position, Vector3 eulerAngles) {
@@ -157,7 +293,7 @@ namespace Tests.Core {
 
     class ServerListener : IGameServerListener {
         public readonly List<GameNetworking.Models.Server.NetworkPlayer> disconnectedPlayers = new List<GameNetworking.Models.Server.NetworkPlayer>();
-        public readonly List<int> spawnObjectIds = new List<int>();
+        public readonly Dictionary<int, int> spawnObjectIds = new Dictionary<int, int>();
 
         #region IGameServerListener
 
@@ -166,7 +302,7 @@ namespace Tests.Core {
         }
 
         GameObject IGameServerListener.GameServerSpawnCharacter(GameNetworking.Models.Server.NetworkPlayer player) {
-            this.spawnObjectIds.Add(player.SpawnId);
+            this.spawnObjectIds[player.playerId] = player.spawnId;
             return new GameObject();
         }
 

@@ -63,6 +63,7 @@ namespace Tests.Core.Model {
 
         public void Read(Action<byte[]> readAction) {
             readAction?.Invoke(this.buffer);
+            this.buffer = null;
         }
 
         public void Write(byte[] bytes, Action<int> writeAction) {

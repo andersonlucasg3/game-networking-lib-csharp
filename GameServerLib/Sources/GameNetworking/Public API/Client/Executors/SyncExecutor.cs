@@ -15,8 +15,8 @@ namespace GameNetworking.Executors.Client {
 
         public void Execute() {
             NetworkPlayer player;
-            if (this.message.playerId == this.gameClient.Player.PlayerId) {
-                player = this.gameClient.Player;
+            if (this.message.playerId == this.gameClient.player.playerId) {
+                player = this.gameClient.player;
             } else {
                 player = this.gameClient.FindPlayer(this.message.playerId);
             }

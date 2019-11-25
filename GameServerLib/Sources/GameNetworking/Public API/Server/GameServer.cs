@@ -45,7 +45,7 @@ namespace GameNetworking {
 
         public void StartGame() {
             this.playersStorage.ForEach((each) => {
-                this.networkingServer.Send(new StartGameMessage(), each.Client);
+                this.networkingServer.Send(new StartGameMessage(), each.client);
             });
         }
 
@@ -54,7 +54,7 @@ namespace GameNetworking {
         }
 
         public void Disconnect(NetworkPlayer player) {
-            this.networkingServer.Disconnect(player.Client);
+            this.networkingServer.Disconnect(player.client);
         }
 
         public void Update() {
@@ -72,11 +72,11 @@ namespace GameNetworking {
         }
 
         public NetworkPlayer FindPlayer(NetworkClient client) {
-            return this.playersStorage.Find(player => player.Client == client);
+            return this.playersStorage.Find(player => player.client == client);
         }
 
         public NetworkPlayer FindPlayer(int playerId) {
-            return this.playersStorage.Find(player => player.PlayerId == playerId);
+            return this.playersStorage.Find(player => player.playerId == playerId);
         }
 
         public List<NetworkPlayer> AllPlayers() {
@@ -84,13 +84,13 @@ namespace GameNetworking {
         }
 
         internal void SendBroadcast(ITypedMessage message) {
-            this.networkingServer.SendBroadcast(message, this.playersStorage.ConvertAll(c => c.Client));
+            this.networkingServer.SendBroadcast(message, this.playersStorage.ConvertAll(c => c.client));
         }
 
         internal void SendBroadcast(ITypedMessage message, NetworkClient excludeClient) {
             List<NetworkClient> clientList = this.playersStorage.ConvertFindingAll(
-                player => player.Client != excludeClient,
-                player => player.Client
+                player => player.client != excludeClient,
+                player => player.client
             );
             this.networkingServer.SendBroadcast(message, clientList);
         }

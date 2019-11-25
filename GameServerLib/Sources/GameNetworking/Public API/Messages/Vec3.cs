@@ -25,16 +25,18 @@ namespace GameNetworking.Messages {
             instance.z = this.z;
         }
 
+        public static implicit operator Vector3(Vec3 v) {
+            var vec = Vector3.zero;
+            vec.Set(v.x, v.y, v.z);
+            return vec;
+        }
+
+        public static implicit operator Vec3(Vector3 v) {
+            return new Vec3 { x = v.x, y = v.y, z = v.z };
+        }
+
         public override string ToString() {
             return string.Format("({0}, {1}, {2})", this.x, this.y, this.z);
-        }
-    }
-
-    public static class Vector3Ext {
-        public static void CopyToVec3(this Vector3 op, ref Vec3 instance) {
-            instance.x = op.x;
-            instance.y = op.y;
-            instance.z = op.z;
         }
     }
 }

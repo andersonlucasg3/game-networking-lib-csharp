@@ -33,11 +33,11 @@ namespace GameNetworking {
             if (player.transform == null) { return; }
 
             var syncMessage = new SyncMessage {
-                playerId = player.PlayerId
+                playerId = player.playerId
             };
-            player.transform.position.CopyToVec3(ref syncMessage.position);
-            player.transform.eulerAngles.CopyToVec3(ref syncMessage.rotation);
-            this.Instance.SendBroadcast(syncMessage);
+            syncMessage.position = player.transform.position;
+            syncMessage.rotation = player.transform.eulerAngles;
+            this.instance.SendBroadcast(syncMessage);
         }
     }
 }

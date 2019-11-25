@@ -10,29 +10,29 @@ namespace GameNetworking {
         }
 
         internal void Connect(string host, int port) {
-            this.Instance?.networkingClient.Connect(host, port);
+            this.instance?.networkingClient.Connect(host, port);
         }
 
         internal void Disconnect() {
-            this.Instance?.networkingClient.Disconnect();
+            this.instance?.networkingClient.Disconnect();
         }
 
         #region INetworkingClientDelegate
 
         void INetworkingClientDelegate.NetworkingClientDidConnect() {
-            this.Instance?.listener?.GameClientDidConnect();
+            this.instance?.listener?.GameClientDidConnect();
         }
 
         void INetworkingClientDelegate.NetworkingClientConnectDidTimeout() {
-            this.Instance?.listener?.GameClientConnectDidTimeout();
+            this.instance?.listener?.GameClientConnectDidTimeout();
         }
 
         void INetworkingClientDelegate.NetworkingClientDidDisconnect() {
-            this.Instance?.listener?.GameClientDidDisconnect();
+            this.instance?.listener?.GameClientDidDisconnect();
         }
 
         void INetworkingClientDelegate.NetworkingClientDidReadMessage(MessageContainer container) {
-            this.Instance?.GameClientConnectionDidReceiveMessage(container);
+            this.instance?.GameClientConnectionDidReceiveMessage(container);
         }
 
         #endregion

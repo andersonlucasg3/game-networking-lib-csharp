@@ -18,7 +18,7 @@ namespace GameNetworking {
 
         internal readonly NetworkingClient networkingClient;
 
-        public NetworkPlayer Player { get; internal set; }
+        public NetworkPlayer player { get; internal set; }
         public float MostRecentPingValue { get; internal set; }
 
         public IGameClientInstanceListener instanceListener {
@@ -64,7 +64,7 @@ namespace GameNetworking {
         }
 
         internal NetworkPlayer FindPlayer(int playerId) {
-            return this.playersStorage.Find(player => player.PlayerId == playerId) as NetworkPlayer;
+            return this.playersStorage.Find(player => player.playerId == playerId) as NetworkPlayer;
         }
 
         internal List<Models.Server.NetworkPlayer> AllPlayers() {

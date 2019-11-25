@@ -14,7 +14,7 @@ namespace GameNetworking.Executors.Server {
         public void Execute() {
             var pingValue = this.server.pingController.PongReceived(this.player);
 
-            this.server.Send(new PingResultRequestMessage(pingValue), this.player.Client);
+            this.server.Send(new PingResultRequestMessage(pingValue), this.player.client);
         }
     }
 }

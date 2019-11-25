@@ -8,15 +8,15 @@ namespace GameNetworking.Models {
 
             private WeakReference weakGameObject;
 
-            internal NetworkClient Client {
+            internal NetworkClient client {
                 get; private set;
             }
 
-            public int PlayerId {
+            public int playerId {
                 get; private set;
             }
 
-            public int SpawnId {
+            public int spawnId {
                 get; set;
             }
 
@@ -32,12 +32,12 @@ namespace GameNetworking.Models {
             internal InputState inputState = new InputState();
 
             internal NetworkPlayer(NetworkClient client) {
-                this.PlayerId = random.Next();
-                this.Client = client;
+                this.playerId = random.Next();
+                this.client = client;
             }
 
             internal NetworkPlayer(int playerId) {
-                this.PlayerId = playerId;
+                this.playerId = playerId;
             }
 
             public void Despawn() {
@@ -47,7 +47,7 @@ namespace GameNetworking.Models {
 
             public override bool Equals(object obj) {
                 if (obj is NetworkPlayer) {
-                    return this.PlayerId == ((NetworkPlayer)obj).PlayerId;
+                    return this.playerId == ((NetworkPlayer)obj).playerId;
                 }
                 return object.Equals(this, obj);
             }

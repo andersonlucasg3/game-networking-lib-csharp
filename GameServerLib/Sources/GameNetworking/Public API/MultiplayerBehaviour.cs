@@ -85,7 +85,7 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerListener, IGameCli
     public void Send(ITypedMessage encodable, GameNetworking.Models.Server.NetworkPlayer player = null) {
         switch (this.behaviourType) {
         case MultiplayerBehaviourType.CLIENT: this.client?.Send(encodable); break;
-        case MultiplayerBehaviourType.SERVER: this.server?.Send(encodable, player.Client); break;
+        case MultiplayerBehaviourType.SERVER: this.server?.Send(encodable, player.client); break;
         }
     }
 
@@ -94,7 +94,7 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerListener, IGameCli
     }
 
     public void Broadcast(ITypedMessage encodable, GameNetworking.Models.Server.NetworkPlayer excludePlayer) {
-        this.server.SendBroadcast(encodable, excludePlayer.Client);
+        this.server.SendBroadcast(encodable, excludePlayer.client);
     }
 
     public GameNetworking.Models.Server.NetworkPlayer FindPlayer(int playerId) {

@@ -40,10 +40,8 @@ namespace GameNetworking.Executors.Client {
         }
 
         private void Position(NetworkPlayer player) {
-            Vector3 pos = Vector3.zero;
-            Vector3 euler = Vector3.zero;
-            this.message.position.CopyToVector3(ref pos);
-            this.message.rotation.CopyToVector3(ref euler);
+            Vector3 pos = this.message.position;
+            Vector3 euler = this.message.rotation;
 
             if (gameClient.instanceListener?.GameInstanceSyncPlayer(player, pos, euler) ?? false) { return; }
 

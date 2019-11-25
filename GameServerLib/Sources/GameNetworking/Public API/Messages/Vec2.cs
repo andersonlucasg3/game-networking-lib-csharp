@@ -2,7 +2,7 @@
 using UnityEngine;
 
 namespace GameNetworking.Messages {
-    class Vec2 : ICodable {
+    public class Vec2 : ICodable {
         public float x;
         public float y;
 
@@ -11,12 +11,12 @@ namespace GameNetworking.Messages {
             this.y = y;
         }
 
-        void IDecodable.Decode(IDecoder decoder) {
+        public virtual void Decode(IDecoder decoder) {
             this.x = decoder.Float();
             this.y = decoder.Float();
         }
 
-        void IEncodable.Encode(IEncoder encoder) {
+        public virtual void Encode(IEncoder encoder) {
             encoder.Encode(this.x);
             encoder.Encode(this.y);
         }

@@ -2,27 +2,17 @@
 using UnityEngine;
 
 namespace GameNetworking.Messages {
-    public class Vec3: ICodable {
-        public float x;
-        public float y;
+    public class Vec3: Vec2 {
         public float z;
 
-        void IDecodable.Decode(IDecoder decoder) {
-            this.x = decoder.Float();
-            this.y = decoder.Float();
+        public override void Decode(IDecoder decoder) {
+            base.Decode(decoder);
             this.z = decoder.Float();
         }
 
-        void IEncodable.Encode(IEncoder encoder) {
-            encoder.Encode(this.x);
-            encoder.Encode(this.y);
+        public override void Encode(IEncoder encoder) {
+            base.Encode(encoder);
             encoder.Encode(this.z);
-        }
-
-        public void CopyToVector3(ref Vector3 instance) {
-            instance.x = this.x;
-            instance.y = this.y;
-            instance.z = this.z;
         }
 
         public static implicit operator Vector3(Vec3 v) {

@@ -1,23 +1,19 @@
 ﻿using Networking;
 using Networking.Models;
-using Messages.Coders;
 using Messages.Models;
 using Messages.Streams;
 using Commons;
-using System;
-using System.Threading;
-using System.Collections.Generic;
 
 namespace GameNetworking.Networking {
     using Models;
 
-    internal class NetworkingClient : WeakDelegate<INetworkingClientDelegate>, INetworkingDelegate, INetClientReadDelegate {
+    internal class NetworkingClient : WeakListener<INetworkingClientDelegate>, INetworkingListener, INetClientReadListener {
         private INetworking networking;
         private NetworkClient client;
 
-        public NetworkingClient() {
-            this.networking = new NetSocket();
-            this.networking.Delegate = this;
+        public NetworkingClient(INetworking backend) {
+            this.networking = backend;
+            this.networking.listener = this;
         }
 
         public void Connect(string host, int port) {
@@ -42,12 +38,13 @@ namespace GameNetworking.Networking {
 
         #region INetClientReadDelegate
 
-        void INetClientReadDelegate.ClientDidReadBytes(NetClient client, byte[] bytes) {
+        void INetClientReadListener.ClientDidReadBytes(NetClient client, byte[] bytes) {
             this.client.Reader.Add(bytes);
             MessageContainer container;
             do {
                 container = this.client.Reader.Decode();
-                this.Delegate?.NetworkingClientDidReadMessage(container);
+                if (container == null) { continue; }
+                this.listener?.NetworkingClientDidReadMessage(container);
             } while (container != null);
         }
 
@@ -55,21 +52,21 @@ namespace GameNetworking.Networking {
 
         #region INetworkingDelegate
 
-        void INetworkingDelegate.NetworkingDidConnect(NetClient client) {
-            client.Delegate = this;
+        void INetworkingListener.NetworkingDidConnect(INetClient client) {
+            client.listener = this;
 
             this.client = new NetworkClient(client, new MessageStreamReader(), new MessageStreamWriter());
-            this.Delegate?.NetworkingClientDidConnect();
+            this.listener?.NetworkingClientDidConnect();
         }
 
-        void INetworkingDelegate.NetworkingConnectDidTimeout() {
+        void INetworkingListener.NetworkingConnectDidTimeout() {
             this.client = null;
-            this.Delegate?.NetworkingClientConnectDidTimeout();
+            this.listener?.NetworkingClientConnectDidTimeout();
         }
 
-        void INetworkingDelegate.NetworkingDidDisconnect(NetClient client) {
+        void INetworkingListener.NetworkingDidDisconnect(INetClient client) {
             this.client = null;
-            this.Delegate?.NetworkingClientDidDisconnect();
+            this.listener?.NetworkingClientDidDisconnect();
         }
 
         #endregion

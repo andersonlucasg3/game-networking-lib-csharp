@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <OutputPath></OutputPath>
+    <OutputPath>..\..\realistic_fps\Assets\Plugins\</OutputPath>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
     <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
@@ -21,7 +21,6 @@
     <Folder Include="Sources\GameNetworking\Networking\" />
     <Folder Include="Sources\GameNetworking\Models\" />
     <Folder Include="Sources\GameNetworking\Public API\Client\Messages\" />
-    <Folder Include="Sources\GameNetworking\Public API\Messages\" />
     <Folder Include="Sources\GameNetworking\Public API\Server\Executors\" />
   </ItemGroup>
   <ItemGroup>
@@ -50,6 +49,9 @@
       <HintPath>..\..\..\.nuget\packages\system.runtime.compilerservices.unsafe\4.5.2\lib\netstandard2.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
       <Private>true</Private>
     </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.10.1" />
   </ItemGroup>
 </Project>
 

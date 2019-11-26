@@ -1,15 +1,15 @@
 ﻿using System;
-using UnityEngine;
 using System.Collections.Generic;
 using Messages.Models;
 using Commons;
+using Networking;
 
 namespace GameNetworking {
     using Networking;
     using Models;
     using Models.Client;
 
-    public class GameClient : WeakDelegate<IGameClientDelegate>, IGameClientInstance {
+    public class GameClient : WeakListener<IGameClientListener>, IGameClientInstance {
         private readonly NetworkPlayersStorage playersStorage;
         private readonly GameClientConnection connection;
         private readonly GameClientMessageRouter router;
@@ -18,18 +18,18 @@ namespace GameNetworking {
 
         internal readonly NetworkingClient networkingClient;
 
-        public NetworkPlayer Player { get; internal set; }
+        public NetworkPlayer player { get; internal set; }
         public float MostRecentPingValue { get; internal set; }
 
-        public IGameClientInstanceDelegate InstanceDelegate {
-            get { return this.weakInstanceDelegate?.Target as IGameClientInstanceDelegate; }
+        public IGameClientInstanceListener instanceListener {
+            get { return this.weakInstanceDelegate?.Target as IGameClientInstanceListener; }
             set { this.weakInstanceDelegate = new WeakReference(value); }
         }
 
-        public GameClient() {
+        public GameClient(INetworking backend) {
             this.playersStorage = new NetworkPlayersStorage();
 
-            this.networkingClient = new NetworkingClient();
+            this.networkingClient = new NetworkingClient(backend);
 
             this.connection = new GameClientConnection(this);
             this.router = new GameClientMessageRouter(this);
@@ -64,7 +64,7 @@ namespace GameNetworking {
         }
 
         internal NetworkPlayer FindPlayer(int playerId) {
-            return this.playersStorage.Find(player => player.PlayerId == playerId) as NetworkPlayer;
+            return this.playersStorage.Find(player => player.playerId == playerId) as NetworkPlayer;
         }
 
         internal List<Models.Server.NetworkPlayer> AllPlayers() {

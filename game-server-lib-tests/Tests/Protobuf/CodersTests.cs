@@ -3,6 +3,7 @@ using System;
 using MatchMaking.Protobuf.Coders;
 using MatchMaking.Models;
 using System.Collections.Generic;
+using Logging;
 
 namespace Tests.Protobuf {
     public class CodersTests {
@@ -15,7 +16,7 @@ namespace Tests.Protobuf {
             DateTime start = DateTime.Now;
             action.Invoke();
             TimeSpan timeItTook = DateTime.Now - start;
-            Logging.Logger.Log(typeof(CodersTests), name + " took (ms) " + timeItTook.TotalMilliseconds);
+            Logger.Log($"{name} took (ms) {timeItTook.TotalMilliseconds}");
         }
 
         [Test]
@@ -140,7 +141,7 @@ namespace Tests.Protobuf {
             };
 
             int size = encoder.Encode(request).Length;
-            Logging.Logger.Log(typeof(CodersTests), "LoginRequest Message size: " + size);
+            Logger.Log($"LoginRequest Message size: {size}");
         }
     }
 }

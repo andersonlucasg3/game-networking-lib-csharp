@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using Commons;
 
 namespace Networking.IO {
-    public sealed class NetworkingReader : WeakDelegate<IReaderDelegate>, IReader {
-        private readonly Socket socket;
+    public sealed class NetworkingReader : WeakListener<IReaderListener>, IReader {
+        private readonly ISocket socket;
 
         private bool isReceiving;
-        
-        internal NetworkingReader(Socket socket) {
+
+        internal NetworkingReader(ISocket socket) {
             this.socket = socket;
         }
 
@@ -17,35 +17,21 @@ namespace Networking.IO {
 
             this.isReceiving = true;
 
-            var bufferSize = 4096 * 2;
-
-            byte[] receiveBuffer = new byte[bufferSize];
-            this.socket.BeginReceive(receiveBuffer, 0, bufferSize, SocketFlags.Partial, (ar) => {
-                int count = this.socket.EndReceive(ar);
-
-                byte[] bytesRead = new byte[count];
-                this.Copy(receiveBuffer, ref bytesRead);
-
-                this.Delegate?.ClientDidSendBytes(bytesRead);
+            this.socket.Read((buffer) => {
+                this.listener?.ClientDidRead(buffer);
 
                 this.isReceiving = false;
-            }, this);
+            });
         }
 
         public void Read() {
             this.Receive();
         }
-
-        private void Copy(byte[] source, ref byte[] destination) {
-            for (var i = 0; i < destination.Length; i++) {
-                destination[i] = source[i];
-            }
-        }
     }
 
     namespace Extensions {
         public static partial class SocketExt {
-            public static IReader Reader(this Socket op) {
+            public static IReader Reader(this ISocket op) {
                 return new NetworkingReader(op);
             }
         }

@@ -6,33 +6,33 @@ namespace GameNetworking {
 
     internal class GameClientConnection : BaseWorker<GameClient>, INetworkingClientDelegate {
         internal GameClientConnection(GameClient client) : base(client) {
-            client.networkingClient.Delegate = this;
+            client.networkingClient.listener = this;
         }
 
         internal void Connect(string host, int port) {
-            this.Instance?.networkingClient.Connect(host, port);
+            this.instance?.networkingClient.Connect(host, port);
         }
 
         internal void Disconnect() {
-            this.Instance?.networkingClient.Disconnect();
+            this.instance?.networkingClient.Disconnect();
         }
 
         #region INetworkingClientDelegate
 
         void INetworkingClientDelegate.NetworkingClientDidConnect() {
-            this.Instance?.Delegate?.GameClientDidConnect();
+            this.instance?.listener?.GameClientDidConnect();
         }
 
         void INetworkingClientDelegate.NetworkingClientConnectDidTimeout() {
-            this.Instance?.Delegate?.GameClientConnectDidTimeout();
+            this.instance?.listener?.GameClientConnectDidTimeout();
         }
 
         void INetworkingClientDelegate.NetworkingClientDidDisconnect() {
-            this.Instance?.Delegate?.GameClientDidDisconnect();
+            this.instance?.listener?.GameClientDidDisconnect();
         }
 
         void INetworkingClientDelegate.NetworkingClientDidReadMessage(MessageContainer container) {
-            this.Instance?.GameClientConnectionDidReceiveMessage(container);
+            this.instance?.GameClientConnectionDidReceiveMessage(container);
         }
 
         #endregion

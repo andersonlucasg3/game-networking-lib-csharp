@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Messages.Models;
-using System;
 using Commons;
+using Networking;
 
 namespace GameNetworking {
     using Networking;
@@ -9,21 +9,21 @@ namespace GameNetworking {
     using Models.Server;
     using Messages;
 
-    public class GameServer: WeakDelegate<IGameServerDelegate>, IGameInstance, INetworkingServerDelegate, INetworkingServerMessagesDelegate {
+    public class GameServer : WeakListener<IGameServerListener>, IGameInstance, INetworkingServerDelegate, INetworkingServerMessagesDelegate {
         private readonly NetworkPlayersStorage playersStorage;
 
         private readonly GameServerClientAcceptor clientAcceptor;
         private readonly GameServerMessageRouter router;
 
         internal readonly NetworkingServer networkingServer;
-        
+
         public readonly GameServerPingController pingController;
         public readonly GameServerSyncController syncController;
 
-        public GameServer() {
+        public GameServer(INetworking backend) {
             this.playersStorage = new NetworkPlayersStorage();
 
-            this.networkingServer = new NetworkingServer();
+            this.networkingServer = new NetworkingServer(backend);
 
             this.clientAcceptor = new GameServerClientAcceptor(this);
             this.router = new GameServerMessageRouter(this);
@@ -31,7 +31,7 @@ namespace GameNetworking {
             this.syncController = new GameServerSyncController(this, this.playersStorage);
             this.pingController = new GameServerPingController(this, this.playersStorage);
 
-            this.networkingServer.Delegate = this;
+            this.networkingServer.listener = this;
             this.networkingServer.MessagesDelegate = this;
         }
 
@@ -45,7 +45,7 @@ namespace GameNetworking {
 
         public void StartGame() {
             this.playersStorage.ForEach((each) => {
-                this.networkingServer.Send(new StartGameMessage(), each.Client);
+                this.networkingServer.Send(new StartGameMessage(), each.client);
             });
         }
 
@@ -54,7 +54,7 @@ namespace GameNetworking {
         }
 
         public void Disconnect(NetworkPlayer player) {
-            this.networkingServer.Disconnect(player.Client);
+            this.networkingServer.Disconnect(player.client);
         }
 
         public void Update() {
@@ -71,26 +71,26 @@ namespace GameNetworking {
             this.playersStorage.Remove(player);
         }
 
-        internal NetworkPlayer FindPlayer(NetworkClient client) {
-            return this.playersStorage.Find(player => player.Client == client);
+        public NetworkPlayer FindPlayer(NetworkClient client) {
+            return this.playersStorage.Find(player => player.client == client);
         }
 
-        internal NetworkPlayer FindPlayer(int playerId) {
-            return this.playersStorage.Find(player => player.PlayerId == playerId);
+        public NetworkPlayer FindPlayer(int playerId) {
+            return this.playersStorage.Find(player => player.playerId == playerId);
         }
 
-        internal List<NetworkPlayer> AllPlayers() {
+        public List<NetworkPlayer> AllPlayers() {
             return this.playersStorage.Players;
         }
 
         internal void SendBroadcast(ITypedMessage message) {
-            this.networkingServer.SendBroadcast(message, this.playersStorage.ConvertAll(c => c.Client));
+            this.networkingServer.SendBroadcast(message, this.playersStorage.ConvertAll(c => c.client));
         }
 
         internal void SendBroadcast(ITypedMessage message, NetworkClient excludeClient) {
             List<NetworkClient> clientList = this.playersStorage.ConvertFindingAll(
-                player => player.Client != excludeClient, 
-                player => player.Client
+                player => player.client != excludeClient,
+                player => player.client
             );
             this.networkingServer.SendBroadcast(message, clientList);
         }

@@ -1,4 +1,5 @@
 ﻿namespace GameNetworking.Executors.Client {
+    using Logging;
     using Messages.Server;
     using Models.Client;
 
@@ -12,13 +13,13 @@
         }
 
         public void Execute() {
-            Logging.Logger.Log(this.GetType(), string.Format("Executing for playerId {0} is me {1}", this.message.playerId, this.message.isMe));
+            Logger.Log($"Executing for playerId {this.message.playerId} is me {this.message.isMe}");
 
             var player = new NetworkPlayer(this.message.playerId) {
                 IsLocalPlayer = this.message.isMe
             };
             if (this.message.isMe) {
-                this.gameClient.Player = player;
+                this.gameClient.player = player;
             } else {
                 this.gameClient.AddPlayer(player);
             }

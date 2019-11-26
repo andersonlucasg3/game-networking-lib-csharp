@@ -4,7 +4,7 @@ namespace GameNetworking.Executors.Client {
     using Messages.Server;
     using Models.Client;
 
-    internal struct SyncExecutor: IExecutor {
+    internal struct SyncExecutor : IExecutor {
         private readonly GameClient gameClient;
         private readonly SyncMessage message;
 
@@ -15,19 +15,19 @@ namespace GameNetworking.Executors.Client {
 
         public void Execute() {
             NetworkPlayer player;
-            if (this.message.playerId == this.gameClient.Player.PlayerId) {
-                player = this.gameClient.Player;
+            if (this.message.playerId == this.gameClient.player.playerId) {
+                player = this.gameClient.player;
             } else {
                 player = this.gameClient.FindPlayer(this.message.playerId);
             }
 
-            if (player?.GameObject == null) { return; }
+            if (player?.gameObject == null) { return; }
 
             Synchronize(player);
         }
 
         private void Synchronize(NetworkPlayer player) {
-            if (!player.GameObject.TryGetComponent(out CharacterController charController)) {
+            if (!player.gameObject.TryGetComponent(out CharacterController charController)) {
                 Position(player);
                 return;
             }
@@ -40,15 +40,13 @@ namespace GameNetworking.Executors.Client {
         }
 
         private void Position(NetworkPlayer player) {
-            Vector3 pos = Vector3.zero;
-            Vector3 euler = Vector3.zero;
-            this.message.position.CopyToVector3(ref pos);
-            this.message.rotation.CopyToVector3(ref euler);
+            Vector3 pos = this.message.position;
+            Vector3 euler = this.message.rotation;
 
-            if (gameClient.InstanceDelegate?.GameInstanceSyncPlayer(player, pos, euler) ?? false) { return; }
+            if (gameClient.instanceListener?.GameInstanceSyncPlayer(player, pos, euler) ?? false) { return; }
 
-            player.Transform.position = pos;
-            player.Transform.eulerAngles = euler;
+            player.transform.position = pos;
+            player.transform.eulerAngles = euler;
         }
     }
 }

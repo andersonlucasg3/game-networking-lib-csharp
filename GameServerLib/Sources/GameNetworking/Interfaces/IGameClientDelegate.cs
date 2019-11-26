@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace GameNetworking {
     using Models.Client;
 
-    public interface IGameClientDelegate {
+    public interface IGameClientListener {
         void GameClientDidConnect();
         void GameClientConnectDidTimeout();
         void GameClientDidDisconnect();

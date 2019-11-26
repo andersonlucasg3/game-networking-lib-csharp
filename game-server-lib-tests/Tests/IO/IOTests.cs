@@ -7,6 +7,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Runtime.Serialization.Formatters.Binary;
+using Logging;
 
 namespace Tests.IO {
     public class IOTests {
@@ -19,7 +20,7 @@ namespace Tests.IO {
             DateTime start = DateTime.Now;
             action.Invoke();
             TimeSpan timeItTook = DateTime.Now - start;
-            Logging.Logger.Log(typeof(IOTests), name + " took (ms) " + timeItTook.TotalMilliseconds);
+            Logger.Log($"{name} took (ms) {timeItTook.TotalMilliseconds}");
         }
 
         [Test]
@@ -56,7 +57,7 @@ namespace Tests.IO {
             this.Measure(() => {
                 byte[] encoded = encoder.Encode(value);
 
-                Logging.Logger.Log(typeof(IOTests), "Encoded message size: " + encoded.Length);
+                Logger.Log($"Encoded message size: {encoded.Length}");
 
                 decoded = decoder.Decode<Value>(encoded);
             }, "Encoder and Decoder");
@@ -86,7 +87,7 @@ namespace Tests.IO {
             this.Measure(() => {
                 formatter.Serialize(ms, value);
 
-                Logging.Logger.Log(typeof(IOTests), "Encoded message size: " + ms.Length);
+                Logger.Log($"Encoded message size: {ms.Length}");
 
                 ms.Seek(0, SeekOrigin.Begin);
 
@@ -167,7 +168,7 @@ namespace Tests.IO {
             };
 
             int size = encoder.Encode(request).Length;
-            Logging.Logger.Log(typeof(IOTests), "LoginRequest Message size: " + size);
+            Logger.Log($"LoginRequest Message size: {size}");
         }
     }
 

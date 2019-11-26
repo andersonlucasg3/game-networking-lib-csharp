@@ -1,11 +1,11 @@
 ﻿namespace Networking {
     using Models;
 
-    public interface INetworkingDelegate {
-        void NetworkingDidConnect(NetClient client);
+    public interface INetworkingListener {
+        void NetworkingDidConnect(INetClient client);
 
         void NetworkingConnectDidTimeout();
 
-        void NetworkingDidDisconnect(NetClient client);
+        void NetworkingDidDisconnect(INetClient client);
     }
 }

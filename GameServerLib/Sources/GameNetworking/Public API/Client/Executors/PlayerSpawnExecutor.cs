@@ -2,6 +2,7 @@
 
 namespace GameNetworking.Executors.Client {
     using GameNetworking.Models.Client;
+    using Logging;
     using Messages.Server;
 
     internal struct PlayerSpawnExecutor: IExecutor {
@@ -14,19 +15,19 @@ namespace GameNetworking.Executors.Client {
         }
 
         public void Execute() {
-            Logging.Logger.Log(this.GetType(), string.Format("Executing for playerId {0}", this.spawnMessage.playerId));
+            Logger.Log($"Executing for playerId {this.spawnMessage.playerId}");
 
             NetworkPlayer player;
-            if (this.spawnMessage.playerId == this.gameClient.Player.PlayerId) {
-                player = this.gameClient.Player;
+            if (this.spawnMessage.playerId == this.gameClient.player.playerId) {
+                player = this.gameClient.player;
             } else {
                 player = this.gameClient.FindPlayer(this.spawnMessage.playerId);
             }
 
-            player.SpawnId = this.spawnMessage.spawnId;
+            player.spawnId = this.spawnMessage.spawnId;
 
-            var spawned = this.gameClient.Delegate?.GameClientSpawnCharacter(player);
-            player.GameObject = spawned;
+            var spawned = this.gameClient.listener?.GameClientSpawnCharacter(player);
+            player.gameObject = spawned;
 
             SetupCharacterControllerIfNeeded(spawned);
         }
@@ -45,12 +46,8 @@ namespace GameNetworking.Executors.Client {
         }
 
         private void Position(Transform transform) {
-            Vector3 pos = Vector3.zero;
-            Vector3 euler = Vector3.zero;
-            this.spawnMessage.position.CopyToVector3(ref pos);
-            this.spawnMessage.rotation.CopyToVector3(ref euler);
-            transform.position = pos;
-            transform.eulerAngles = euler;
+            transform.position = this.spawnMessage.position;
+            transform.eulerAngles = this.spawnMessage.rotation;
         }
     }
 }

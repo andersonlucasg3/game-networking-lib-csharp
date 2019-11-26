@@ -1,12 +1,12 @@
 using System;
 
 namespace Commons {
-    public abstract class WeakDelegate<DelegateType> where DelegateType : class {
-        private WeakReference weakDelegate;
+    public abstract class WeakListener<ListenerType> where ListenerType : class {
+        private WeakReference weakListener;
 
-        public DelegateType Delegate {
-            get { return this.weakDelegate?.Target as DelegateType; }
-            set { this.weakDelegate = new WeakReference(value); }
+        public ListenerType listener {
+            get { return this.weakListener?.Target as ListenerType; }
+            set { this.weakListener = new WeakReference(value); }
         }
     }
 }

@@ -5,12 +5,12 @@ using Messages.Models;
 using System;
 using System.Collections.Generic;
 using Commons;
-using System.Threading;
+using Networking.IO;
 
 namespace GameNetworking.Networking {
     using Models;
 
-    internal class NetworkingServer: WeakDelegate<INetworkingServerDelegate>, INetClientReadDelegate {
+    internal class NetworkingServer : WeakListener<INetworkingServerDelegate>, INetClientReadListener {
         private readonly INetworking networking;
         private WeakReference weakMessagesDelegate;
 
@@ -22,14 +22,14 @@ namespace GameNetworking.Networking {
             set { this.weakMessagesDelegate = new WeakReference(value); }
         }
 
-        public NetworkingServer() {
-            this.networking = new NetSocket();
+        public NetworkingServer(INetworking backend) {
+            this.networking = backend;
             this.clientsStorage = new List<NetworkClient>();
             this.disconnectedClientsToRemove = new List<NetworkClient>();
         }
 
         public void Listen(int port) {
-            this.networking.Start(port);
+            this.networking.StartServer(port);
         }
 
         public void Stop() {
@@ -42,12 +42,12 @@ namespace GameNetworking.Networking {
         }
 
         private void AcceptClient() {
-            NetClient client = this.networking?.Accept();
+            INetClient client = this.networking?.Accept();
             if (client != null) {
-                client.Delegate = this;
+                client.listener = this;
                 NetworkClient networkClient = new NetworkClient(client, new MessageStreamReader(), new MessageStreamWriter());
                 clientsStorage.Add(networkClient);
-                this.Delegate?.NetworkingServerDidAcceptClient(networkClient);
+                this.listener?.NetworkingServerDidAcceptClient(networkClient);
             }
         }
 
@@ -77,10 +77,10 @@ namespace GameNetworking.Networking {
         }
 
         private void Flush(NetworkClient client) {
-            if (client.Client.IsConnected) {
+            if (client.Client.isConnected) {
                 this.networking.Flush(client.Client);
             } else {
-                this.Delegate?.NetworkingServerClientDidDisconnect(client);
+                this.listener?.NetworkingServerClientDidDisconnect(client);
                 this.disconnectedClientsToRemove.Add(client);
             }
         }
@@ -95,7 +95,7 @@ namespace GameNetworking.Networking {
 
         #region INetClientReadDelegate
 
-        void INetClientReadDelegate.ClientDidReadBytes(NetClient client, byte[] bytes) {
+        void INetClientReadListener.ClientDidReadBytes(NetClient client, byte[] bytes) {
             var n_client = clientsStorage.Find((c) => c.Equals(client));
             n_client.Reader.Add(bytes);
 

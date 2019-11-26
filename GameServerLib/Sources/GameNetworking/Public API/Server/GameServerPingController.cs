@@ -25,7 +25,7 @@ namespace GameNetworking {
             this.pingPlayers.ForEach(ping => {
                 if (!ping.PingSent && ping.CanSendNextPing) {
                     ping.SendingPing();
-                    this.Instance.Send(new PingRequestMessage(), ping.Player.Client);
+                    this.instance.Send(new PingRequestMessage(), ping.Player.client);
                 }
             });
         }

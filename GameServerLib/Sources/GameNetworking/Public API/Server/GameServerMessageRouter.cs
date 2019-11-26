@@ -18,18 +18,18 @@ namespace GameNetworking {
         public void Route(MessageContainer container, NetworkClient client) {
             if (container == null) { return; }
 
-            var player = this.Instance.FindPlayer(client);
+            var player = this.instance.FindPlayer(client);
 
             switch ((MessageType)container.Type) {
             case MessageType.SPAWN_REQUEST:
-                Execute(new SpawnRequestExecutor(this.Instance, container.Parse<SpawnRequestMessage>(), player));
+                Execute(new SpawnRequestExecutor(this.instance, container.Parse<SpawnRequestMessage>(), player));
                 break;
             case MessageType.PONG:
-                Execute(new PongRequestExecutor(this.Instance, player));
+                Execute(new PongRequestExecutor(this.instance, player));
                 break;
 
             default:
-                this.Instance.Delegate?.GameServerDidReceiveClientMessage(container, player);
+                this.instance.listener?.GameServerDidReceiveClientMessage(container, player);
                 break;
             }
         }

@@ -4,8 +4,10 @@ using System.Collections.Generic;
 using Messages.Models;
 using GameNetworking;
 using GameNetworking.Messages.Client;
-using GameNetworking.Messages;
 using GameNetworking.Models.Client;
+using Networking;
+using Networking.IO;
+using Logging;
 
 [Serializable]
 public enum MultiplayerBehaviourType {
@@ -13,7 +15,7 @@ public enum MultiplayerBehaviourType {
     CLIENT
 }
 
-public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameClientDelegate, IGameClientInstanceDelegate {
+public class MultiplayerBehaviour : MonoBehaviour, IGameServerListener, IGameClientListener, IGameClientInstanceListener {
     protected GameServer server;
     protected GameClient client;
 
@@ -50,7 +52,7 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameCli
     }
 
     protected virtual void StartServer() {
-        this.server = new GameServer { Delegate = this };
+        this.server = new GameServer(new NetSocket(new TCPNonBlockingSocket())) { listener = this };
         this.server.syncController.SyncInterval = this.syncIntervalMs / 1000.0F;
         this.server.Listen(this.port);
     }
@@ -60,7 +62,7 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameCli
     }
 
     protected virtual void StartClient() {
-        this.client = new GameClient { Delegate = this, InstanceDelegate = this };
+        this.client = new GameClient(new NetSocket(new TCPNonBlockingSocket())) { listener = this, instanceListener = this };
         this.client.Connect(this.connectToHost, this.port);
     }
 
@@ -77,14 +79,14 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameCli
     }
 
     public void RequestSpawn(int spawnId) {
-        Logging.Logger.Log(this.GetType(), string.Format("RequestSpawn | spawnId: {0}", spawnId));
+        Logger.Log($"RequestSpawn | spawnId: {spawnId}");
         this.client?.Send(new SpawnRequestMessage { spawnObjectId = spawnId });
     }
 
     public void Send(ITypedMessage encodable, GameNetworking.Models.Server.NetworkPlayer player = null) {
         switch (this.behaviourType) {
         case MultiplayerBehaviourType.CLIENT: this.client?.Send(encodable); break;
-        case MultiplayerBehaviourType.SERVER: this.server?.Send(encodable, player.Client); break;
+        case MultiplayerBehaviourType.SERVER: this.server?.Send(encodable, player.client); break;
         }
     }
 
@@ -93,7 +95,7 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameCli
     }
 
     public void Broadcast(ITypedMessage encodable, GameNetworking.Models.Server.NetworkPlayer excludePlayer) {
-        this.server.SendBroadcast(encodable, excludePlayer.Client);
+        this.server.SendBroadcast(encodable, excludePlayer.client);
     }
 
     public GameNetworking.Models.Server.NetworkPlayer FindPlayer(int playerId) {
@@ -123,7 +125,7 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerDelegate, IGameCli
     #region IGameServerDelegate
 
     public virtual void GameServerPlayerDidDisconnect(GameNetworking.Models.Server.NetworkPlayer player) {
-        
+
     }
 
     public virtual GameObject GameServerSpawnCharacter(GameNetworking.Models.Server.NetworkPlayer player) {

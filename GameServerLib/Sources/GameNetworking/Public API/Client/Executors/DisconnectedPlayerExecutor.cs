@@ -1,7 +1,6 @@
 ﻿namespace GameNetworking.Executors.Client {
     using Logging;
     using Messages.Server;
-    using Models.Client;
 
     internal struct DisconnectedPlayerExecutor : IExecutor {
         private readonly GameClient gameClient;
@@ -13,10 +12,10 @@
         }
 
         public void Execute() {
-            Logger.Log(this.GetType(), string.Format("Executing for playerId {0}", this.message.playerId));
+            Logger.Log($"Executing for playerId {this.message.playerId}");
 
             var player = this.gameClient.RemovePlayer(this.message.playerId);
-            if (player != null) { this.gameClient.Delegate?.GameClientNetworkPlayerDidDisconnect(player); }
+            if (player != null) { this.gameClient.listener?.GameClientNetworkPlayerDidDisconnect(player); }
         }
     }
 }

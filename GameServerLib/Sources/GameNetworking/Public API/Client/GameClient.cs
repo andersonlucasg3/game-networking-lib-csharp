@@ -50,6 +50,11 @@ namespace GameNetworking {
             this.networkingClient.Update();
         }
 
+        public float GetPing(int playerId) {
+            var serverPlayer = this.playersStorage.Find(player => player.playerId == playerId);
+            return serverPlayer.mostRecentPingValue;
+        }
+
         internal void AddPlayer(NetworkPlayer player) {
             this.playersStorage.Add(player);
         }

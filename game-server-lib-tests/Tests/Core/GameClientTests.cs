@@ -7,7 +7,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using GameNetworking.Models.Client;
 using GameNetworking.Messages.Client;
-using System.Reflection;
+using GameNetworking.Messages;
 
 namespace Tests.Core {
     public class GameServerClientTests {
@@ -54,6 +54,11 @@ namespace Tests.Core {
             this.MainThreadRun();
         }
 
+        [SetUp]
+        public void SetUp() {
+            TimeHelp.ResetTime();
+        }
+
         [Test]
         public void TestConnectDisconnect() {
             this.New(out GameClient client, out ClientListener clientListener);
@@ -95,7 +100,7 @@ namespace Tests.Core {
             this.New(out GameClient client3, out ClientListener clientListener3);
             this.New(out GameServer server, out ServerListener serverListener);
 
-            void updateAction() {
+            void UpdateAction() {
                 this.Update(server);
                 this.Update(server);
                 this.Update(server);
@@ -110,7 +115,7 @@ namespace Tests.Core {
             client2.Connect(this.host, this.port);
             client3.Connect(this.host, this.port);
 
-            updateAction();
+            UpdateAction();
 
             Assert.IsTrue(clientListener1.connectedCalled);
             Assert.IsTrue(clientListener2.connectedCalled);
@@ -130,7 +135,7 @@ namespace Tests.Core {
 
             client3.Disconnect();
 
-            updateAction();
+            UpdateAction();
 
             Assert.IsNotNull(server.FindPlayer(playerId1));
             Assert.IsNotNull(server.FindPlayer(playerId2));
@@ -192,7 +197,7 @@ namespace Tests.Core {
             this.New(out GameClient client3, out ClientListener listener3_c);
             this.New(out GameServer server, out ServerListener listener_s);
 
-            void update() {
+            void Update() {
                 this.Update(server);
                 this.Update(server);
                 this.Update(server);
@@ -207,7 +212,7 @@ namespace Tests.Core {
             client2.Connect(this.host, this.port);
             client3.Connect(this.host, this.port);
 
-            update();
+            Update();
 
             var spawnId1 = 1234;
             var spawnId2 = 4321;
@@ -221,7 +226,7 @@ namespace Tests.Core {
             client2.Send(new SpawnRequestMessage { spawnObjectId = spawnId2 });
             client3.Send(new SpawnRequestMessage { spawnObjectId = spawnId3 });
 
-            update();
+            Update();
 
             Assert.IsNotNull(client1.player.gameObject);
             Assert.IsNotNull(client2.player.gameObject);
@@ -258,7 +263,7 @@ namespace Tests.Core {
             this.New(out GameClient client2, out ClientListener listener2_c);
             this.New(out GameServer server, out ServerListener listener_s);
 
-            void update() {
+            void Update() {
                 this.Update(server);
                 this.Update(server);
                 this.Update(client1);
@@ -270,20 +275,20 @@ namespace Tests.Core {
             client1.Connect(this.host, this.port);
             client2.Connect(this.host, this.port);
 
-            update();
+            Update();
 
             var spawnId = 1;
 
             client1.Send(new SpawnRequestMessage { spawnObjectId = spawnId });
             client2.Send(new SpawnRequestMessage { spawnObjectId = spawnId });
 
-            update();
+            Update();
 
             var disconnectedPlayerId = client2.player.playerId;
 
             client2.Disconnect();
 
-            update();
+            Update();
 
             Assert.IsNull(server.FindPlayer(client2.player.playerId));
 
@@ -291,13 +296,13 @@ namespace Tests.Core {
 
             client2.Connect(this.host, this.port);
 
-            update();
+            Update();
 
             var newSpawnId = 2;
 
             client2.Send(new SpawnRequestMessage { spawnObjectId = newSpawnId });
 
-            update();
+            Update();
 
             Assert.AreEqual(spawnId, client1.player.spawnId);
             Assert.AreEqual(newSpawnId, client2.player.spawnId);
@@ -310,10 +315,56 @@ namespace Tests.Core {
 
             Assert.AreEqual(disconnectedPlayerId, listener1_c.disconnectedPlayers[0].playerId);
         }
+
+        [Test]
+        public void TestClientPingBroadcast() {
+            this.New(out GameClient client1, out _);
+            this.New(out GameClient client2, out _);
+            this.New(out GameServer server, out _);
+
+            void Update() {
+                this.Update(server);
+                this.Update(server);
+                this.Update(client1);
+                this.Update(client2);
+                Time.time += 1F;
+            }
+
+            server.Listen(this.port);
+
+            client1.Connect(this.host, this.port);
+            client2.Connect(this.host, this.port);
+
+            Update();
+
+            var spawnId = 1;
+
+            client1.Send(new SpawnRequestMessage { spawnObjectId = spawnId });
+            client2.Send(new SpawnRequestMessage { spawnObjectId = spawnId });
+
+            Update();
+            Update();
+            Update();
+            Update();
+
+            var serverPlayer1 = server.FindPlayer(client1.player.playerId);
+            var serverPlayer2 = server.FindPlayer(client2.player.playerId);
+            var serverPing1 = serverPlayer1.mostRecentPingValue;
+            var serverPing2 = serverPlayer2.mostRecentPingValue;
+
+            Assert.AreEqual(serverPing1, client1.player.mostRecentPingValue);
+            Assert.AreEqual(serverPing2, client2.player.mostRecentPingValue);
+
+            var client1client2Ping = client1.GetPing(client2.player.playerId);
+            var client2client1Ping = client2.GetPing(client1.player.playerId);
+
+            Assert.AreEqual(client1.player.mostRecentPingValue, client2client1Ping);
+            Assert.AreEqual(client2.player.mostRecentPingValue, client1client2Ping);
+        }
     }
 
     class ClientListener : IGameClientListener, IGameClientInstanceListener {
-        public readonly Queue<MessageContainer> receivedMessages = new Queue<MessageContainer>();
+        public readonly List<MessageContainer> receivedMessages = new List<MessageContainer>();
         public readonly List<NetworkPlayer> disconnectedPlayers = new List<NetworkPlayer>();
         public readonly Dictionary<int, int> spawnObjectIds = new Dictionary<int, int>();
         public bool connectedCalled { get; private set; }
@@ -335,7 +386,7 @@ namespace Tests.Core {
         }
 
         void IGameClientListener.GameClientDidReceiveMessage(MessageContainer container) {
-            this.receivedMessages.Enqueue(container);
+            this.receivedMessages.Add(container);
         }
 
         GameObject IGameClientListener.GameClientSpawnCharacter(NetworkPlayer player) {

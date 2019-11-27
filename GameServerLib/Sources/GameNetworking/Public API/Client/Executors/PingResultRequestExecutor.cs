@@ -13,8 +13,12 @@ namespace GameNetworking.Executors.Client {
         }
 
         void IExecutor.Execute() {
-            var player = client.FindPlayer(this.message.playerId);
-            player.mostRecentPingValue = message.pingValue;
+            if (this.message.playerId == this.client.player.playerId) {
+                this.client.player.mostRecentPingValue = this.message.pingValue;
+            } else {
+                var player = client.FindPlayer(this.message.playerId);
+                player.mostRecentPingValue = this.message.pingValue;
+            }
         }
     }
 }

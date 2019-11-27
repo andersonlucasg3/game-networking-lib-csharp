@@ -1,8 +1,5 @@
 ﻿using UnityEngine;
 using System;
-using GameNetworking.Models.Contract;
-using GameNetworking.Models.Contract.Server;
-using GameNetworking.Models.Contract.Client;
 
 namespace GameNetworking.Models {
     namespace Contract {

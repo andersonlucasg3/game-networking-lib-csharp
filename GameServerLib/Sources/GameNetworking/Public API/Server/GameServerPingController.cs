@@ -8,7 +8,7 @@ namespace GameNetworking {
     using Messages.Server;
     using Commons;
 
-    public class GameServerPingController: BaseWorker<GameServer>, INetworkPlayerStorageChangeDelegate {
+    public class GameServerPingController : BaseWorker<GameServer>, INetworkPlayerStorageChangeDelegate {
         private readonly List<PingPlayer> pingPlayers = new List<PingPlayer>();
 
         public float PingInterval { get; set; }
@@ -32,7 +32,9 @@ namespace GameNetworking {
 
         public float PongReceived(NetworkPlayer player) {
             var ping = this.pingPlayers.Find(each => each.Player == player);
-            return ping?.ReceivedPong() ?? 0F;
+            var pingValue = ping?.ReceivedPong() ?? 0F;
+            player.mostRecentPingValue = pingValue;
+            return pingValue;
         }
 
         void INetworkPlayerStorageChangeDelegate.PlayerStorageDidAdd(NetworkPlayer player) {
@@ -45,12 +47,12 @@ namespace GameNetworking {
         }
     }
 
-    internal class PingPlayer: WeakReference {
+    internal class PingPlayer : WeakReference {
         private WeakReference pingController;
 
         private float pingSentTime;
 
-        private float PingElapsedTime {  get { return Time.time - this.pingSentTime; } }
+        private float PingElapsedTime { get { return Time.time - this.pingSentTime; } }
 
         internal bool PingSent { get; private set; }
         internal bool CanSendNextPing { get { return this.PingElapsedTime > (PingController?.PingInterval ?? 0.5F); } }

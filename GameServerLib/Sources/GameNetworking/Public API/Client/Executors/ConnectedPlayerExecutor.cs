@@ -16,7 +16,7 @@
             Logger.Log($"Executing for playerId {this.message.playerId} is me {this.message.isMe}");
 
             var player = new NetworkPlayer(this.message.playerId) {
-                IsLocalPlayer = this.message.isMe
+                isLocalPlayer = this.message.isMe
             };
             if (this.message.isMe) {
                 this.gameClient.player = player;

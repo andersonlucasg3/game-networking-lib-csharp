@@ -1,10 +1,32 @@
 ﻿using UnityEngine;
 using System;
+using GameNetworking.Models.Contract;
+using GameNetworking.Models.Contract.Server;
+using GameNetworking.Models.Contract.Client;
 
 namespace GameNetworking.Models {
+    namespace Contract {
+        namespace Server {
+            public interface INetworkPlayer {
+                int playerId { get; }
+                int spawnId { get; }
+
+                GameObject gameObject { get; }
+                Transform transform { get; }
+
+                void Despawn();
+            }
+        }
+        namespace Client {
+            public interface INetworkPlayer : Server.INetworkPlayer {
+                bool isLocalPlayer { get; }
+            }
+        }
+    }
+
     namespace Server {
-        public class NetworkPlayer {
-            private static readonly System.Random random = new System.Random();
+        public class NetworkPlayer: Contract.Server.INetworkPlayer {
+            private static readonly Random random = new Random();
 
             private WeakReference weakGameObject;
 
@@ -17,7 +39,7 @@ namespace GameNetworking.Models {
             }
 
             public int spawnId {
-                get; set;
+                get; internal set;
             }
 
             public GameObject gameObject {
@@ -59,8 +81,8 @@ namespace GameNetworking.Models {
     }
 
     namespace Client {
-        public class NetworkPlayer : Server.NetworkPlayer {
-            public bool IsLocalPlayer {
+        public class NetworkPlayer : Server.NetworkPlayer, Contract.Client.INetworkPlayer {
+            public bool isLocalPlayer {
                 get; internal set;
             }
 

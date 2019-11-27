@@ -3,18 +3,18 @@ using System.Collections.Generic;
 using System;
 
 public class UnityMainThreadDispatcher : MonoBehaviour {
-    public static UnityMainThreadDispatcher instance { get; private set; }
+    public static UnityMainThreadDispatcher instance { get; internal set; }
 
     private readonly Queue<Action> executionQueue = new Queue<Action>();
 
-    protected virtual void Awake() {
+    public virtual void Awake() {
         if (instance == null) {
             instance = this;
         }
         DontDestroyOnLoad(this.gameObject);
     }
 
-    protected virtual void OnDestroy() {
+    public virtual void OnDestroy() {
         instance = null;
     }
 

@@ -1,8 +1,5 @@
 ﻿using UnityEngine;
 using System;
-using GameNetworking.Models.Contract;
-using GameNetworking.Models.Contract.Server;
-using GameNetworking.Models.Contract.Client;
 
 namespace GameNetworking.Models {
     namespace Contract {
@@ -25,7 +22,7 @@ namespace GameNetworking.Models {
     }
 
     namespace Server {
-        public class NetworkPlayer: Contract.Server.INetworkPlayer {
+        public class NetworkPlayer : Contract.Server.INetworkPlayer {
             private static readonly Random random = new Random();
 
             private WeakReference weakGameObject;
@@ -41,6 +38,8 @@ namespace GameNetworking.Models {
             public int spawnId {
                 get; internal set;
             }
+
+            public float mostRecentPingValue { get; internal set; }
 
             public GameObject gameObject {
                 get { return this.weakGameObject?.Target as GameObject; }

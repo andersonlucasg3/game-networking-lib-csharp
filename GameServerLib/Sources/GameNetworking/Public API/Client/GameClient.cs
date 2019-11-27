@@ -19,7 +19,6 @@ namespace GameNetworking {
         internal readonly NetworkingClient networkingClient;
 
         public NetworkPlayer player { get; internal set; }
-        public float MostRecentPingValue { get; internal set; }
 
         public IGameClientInstanceListener instanceListener {
             get { return this.weakInstanceDelegate?.Target as IGameClientInstanceListener; }
@@ -49,6 +48,11 @@ namespace GameNetworking {
 
         public void Update() {
             this.networkingClient.Update();
+        }
+
+        public float GetPing(int playerId) {
+            var serverPlayer = this.playersStorage.Find(player => player.playerId == playerId);
+            return serverPlayer.mostRecentPingValue;
         }
 
         internal void AddPlayer(NetworkPlayer player) {

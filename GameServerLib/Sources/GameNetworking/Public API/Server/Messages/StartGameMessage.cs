@@ -7,7 +7,7 @@ namespace GameNetworking.Messages {
             get { return (int)MessageType.START_GAME; }
         }
 
-        int ITypedMessage.Type {
+        int ITypedMessage.type {
             get { return StartGameMessage.Type; }
         }
 

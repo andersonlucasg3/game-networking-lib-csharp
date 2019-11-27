@@ -12,9 +12,13 @@ namespace GameNetworking.Executors.Server {
         }
 
         public void Execute() {
-            var pingValue = this.server.pingController.PongReceived(this.player);
+            this.server.pingController.PongReceived(this.player);
 
-            this.server.Send(new PingResultRequestMessage(pingValue), this.player.client);
+            var self = this;
+            this.server.AllPlayers().ForEach((each) => {
+                var result = new PingResultRequestMessage(each.playerId, each.mostRecentPingValue);
+                self.server.Send(result, self.player.client);
+            });
         }
     }
 }

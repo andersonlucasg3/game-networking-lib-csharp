@@ -3,28 +3,19 @@ using System.Collections.Generic;
 using System;
 
 public class UnityMainThreadDispatcher : MonoBehaviour {
-    private static UnityMainThreadDispatcher _instance;
-
-    public static UnityMainThreadDispatcher instance {
-        get {
-            if (_instance == null) {
-                _instance = new GameObject("MainThreadDispatcher").AddComponent<UnityMainThreadDispatcher>();
-            }
-            return _instance;
-        }
-    }
+    public static UnityMainThreadDispatcher instance { get; private set; }
 
     private readonly Queue<Action> executionQueue = new Queue<Action>();
 
     protected virtual void Awake() {
-        if (_instance == null) {
-            _instance = this;
+        if (instance == null) {
+            instance = this;
         }
         DontDestroyOnLoad(this.gameObject);
     }
 
     protected virtual void OnDestroy() {
-        _instance = null;
+        instance = null;
     }
 
     public virtual void Update() {

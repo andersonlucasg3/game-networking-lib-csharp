@@ -11,7 +11,7 @@ namespace Messages.Models {
             get; private set;
         }
 
-        internal MessageContainer(List<byte> messageBytes) {
+        public MessageContainer(List<byte> messageBytes) {
             this.messageBytes = messageBytes;
             this.Type = CoderHelper.ReadHeader(messageBytes);
         }

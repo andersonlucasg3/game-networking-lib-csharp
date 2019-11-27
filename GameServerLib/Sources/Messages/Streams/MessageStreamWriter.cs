@@ -7,7 +7,7 @@ namespace Messages.Streams {
     public class MessageStreamWriter: IStreamWriter {
         public byte[] Write<Message>(Message message) where Message : ITypedMessage {
             var buffer = new List<byte>();
-            CoderHelper.WriteHeader(message.Type, ref buffer);
+            CoderHelper.WriteHeader(message.type, ref buffer);
 
             var encoder = new Coders.Binary.Encoder();
             buffer.AddRange(encoder.Encode(message));

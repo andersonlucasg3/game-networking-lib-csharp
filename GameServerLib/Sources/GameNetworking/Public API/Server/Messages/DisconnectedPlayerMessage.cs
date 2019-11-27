@@ -3,7 +3,7 @@ using Messages.Models;
 
 namespace GameNetworking.Messages.Server {
     public class DisconnectedPlayerMessage : ITypedMessage {
-        int ITypedMessage.Type => (int)MessageType.DISCONNECTED_PLAYER;
+        int ITypedMessage.type => (int)MessageType.DISCONNECTED_PLAYER;
 
         public int playerId;
 

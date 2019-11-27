@@ -177,7 +177,7 @@ namespace Tests.IO {
             get { return 200; }
         }
 
-        int ITypedMessage.Type {
+        int ITypedMessage.type {
             get { return LoginRequest.Type; }
         }
 
@@ -200,7 +200,7 @@ namespace Tests.IO {
             get { return 201; }
         }
 
-        int ITypedMessage.Type {
+        int ITypedMessage.type {
             get { return MatchRequest.Type; }
         }
 
@@ -214,7 +214,7 @@ namespace Tests.IO {
             get { return 202; }
         }
 
-        int ITypedMessage.Type {
+        int ITypedMessage.type {
             get { return ConnectGameInstanceResponse.Type; }
         }
 
@@ -241,7 +241,7 @@ namespace Tests.IO {
             get { return 100; }
         }
 
-        int ITypedMessage.Type {
+        int ITypedMessage.type {
             get { return Value.Type; }
         }
 
@@ -288,7 +288,7 @@ namespace Tests.IO {
             get { return 101; }
         }
 
-        int ITypedMessage.Type {
+        int ITypedMessage.type {
             get { return SubValue.Type; }
         }
 
@@ -333,7 +333,7 @@ namespace Tests.IO {
             get { return 102; }
         }
 
-        int ITypedMessage.Type {
+        int ITypedMessage.type {
             get { return SubSubValue.Type; }
         }
 

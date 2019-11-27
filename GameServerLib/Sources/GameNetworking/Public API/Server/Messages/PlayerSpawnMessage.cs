@@ -7,7 +7,7 @@ namespace GameNetworking.Messages.Server {
             get { return (int)MessageType.SPAWN_REQUEST; }
         }
 
-        int ITypedMessage.Type {
+        int ITypedMessage.type {
             get { return PlayerSpawnMessage.Type; }
         }
 

@@ -3,7 +3,7 @@
 namespace GameNetworking.Executors.Client {
     using Messages.Server;
 
-    internal struct PingResultRequestExecutor: IExecutor {
+    internal struct PingResultRequestExecutor : IExecutor {
         private GameClient client;
         private readonly PingResultRequestMessage message;
 
@@ -13,7 +13,8 @@ namespace GameNetworking.Executors.Client {
         }
 
         void IExecutor.Execute() {
-            client.MostRecentPingValue = message.pingValue;
+            var player = client.FindPlayer(this.message.playerId);
+            player.mostRecentPingValue = message.pingValue;
         }
     }
 }

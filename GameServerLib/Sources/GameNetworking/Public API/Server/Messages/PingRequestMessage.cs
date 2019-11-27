@@ -7,7 +7,7 @@ namespace GameNetworking.Messages.Server {
             get { return (int)MessageType.PING; }
         }
 
-        int ITypedMessage.Type {
+        int ITypedMessage.type {
             get { return PingRequestMessage.Type; }
         }
 

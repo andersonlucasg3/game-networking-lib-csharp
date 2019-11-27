@@ -19,7 +19,6 @@ namespace GameNetworking {
         internal readonly NetworkingClient networkingClient;
 
         public NetworkPlayer player { get; internal set; }
-        public float MostRecentPingValue { get; internal set; }
 
         public IGameClientInstanceListener instanceListener {
             get { return this.weakInstanceDelegate?.Target as IGameClientInstanceListener; }

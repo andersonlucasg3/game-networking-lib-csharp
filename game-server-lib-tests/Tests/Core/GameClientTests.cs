@@ -7,7 +7,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using GameNetworking.Models.Client;
 using GameNetworking.Messages.Client;
-using System;
+using System.Reflection;
 
 namespace Tests.Core {
     public class GameServerClientTests {
@@ -37,6 +37,10 @@ namespace Tests.Core {
         }
 
         private void MainThreadRun() {
+            if (UnityMainThreadDispatcher.instance == null) {
+                UnityMainThreadDispatcher instance = new UnityMainThreadDispatcher();
+                instance.Awake();
+            }
             UnityMainThreadDispatcher.instance.Update();
         }
 

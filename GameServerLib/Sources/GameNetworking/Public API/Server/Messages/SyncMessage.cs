@@ -7,7 +7,7 @@ namespace GameNetworking.Messages.Server {
             get { return (int)MessageType.SYNC; }
         }
 
-        int ITypedMessage.Type {
+        int ITypedMessage.type {
             get { return SyncMessage.Type; }
         }
 

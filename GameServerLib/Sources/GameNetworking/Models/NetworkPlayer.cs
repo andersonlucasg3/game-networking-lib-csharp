@@ -7,6 +7,7 @@ namespace GameNetworking.Models {
             public interface INetworkPlayer {
                 int playerId { get; }
                 int spawnId { get; }
+                float mostRecentPingValue { get; }
 
                 GameObject gameObject { get; }
                 Transform transform { get; }

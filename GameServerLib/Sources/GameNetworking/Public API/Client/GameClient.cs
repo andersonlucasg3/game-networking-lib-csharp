@@ -51,28 +51,24 @@ namespace GameNetworking {
         }
 
         public float GetPing(int playerId) {
-            var serverPlayer = this.playersStorage.Find(player => player.playerId == playerId);
+            var serverPlayer = this.playersStorage[playerId];
             return serverPlayer.mostRecentPingValue;
         }
 
-        internal void AddPlayer(NetworkPlayer player) {
-            this.playersStorage.Add(player);
+        internal void AddPlayer(NetworkPlayer n_player) {
+            this.playersStorage.Add(n_player);
         }
 
         internal NetworkPlayer RemovePlayer(int playerId) {
-            var player = this.FindPlayer(playerId);
-            if (player != null) {
-                this.playersStorage.Remove(player);
-            }
-            return player;
+            return this.playersStorage.Remove(playerId) as NetworkPlayer;
         }
 
         internal NetworkPlayer FindPlayer(int playerId) {
-            return this.playersStorage.Find(player => player.playerId == playerId) as NetworkPlayer;
+            return this.playersStorage[playerId] as NetworkPlayer;
         }
 
         internal List<Models.Server.NetworkPlayer> AllPlayers() {
-            return this.playersStorage.Players;
+            return this.playersStorage.players;
         }
 
         internal void GameClientConnectionDidReceiveMessage(MessageContainer container) {

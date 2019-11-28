@@ -7,6 +7,7 @@ namespace GameNetworking {
     using Executors.Server;
     using Executors;
     using Commons;
+    using GameNetworking.Models.Server;
 
     internal class GameServerMessageRouter : BaseWorker<GameServer> {
         internal GameServerMessageRouter(GameServer server) : base(server) { }
@@ -15,10 +16,8 @@ namespace GameNetworking {
             UnityMainThreadDispatcher.instance.Enqueue(executor.Execute);
         }
 
-        public void Route(MessageContainer container, NetworkClient client) {
+        public void Route(MessageContainer container, NetworkPlayer player) {
             if (container == null) { return; }
-
-            var player = this.instance.FindPlayer(client);
 
             switch ((MessageType)container.Type) {
             case MessageType.SPAWN_REQUEST:

@@ -11,9 +11,8 @@
         public void AcceptClient(NetworkClient client) {
             NetworkPlayer player = new NetworkPlayer(client);
             this.instance.AddPlayer(player);
-            
-            Logger.Log($"(AcceptClient) count {this.instance.AllPlayers().Count}");
 
+            Logger.Log($"(AcceptClient) count {this.instance.AllPlayers().Count}");
 
             this.instance.AllPlayers().ForEach(each => {
                 // Sends the connected player message to all players
@@ -32,8 +31,7 @@
             });
         }
 
-        public void Disconnect(NetworkClient client) {
-            var player = this.instance.FindPlayer(client);
+        public void Disconnect(NetworkPlayer player) {
             this.instance.RemovePlayer(player);
 
             Logger.Log($"(Disconnect) count {this.instance.AllPlayers().Count}");

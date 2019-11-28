@@ -44,7 +44,7 @@ namespace GameNetworking {
         }
 
         public void StartGame() {
-            this.playersStorage.ForEach((each) => {
+            this.playersStorage.players.ForEach(each => {
                 this.networkingServer.Send(new StartGameMessage(), each.client);
             });
         }
@@ -68,31 +68,30 @@ namespace GameNetworking {
         }
 
         internal void RemovePlayer(NetworkPlayer player) {
-            this.playersStorage.Remove(player);
-        }
-
-        public NetworkPlayer FindPlayer(NetworkClient client) {
-            return this.playersStorage.Find(player => player.client == client);
+            this.playersStorage.Remove(player.playerId);
         }
 
         public NetworkPlayer FindPlayer(int playerId) {
-            return this.playersStorage.Find(player => player.playerId == playerId);
+            if (this.playersStorage.TryGetPlayer(playerId, out NetworkPlayer player)) {
+                return player;
+            }
+            return null;
         }
 
         public List<NetworkPlayer> AllPlayers() {
-            return this.playersStorage.Players;
+            return this.playersStorage.players;
         }
 
         internal void SendBroadcast(ITypedMessage message) {
-            this.networkingServer.SendBroadcast(message, this.playersStorage.ConvertAll(c => c.client));
+            this.networkingServer.SendBroadcast(message, this.AllPlayers().ConvertAll(c => c.client));
         }
 
-        internal void SendBroadcast(ITypedMessage message, NetworkClient excludeClient) {
-            List<NetworkClient> clientList = this.playersStorage.ConvertFindingAll(
-                player => player.client != excludeClient,
-                player => player.client
-            );
-            this.networkingServer.SendBroadcast(message, clientList);
+        internal void SendBroadcast(ITypedMessage message, NetworkPlayer excludePlayer) {
+            this.playersStorage.players.ForEach(player => {
+                if (player != excludePlayer) {
+                    this.networkingServer.Send(message, player.client);
+                }
+            });
         }
 
         internal void Send(ITypedMessage message, NetworkClient client) {
@@ -102,7 +101,8 @@ namespace GameNetworking {
         #region INetworkingServerMessagesDelegate
 
         void INetworkingServerMessagesDelegate.NetworkingServerDidReadMessage(MessageContainer container, NetworkClient client) {
-            this.router.Route(container, client);
+            var player = this.playersStorage.Find(client);
+            this.router.Route(container, player);
         }
 
         #endregion
@@ -114,7 +114,8 @@ namespace GameNetworking {
         }
 
         void INetworkingServerDelegate.NetworkingServerClientDidDisconnect(NetworkClient client) {
-            this.clientAcceptor.Disconnect(client);
+            var player = this.playersStorage.Find(client);
+            this.clientAcceptor.Disconnect(player);
         }
 
         #endregion

@@ -7,7 +7,7 @@ namespace GameNetworking {
     using Messages;
     using Commons;
 
-    public class GameServerSyncController: BaseWorker<GameServer> {
+    public class GameServerSyncController : BaseWorker<GameServer> {
         private NetworkPlayersStorage storage;
         private float lastSyncTime;
 
@@ -25,7 +25,7 @@ namespace GameNetworking {
             if (Time.time - this.lastSyncTime > this.SyncInterval) {
                 this.lastSyncTime = Time.time;
 
-                this.storage?.ForEach(player => this.SendSync(player));
+                this.storage?.players.ForEach(player => this.SendSync(player));
             }
         }
 

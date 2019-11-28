@@ -70,6 +70,8 @@ namespace GameNetworking.Models {
             public override bool Equals(object obj) {
                 if (obj is NetworkPlayer) {
                     return this.playerId == ((NetworkPlayer)obj).playerId;
+                } else if (obj is NetworkClient) {
+                    return this.client == ((NetworkClient)obj);
                 }
                 return object.Equals(this, obj);
             }

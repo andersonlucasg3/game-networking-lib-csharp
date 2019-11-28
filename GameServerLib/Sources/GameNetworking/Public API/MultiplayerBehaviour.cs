@@ -95,7 +95,7 @@ public class MultiplayerBehaviour : MonoBehaviour, IGameServerListener, IGameCli
     }
 
     public void Broadcast(ITypedMessage encodable, GameNetworking.Models.Server.NetworkPlayer excludePlayer) {
-        this.server.SendBroadcast(encodable, excludePlayer.client);
+        this.server.SendBroadcast(encodable, excludePlayer);
     }
 
     public GameNetworking.Models.Server.NetworkPlayer FindPlayer(int playerId) {

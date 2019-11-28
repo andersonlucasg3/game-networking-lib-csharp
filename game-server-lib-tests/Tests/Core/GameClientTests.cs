@@ -152,6 +152,10 @@ namespace Tests.Core {
             Assert.AreEqual(client3.player.playerId, clientListener1.disconnectedPlayers[0].playerId);
             Assert.AreEqual(client3.player.playerId, clientListener2.disconnectedPlayers[0].playerId);
 
+            Assert.AreNotEqual(client1.player.playerId, client2.player.playerId);
+            Assert.AreNotEqual(client1.player.playerId, client3.player.playerId);
+            Assert.AreNotEqual(client2.player.playerId, client3.player.playerId);
+
             Assert.AreEqual(1, serverListener.disconnectedPlayers.Count);
         }
 

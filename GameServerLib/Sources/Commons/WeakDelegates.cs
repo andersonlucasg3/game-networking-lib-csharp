@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Commons {
     public abstract class WeakDelegates<DelegateType> where DelegateType : class {
-        private List<WeakReference> weakDelegates = new List<WeakReference>();
+        private readonly List<WeakReference> weakDelegates = new List<WeakReference>();
 
         public void Add(DelegateType instance) {
             this.weakDelegates.Add(new WeakReference(instance));

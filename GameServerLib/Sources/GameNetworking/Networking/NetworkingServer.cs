@@ -15,7 +15,7 @@ namespace GameNetworking.Networking {
         private WeakReference weakMessagesDelegate;
 
         private readonly List<NetworkClient> clientsStorage;
-        private List<NetworkClient> disconnectedClientsToRemove;
+        private Queue<NetworkClient> disconnectedClientsToRemove;
 
         public INetworkingServerMessagesDelegate MessagesDelegate {
             get { return this.weakMessagesDelegate?.Target as INetworkingServerMessagesDelegate; }
@@ -25,7 +25,7 @@ namespace GameNetworking.Networking {
         public NetworkingServer(INetworking backend) {
             this.networking = backend;
             this.clientsStorage = new List<NetworkClient>();
-            this.disconnectedClientsToRemove = new List<NetworkClient>();
+            this.disconnectedClientsToRemove = new Queue<NetworkClient>();
         }
 
         public void Listen(int port) {
@@ -81,14 +81,14 @@ namespace GameNetworking.Networking {
                 this.networking.Flush(client.Client);
             } else {
                 this.listener?.NetworkingServerClientDidDisconnect(client);
-                this.disconnectedClientsToRemove.Add(client);
+                this.disconnectedClientsToRemove.Enqueue(client);
             }
         }
 
         private void RemoveDisconnected() {
-            if (this.disconnectedClientsToRemove.Count == 0) { return; }
-            this.disconnectedClientsToRemove.ForEach((each) => this.clientsStorage.Remove(each));
-            this.disconnectedClientsToRemove.Clear();
+            while (this.disconnectedClientsToRemove.Count > 0) {
+                this.clientsStorage.Remove(this.disconnectedClientsToRemove.Dequeue());
+            }
         }
 
         #endregion

@@ -2,11 +2,12 @@
 using System.Collections;
 
 namespace MatchMaking.Protobuf.Coders {
+    using System;
     using MatchMaking.Coders;
     using Messages.Coders;
     using Models;
 
-    public sealed class MessageDecoder: IMessageDecoder {
+    public sealed class MessageDecoder : IMessageDecoder {
         private List<byte> buffer;
 
         public MessageDecoder() {
@@ -18,9 +19,10 @@ namespace MatchMaking.Protobuf.Coders {
         }
 
         public MessageContainer Decode() {
-            int delimiterIndex = CoderHelper.CheckForDelimiter(this.buffer.ToArray());
+            var arrayBuffer = this.buffer.ToArray();
+            int delimiterIndex = CoderHelper.CheckForDelimiter(arrayBuffer);
             if (delimiterIndex != -1) {
-                byte[] bytes = CoderHelper.PackageBytes(delimiterIndex, this.buffer);
+                byte[] bytes = CoderHelper.PackageBytes(delimiterIndex, arrayBuffer);
                 var package = MessagePackage.Parser.ParseFrom(bytes);
                 CoderHelper.SliceBuffer(delimiterIndex, ref this.buffer);
                 return new MessageContainer(package);

@@ -5,21 +5,24 @@ using Commons;
 namespace GameNetworking.Models {
     using Server;
 
-    public interface INetworkPlayerStorageChangeDelegate {
+    public interface INetworkPlayerStorageChangeListener {
         void PlayerStorageDidAdd(NetworkPlayer player);
         void PlayerStorageDidRemove(NetworkPlayer player);
     }
 
-    public class NetworkPlayersStorage : WeakDelegates<INetworkPlayerStorageChangeDelegate> {
+    public class NetworkPlayersStorage {
         private Dictionary<int, NetworkPlayer> playersDict { get; }
 
         public List<NetworkPlayer> players { get; private set; }
+
+        public List<INetworkPlayerStorageChangeListener> listeners { get; set; }
 
         public NetworkPlayer this[int key] {
             get { return this.playersDict[key]; }
         }
 
         public NetworkPlayersStorage() {
+            this.listeners = new List<INetworkPlayerStorageChangeListener>();
             this.playersDict = new Dictionary<int, NetworkPlayer>();
             this.UpdateList();
         }
@@ -36,8 +39,11 @@ namespace GameNetworking.Models {
             } else {
                 this.playersDict[player.playerId] = player;
                 this.UpdateList();
-                this.ForEach((INetworkPlayerStorageChangeDelegate del) => {
-                    del.PlayerStorageDidAdd(player);
+                for (int i = 0; i < this.listeners.Count; i++) {
+                    this.listeners[i].PlayerStorageDidAdd(player);
+                }
+                this.ForEach((INetworkPlayerStorageChangeListener del) => {
+                    
                 });
             }
         }
@@ -46,7 +52,7 @@ namespace GameNetworking.Models {
             var player = this.playersDict[playerId];
             this.playersDict.Remove(playerId);
             this.UpdateList();
-            this.ForEach((INetworkPlayerStorageChangeDelegate del) => {
+            this.ForEach((INetworkPlayerStorageChangeListener del) => {
                 del.PlayerStorageDidRemove(player);
             });
             return player;

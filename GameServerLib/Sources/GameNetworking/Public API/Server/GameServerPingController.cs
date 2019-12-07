@@ -8,8 +8,9 @@ namespace GameNetworking {
     using Messages.Server;
     using Commons;
 
-    public class GameServerPingController : BaseWorker<GameServer>, INetworkPlayerStorageChangeDelegate {
+    public class GameServerPingController : BaseWorker<GameServer>, INetworkPlayerStorageChangeListener {
         private readonly Dictionary<int, PingPlayer> pingPlayers = new Dictionary<int, PingPlayer>();
+        private PingPlayer[] pingPlayersArray;
 
         public float PingInterval { get; set; }
 
@@ -22,7 +23,10 @@ namespace GameNetworking {
         }
 
         internal void Update() {
-            foreach (var pingPlayer in this.pingPlayers.Values) {
+            if (this.pingPlayersArray == null) { return; }
+            PingPlayer pingPlayer;
+            for (int i = 0; i < this.pingPlayersArray.Length; i++) {
+                pingPlayer = this.pingPlayersArray[i];
                 if (!pingPlayer.PingSent && pingPlayer.CanSendNextPing) {
                     pingPlayer.SendingPing();
                     this.instance.Send(new PingRequestMessage(), pingPlayer.player.client);
@@ -37,14 +41,20 @@ namespace GameNetworking {
             return pingValue;
         }
 
-        void INetworkPlayerStorageChangeDelegate.PlayerStorageDidAdd(NetworkPlayer player) {
+        void INetworkPlayerStorageChangeListener.PlayerStorageDidAdd(NetworkPlayer player) {
             this.pingPlayers[player.playerId] = new PingPlayer(player);
+            this.UpdateArray();
         }
 
-        void INetworkPlayerStorageChangeDelegate.PlayerStorageDidRemove(NetworkPlayer player) {
+        void INetworkPlayerStorageChangeListener.PlayerStorageDidRemove(NetworkPlayer player) {
             if (this.pingPlayers.ContainsKey(player.playerId)) {
                 this.pingPlayers.Remove(player.playerId);
+                this.UpdateArray();
             }
+        }
+
+        private void UpdateArray() {
+            this.pingPlayersArray = new List<PingPlayer>(this.pingPlayers.Values).ToArray();
         }
     }
 

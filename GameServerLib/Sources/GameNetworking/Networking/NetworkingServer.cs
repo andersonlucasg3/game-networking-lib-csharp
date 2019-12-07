@@ -4,23 +4,20 @@ using Messages.Streams;
 using Messages.Models;
 using System;
 using System.Collections.Generic;
-using Commons;
 using Networking.IO;
 
 namespace GameNetworking.Networking {
     using Models;
 
-    internal class NetworkingServer : WeakListener<INetworkingServerDelegate>, INetClientReadListener {
+    internal class NetworkingServer : INetClientReadListener {
         private readonly INetworking networking;
-        private WeakReference weakMessagesDelegate;
-
+        
         private readonly List<NetworkClient> clientsStorage;
         private Queue<NetworkClient> disconnectedClientsToRemove;
 
-        public INetworkingServerMessagesDelegate MessagesDelegate {
-            get { return this.weakMessagesDelegate?.Target as INetworkingServerMessagesDelegate; }
-            set { this.weakMessagesDelegate = new WeakReference(value); }
-        }
+        internal INetworkingServerListener listener { get; set; }
+
+        public INetworkingServerMessagesListener messagesListener { get; set; }
 
         public NetworkingServer(INetworking backend) {
             this.networking = backend;
@@ -103,7 +100,7 @@ namespace GameNetworking.Networking {
             do {
                 message = n_client.Reader.Decode();
                 if (message != null) {
-                    this.MessagesDelegate?.NetworkingServerDidReadMessage(message, n_client);
+                    this.messagesListener?.NetworkingServerDidReadMessage(message, n_client);
                 }
             } while (message != null);
         }

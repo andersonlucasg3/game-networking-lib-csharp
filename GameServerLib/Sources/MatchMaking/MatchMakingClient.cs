@@ -4,15 +4,16 @@ using Networking;
 namespace MatchMaking {
     using Connection;
     using Models;
-    using Commons;
     using Networking.IO;
 
-    public class MatchMakingClient<MMClient> : WeakListener<IMatchMakingClientDelegate<MMClient>>, IClientConnectionDelegate<MMClient> where MMClient : Client, new() {
+    public class MatchMakingClient<MMClient> : IClientConnectionDelegate<MMClient> where MMClient : Client, new() {
         private ClientConnection<MMClient> connection;
 
         public bool IsConnecting { get { return this.connection?.IsConnecting ?? false; } }
 
         public bool IsConnected { get { return this.connection?.IsConnected ?? false; } }
+
+        public IMatchMakingClientDelegate<MMClient> listener { get; set; }
 
         public void Start(string host, int port, ISocket socket) {
             if (!(this.connection?.IsConnecting ?? false)) {

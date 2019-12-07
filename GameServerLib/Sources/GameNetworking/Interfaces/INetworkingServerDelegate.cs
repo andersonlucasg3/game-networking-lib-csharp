@@ -3,12 +3,12 @@
 namespace GameNetworking {
     using Models;
 
-    internal interface INetworkingServerDelegate {
+    internal interface INetworkingServerListener {
         void NetworkingServerDidAcceptClient(NetworkClient client);
         void NetworkingServerClientDidDisconnect(NetworkClient client);
     }
 
-    internal interface INetworkingServerMessagesDelegate {
+    internal interface INetworkingServerMessagesListener {
         void NetworkingServerDidReadMessage(MessageContainer container, NetworkClient client);
     }
 }

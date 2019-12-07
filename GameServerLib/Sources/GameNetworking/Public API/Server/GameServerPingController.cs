@@ -15,7 +15,7 @@ namespace GameNetworking {
         public float PingInterval { get; set; }
 
         public GameServerPingController(GameServer instance, NetworkPlayersStorage storage) : base(instance) {
-            storage.Add(this);
+            storage.listeners.Add(this);
         }
 
         public float GetPingValue(NetworkPlayer player) {

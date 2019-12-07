@@ -2,14 +2,15 @@
 using Networking.Models;
 using Messages.Models;
 using Messages.Streams;
-using Commons;
 
 namespace GameNetworking.Networking {
     using Models;
 
-    internal class NetworkingClient : WeakListener<INetworkingClientDelegate>, INetworkingListener, INetClientReadListener {
+    internal class NetworkingClient : INetworkingListener, INetClientReadListener {
         private INetworking networking;
         private NetworkClient client;
+
+        internal INetworkingClientListener listener { get; set; }
 
         public NetworkingClient(INetworking backend) {
             this.networking = backend;

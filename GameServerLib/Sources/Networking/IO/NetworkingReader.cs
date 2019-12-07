@@ -1,12 +1,13 @@
 using System.Net.Sockets;
 using System.Collections.Generic;
-using Commons;
 
 namespace Networking.IO {
-    public sealed class NetworkingReader : WeakListener<IReaderListener>, IReader {
+    public sealed class NetworkingReader : IReader {
         private readonly ISocket socket;
 
         private bool isReceiving;
+
+        public IReaderListener listener { get; set; }
 
         internal NetworkingReader(ISocket socket) {
             this.socket = socket;

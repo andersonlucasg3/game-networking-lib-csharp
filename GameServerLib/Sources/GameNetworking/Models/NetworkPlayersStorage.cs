@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Commons;
 
 namespace GameNetworking.Models {
     using Server;
@@ -42,9 +41,6 @@ namespace GameNetworking.Models {
                 for (int i = 0; i < this.listeners.Count; i++) {
                     this.listeners[i].PlayerStorageDidAdd(player);
                 }
-                this.ForEach((INetworkPlayerStorageChangeListener del) => {
-                    
-                });
             }
         }
 
@@ -52,9 +48,9 @@ namespace GameNetworking.Models {
             var player = this.playersDict[playerId];
             this.playersDict.Remove(playerId);
             this.UpdateList();
-            this.ForEach((INetworkPlayerStorageChangeListener del) => {
-                del.PlayerStorageDidRemove(player);
-            });
+            for (int i = 0; i < this.listeners.Count; i++) {
+                this.listeners[i].PlayerStorageDidRemove(player);
+            }
             return player;
         }
 

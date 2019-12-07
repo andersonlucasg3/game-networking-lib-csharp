@@ -23,20 +23,22 @@
             var spawned = this.server.listener?.GameServerSpawnCharacter(this.player);
             this.player.gameObject = spawned;
 
-            var self = this;
-            this.server.AllPlayers().ForEach(each => {
+            var players = this.server.AllPlayers();
+            NetworkPlayer each;
+            for (int i = 0; i < players.Count; i++) {
+                each = players[i];
                 if (each.gameObject == null) { return; }
 
                 // Sends the spawn message to all players
                 var playerSpawn = new PlayerSpawnMessage {
-                    playerId = self.player.playerId,
-                    spawnId = self.player.spawnId,
+                    playerId = this.player.playerId,
+                    spawnId = this.player.spawnId,
                     position = spawned.transform.position,
                     rotation = spawned.transform.eulerAngles
                 };
-                self.server.Send(playerSpawn, each.client);
+                this.server.Send(playerSpawn, each.client);
 
-                if (each == self.player) { return; }
+                if (each == this.player) { return; }
 
                 // Sends the existing players spawn message to the player that just requested
                 var spawn = new PlayerSpawnMessage {
@@ -45,8 +47,8 @@
                     position = each.transform.position,
                     rotation = each.transform.eulerAngles
                 };
-                self.server.Send(spawn, self.player.client);
-            });
+                this.server.Send(spawn, this.player.client);
+            }
         }
     }
 }

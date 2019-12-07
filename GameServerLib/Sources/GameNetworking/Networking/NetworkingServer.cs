@@ -30,12 +30,14 @@ namespace GameNetworking.Networking {
         }
 
         public void Stop() {
-            this.clientsStorage.ForEach((each) => this.Disconnect(each));
+            for (int i = 0; i < this.clientsStorage.Count; i++) {
+                this.Disconnect(this.clientsStorage[i]);
+            }
             this.networking.Stop();
         }
 
         public void Disconnect(NetworkClient client) {
-            this.networking.Disconnect(client.Client);
+            this.networking.Disconnect(client.client);
         }
 
         private void AcceptClient() {
@@ -55,27 +57,31 @@ namespace GameNetworking.Networking {
         public void SendBroadcast(ITypedMessage encodable, List<NetworkClient> clients) {
             var writer = new MessageStreamWriter();
             var buffer = writer.Write(encodable);
-            clients.ForEach(c => this.networking.Send(c.Client, buffer));
+            for (int i = 0; i < clients.Count; i++) {
+                this.networking.Send(clients[i].client, buffer);
+            }
         }
 
         public void Update() {
             this.AcceptClient();
-            this.clientsStorage.ForEach((each) => {
-                this.Read(each);
-                this.Flush(each);
-            });
+            NetworkClient client;
+            for (int i = 0; i < this.clientsStorage.Count; i++) {
+                client = this.clientsStorage[i];
+                this.Read(client);
+                this.Flush(client);
+            }
             this.RemoveDisconnected();
         }
 
         #region Private Methods
 
         private void Read(NetworkClient client) {
-            this.networking.Read(client.Client);
+            this.networking.Read(client.client);
         }
 
         private void Flush(NetworkClient client) {
-            if (client.Client.isConnected) {
-                this.networking.Flush(client.Client);
+            if (client.client.isConnected) {
+                this.networking.Flush(client.client);
             } else {
                 this.listener?.NetworkingServerClientDidDisconnect(client);
                 this.disconnectedClientsToRemove.Enqueue(client);

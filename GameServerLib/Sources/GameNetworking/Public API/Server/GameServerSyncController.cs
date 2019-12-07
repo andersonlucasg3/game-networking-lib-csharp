@@ -25,7 +25,12 @@ namespace GameNetworking {
             if (Time.time - this.lastSyncTime > this.SyncInterval) {
                 this.lastSyncTime = Time.time;
 
-                this.storage?.players.ForEach(player => this.SendSync(player));
+                var players = this.storage?.players;
+                if (players == null) { return; }
+
+                for (int i = 0; i < players.Count; i++) {
+                    this.SendSync(players[i]);
+                }
             }
         }
 

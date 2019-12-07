@@ -22,8 +22,8 @@ namespace GameNetworking.Networking {
         }
 
         public void Disconnect() {
-            if (this.client?.Client != null) {
-                this.networking.Disconnect(this.client.Client);
+            if (this.client?.client != null) {
+                this.networking.Disconnect(this.client.client);
             }
         }
 
@@ -32,9 +32,9 @@ namespace GameNetworking.Networking {
         }
 
         public void Update() {
-            if (this.client?.Client == null) { return; }
-            this.networking.Read(this.client.Client);
-            this.networking.Flush(this.client.Client);
+            if (this.client?.client == null) { return; }
+            this.networking.Read(this.client.client);
+            this.networking.Flush(this.client.client);
         }
 
         #region INetClientReadDelegate

@@ -14,7 +14,11 @@
 
             Logger.Log($"(AcceptClient) count {this.instance.AllPlayers().Count}");
 
-            this.instance.AllPlayers().ForEach(each => {
+            var players = this.instance.AllPlayers();
+            NetworkPlayer each;
+            for (int i = 0; i < players.Count; i++) {
+                each = players[i];
+
                 // Sends the connected player message to all players
                 this.instance.Send(new ConnectedPlayerMessage {
                     playerId = player.playerId,
@@ -28,7 +32,7 @@
                     playerId = each.playerId,
                     isMe = false
                 }, player.client);
-            });
+            }
         }
 
         public void Disconnect(NetworkPlayer player) {

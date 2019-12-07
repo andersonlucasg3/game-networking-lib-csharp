@@ -45,9 +45,12 @@ namespace GameNetworking {
         }
 
         public void StartGame() {
-            this.playersStorage.players.ForEach(each => {
-                this.networkingServer.Send(new StartGameMessage(), each.client);
-            });
+            NetworkPlayer player;
+            var message = new StartGameMessage();
+            for (int i = 0; i < this.playersStorage.players.Count; i++) {
+                player = this.playersStorage.players[i];
+                this.networkingServer.Send(message, player.client);
+            }
         }
 
         public float GetPing(NetworkPlayer player) {
@@ -88,11 +91,13 @@ namespace GameNetworking {
         }
 
         internal void SendBroadcast(ITypedMessage message, NetworkPlayer excludePlayer) {
-            this.playersStorage.players.ForEach(player => {
+            NetworkPlayer player;
+            for (int i = 0; i < this.playersStorage.players.Count; i++) {
+                player = this.playersStorage.players[i];
                 if (player != excludePlayer) {
                     this.networkingServer.Send(message, player.client);
                 }
-            });
+            }
         }
 
         internal void Send(ITypedMessage message, NetworkClient client) {

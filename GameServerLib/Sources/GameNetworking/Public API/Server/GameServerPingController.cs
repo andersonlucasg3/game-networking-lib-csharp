@@ -8,42 +8,53 @@ namespace GameNetworking {
     using Messages.Server;
     using Commons;
 
-    public class GameServerPingController : BaseWorker<GameServer>, INetworkPlayerStorageChangeDelegate {
-        private readonly List<PingPlayer> pingPlayers = new List<PingPlayer>();
+    public class GameServerPingController : BaseWorker<GameServer>, INetworkPlayerStorageChangeListener {
+        private readonly Dictionary<int, PingPlayer> pingPlayers = new Dictionary<int, PingPlayer>();
+        private PingPlayer[] pingPlayersArray;
 
         public float PingInterval { get; set; }
 
         public GameServerPingController(GameServer instance, NetworkPlayersStorage storage) : base(instance) {
-            storage.Add(this);
+            storage.listeners.Add(this);
         }
 
         public float GetPingValue(NetworkPlayer player) {
-            return this.pingPlayers.Find(each => each.Player == player).PingValue;
+            return this.pingPlayers[player.playerId].PingValue;
         }
 
         internal void Update() {
-            this.pingPlayers.ForEach(ping => {
-                if (!ping.PingSent && ping.CanSendNextPing) {
-                    ping.SendingPing();
-                    this.instance.Send(new PingRequestMessage(), ping.Player.client);
+            if (this.pingPlayersArray == null) { return; }
+            PingPlayer pingPlayer;
+            for (int i = 0; i < this.pingPlayersArray.Length; i++) {
+                pingPlayer = this.pingPlayersArray[i];
+                if (!pingPlayer.PingSent && pingPlayer.CanSendNextPing) {
+                    pingPlayer.SendingPing();
+                    this.instance.Send(new PingRequestMessage(), pingPlayer.player.client);
                 }
-            });
+            }
         }
 
         public float PongReceived(NetworkPlayer player) {
-            var ping = this.pingPlayers.Find(each => each.Player == player);
-            var pingValue = ping?.ReceivedPong() ?? 0F;
+            var pingPlayer = this.pingPlayers[player.playerId];
+            var pingValue = pingPlayer?.ReceivedPong() ?? 0F;
             player.mostRecentPingValue = pingValue;
             return pingValue;
         }
 
-        void INetworkPlayerStorageChangeDelegate.PlayerStorageDidAdd(NetworkPlayer player) {
-            this.pingPlayers.Add(new PingPlayer(player));
+        void INetworkPlayerStorageChangeListener.PlayerStorageDidAdd(NetworkPlayer player) {
+            this.pingPlayers[player.playerId] = new PingPlayer(player);
+            this.UpdateArray();
         }
 
-        void INetworkPlayerStorageChangeDelegate.PlayerStorageDidRemove(NetworkPlayer player) {
-            var index = this.pingPlayers.FindIndex(0, this.pingPlayers.Count, each => each.Player == player);
-            if (index >= 0) { this.pingPlayers.RemoveAt(index); }
+        void INetworkPlayerStorageChangeListener.PlayerStorageDidRemove(NetworkPlayer player) {
+            if (this.pingPlayers.ContainsKey(player.playerId)) {
+                this.pingPlayers.Remove(player.playerId);
+                this.UpdateArray();
+            }
+        }
+
+        private void UpdateArray() {
+            this.pingPlayersArray = new List<PingPlayer>(this.pingPlayers.Values).ToArray();
         }
     }
 
@@ -58,7 +69,7 @@ namespace GameNetworking {
         internal bool CanSendNextPing { get { return this.PingElapsedTime > (PingController?.PingInterval ?? 0.5F); } }
         internal float PingValue { get; private set; }
 
-        internal NetworkPlayer Player { get { return this.Target as NetworkPlayer; } }
+        internal NetworkPlayer player { get { return this.Target as NetworkPlayer; } }
 
         internal GameServerPingController PingController {
             get { return pingController?.Target as GameServerPingController; }
@@ -83,7 +94,7 @@ namespace GameNetworking {
 
         public override bool Equals(object obj) {
             if (obj is NetworkPlayer) {
-                return this.Player == (NetworkPlayer)obj;
+                return this.player == (NetworkPlayer)obj;
             }
             return Equals(this, obj);
         }

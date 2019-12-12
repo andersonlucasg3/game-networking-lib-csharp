@@ -15,8 +15,10 @@ namespace Messages.Coders {
             return ArraySearch.IndexOf(buffer, delimiter);
         }
 
-        internal static byte[] PackageBytes(int size, List<byte> buffer) {
-            return buffer.GetRange(0, size).ToArray();
+        internal static byte[] PackageBytes(int size, byte[] buffer) {
+            byte[] bytes = new byte[size];
+            Array.Copy(buffer, bytes, size);
+            return bytes;
         }
 
         internal static void SliceBuffer(int delimiterIndex, ref List<byte> buffer) {
@@ -27,11 +29,13 @@ namespace Messages.Coders {
             buffer.AddRange(BitConverter.GetBytes(type));
         }
 
-        internal static int ReadHeader(List<byte> buffer) {
-            return BitConverter.ToInt32(buffer.GetRange(0, sizeof(int)).ToArray(), 0);
+        internal static int ReadHeader(byte[] buffer) {
+            byte[] headerBytes = new byte[sizeof(int)];
+            Array.Copy(buffer, headerBytes, sizeof(int));
+            return BitConverter.ToInt32(headerBytes, 0);
         }
 
-        internal static bool IsType(int type, List<byte> buffer) {
+        internal static bool IsType(int type, byte[] buffer) {
             return type == ReadHeader(buffer);
         }
     }

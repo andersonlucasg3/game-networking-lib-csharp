@@ -4,7 +4,7 @@ namespace GameNetworking {
     using Networking;
     using Commons;
 
-    internal class GameClientConnection : BaseWorker<GameClient>, INetworkingClientDelegate {
+    internal class GameClientConnection : BaseWorker<GameClient>, INetworkingClientListener {
         internal GameClientConnection(GameClient client) : base(client) {
             client.networkingClient.listener = this;
         }
@@ -19,19 +19,19 @@ namespace GameNetworking {
 
         #region INetworkingClientDelegate
 
-        void INetworkingClientDelegate.NetworkingClientDidConnect() {
+        void INetworkingClientListener.NetworkingClientDidConnect() {
             this.instance?.listener?.GameClientDidConnect();
         }
 
-        void INetworkingClientDelegate.NetworkingClientConnectDidTimeout() {
+        void INetworkingClientListener.NetworkingClientConnectDidTimeout() {
             this.instance?.listener?.GameClientConnectDidTimeout();
         }
 
-        void INetworkingClientDelegate.NetworkingClientDidDisconnect() {
+        void INetworkingClientListener.NetworkingClientDidDisconnect() {
             this.instance?.listener?.GameClientDidDisconnect();
         }
 
-        void INetworkingClientDelegate.NetworkingClientDidReadMessage(MessageContainer container) {
+        void INetworkingClientListener.NetworkingClientDidReadMessage(MessageContainer container) {
             this.instance?.GameClientConnectionDidReceiveMessage(container);
         }
 

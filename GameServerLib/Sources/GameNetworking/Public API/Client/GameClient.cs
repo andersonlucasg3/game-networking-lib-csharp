@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Messages.Models;
-using Commons;
 using Networking;
 
 namespace GameNetworking {
@@ -9,21 +8,17 @@ namespace GameNetworking {
     using Models;
     using Models.Client;
 
-    public class GameClient : WeakListener<IGameClientListener>, IGameClientInstance {
+    public class GameClient : IGameClientInstance {
         private readonly NetworkPlayersStorage playersStorage;
         private readonly GameClientConnection connection;
         private readonly GameClientMessageRouter router;
-
-        private WeakReference weakInstanceDelegate;
 
         internal readonly NetworkingClient networkingClient;
 
         public NetworkPlayer player { get; internal set; }
 
-        public IGameClientInstanceListener instanceListener {
-            get { return this.weakInstanceDelegate?.Target as IGameClientInstanceListener; }
-            set { this.weakInstanceDelegate = new WeakReference(value); }
-        }
+        public IGameClientListener listener { get; set; }
+        public IGameClientInstanceListener instanceListener { get; set; }
 
         public GameClient(INetworking backend) {
             this.playersStorage = new NetworkPlayersStorage();

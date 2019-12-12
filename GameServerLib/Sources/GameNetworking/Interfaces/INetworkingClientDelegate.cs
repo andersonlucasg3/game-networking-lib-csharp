@@ -1,7 +1,7 @@
 ﻿using Messages.Models;
 
 namespace GameNetworking.Networking {
-    public interface INetworkingClientDelegate {
+    public interface INetworkingClientListener {
         void NetworkingClientDidConnect();
         void NetworkingClientConnectDidTimeout();
         void NetworkingClientDidDisconnect();

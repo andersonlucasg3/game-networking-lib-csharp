@@ -5,26 +5,26 @@ using Messages.Models;
 namespace GameNetworking.Models {
     
     public sealed class NetworkClient {
-        internal INetClient Client { get; private set; }
+        internal INetClient client { get; private set; }
         internal IStreamReader Reader { get; private set; }
         internal IStreamWriter Writer { get; private set; }
 
         internal NetworkClient(INetClient client, IStreamReader reader, IStreamWriter writer) {
-            this.Client = client;
+            this.client = client;
             this.Reader = reader;
             this.Writer = writer;
         }
 
         internal void Write<Message>(Message message) where Message: ITypedMessage {
-            this.Client.writer.Write(this.Writer.Write(message));
+            this.client.writer.Write(this.Writer.Write(message));
         }
 
         public override bool Equals(object obj) {
             if (obj is NetworkClient) {
-                return this.Client == ((NetworkClient)obj).Client;
+                return this.client == ((NetworkClient)obj).client;
             }
             if (obj is INetClient) {
-                return this.Client == obj;
+                return this.client == obj;
             }
             return object.Equals(this, obj);
         }

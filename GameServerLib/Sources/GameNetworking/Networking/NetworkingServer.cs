@@ -4,28 +4,25 @@ using Messages.Streams;
 using Messages.Models;
 using System;
 using System.Collections.Generic;
-using Commons;
 using Networking.IO;
 
 namespace GameNetworking.Networking {
     using Models;
 
-    internal class NetworkingServer : WeakListener<INetworkingServerDelegate>, INetClientReadListener {
+    internal class NetworkingServer : INetClientReadListener {
         private readonly INetworking networking;
-        private WeakReference weakMessagesDelegate;
-
+        
         private readonly List<NetworkClient> clientsStorage;
-        private List<NetworkClient> disconnectedClientsToRemove;
+        private Queue<NetworkClient> disconnectedClientsToRemove;
 
-        public INetworkingServerMessagesDelegate MessagesDelegate {
-            get { return this.weakMessagesDelegate?.Target as INetworkingServerMessagesDelegate; }
-            set { this.weakMessagesDelegate = new WeakReference(value); }
-        }
+        internal INetworkingServerListener listener { get; set; }
+
+        public INetworkingServerMessagesListener messagesListener { get; set; }
 
         public NetworkingServer(INetworking backend) {
             this.networking = backend;
             this.clientsStorage = new List<NetworkClient>();
-            this.disconnectedClientsToRemove = new List<NetworkClient>();
+            this.disconnectedClientsToRemove = new Queue<NetworkClient>();
         }
 
         public void Listen(int port) {
@@ -33,12 +30,14 @@ namespace GameNetworking.Networking {
         }
 
         public void Stop() {
-            this.clientsStorage.ForEach((each) => this.Disconnect(each));
+            for (int i = 0; i < this.clientsStorage.Count; i++) {
+                this.Disconnect(this.clientsStorage[i]);
+            }
             this.networking.Stop();
         }
 
         public void Disconnect(NetworkClient client) {
-            this.networking.Disconnect(client.Client);
+            this.networking.Disconnect(client.client);
         }
 
         private void AcceptClient() {
@@ -58,37 +57,41 @@ namespace GameNetworking.Networking {
         public void SendBroadcast(ITypedMessage encodable, List<NetworkClient> clients) {
             var writer = new MessageStreamWriter();
             var buffer = writer.Write(encodable);
-            clients.ForEach(c => this.networking.Send(c.Client, buffer));
+            for (int i = 0; i < clients.Count; i++) {
+                this.networking.Send(clients[i].client, buffer);
+            }
         }
 
         public void Update() {
             this.AcceptClient();
-            this.clientsStorage.ForEach((each) => {
-                this.Read(each);
-                this.Flush(each);
-            });
+            NetworkClient client;
+            for (int i = 0; i < this.clientsStorage.Count; i++) {
+                client = this.clientsStorage[i];
+                this.Read(client);
+                this.Flush(client);
+            }
             this.RemoveDisconnected();
         }
 
         #region Private Methods
 
         private void Read(NetworkClient client) {
-            this.networking.Read(client.Client);
+            this.networking.Read(client.client);
         }
 
         private void Flush(NetworkClient client) {
-            if (client.Client.isConnected) {
-                this.networking.Flush(client.Client);
+            if (client.client.isConnected) {
+                this.networking.Flush(client.client);
             } else {
                 this.listener?.NetworkingServerClientDidDisconnect(client);
-                this.disconnectedClientsToRemove.Add(client);
+                this.disconnectedClientsToRemove.Enqueue(client);
             }
         }
 
         private void RemoveDisconnected() {
-            if (this.disconnectedClientsToRemove.Count == 0) { return; }
-            this.disconnectedClientsToRemove.ForEach((each) => this.clientsStorage.Remove(each));
-            this.disconnectedClientsToRemove.Clear();
+            while (this.disconnectedClientsToRemove.Count > 0) {
+                this.clientsStorage.Remove(this.disconnectedClientsToRemove.Dequeue());
+            }
         }
 
         #endregion
@@ -103,7 +106,7 @@ namespace GameNetworking.Networking {
             do {
                 message = n_client.Reader.Decode();
                 if (message != null) {
-                    this.MessagesDelegate?.NetworkingServerDidReadMessage(message, n_client);
+                    this.messagesListener?.NetworkingServerDidReadMessage(message, n_client);
                 }
             } while (message != null);
         }

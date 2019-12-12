@@ -1,14 +1,13 @@
 ﻿using System;
 using Networking;
 using Google.Protobuf;
-using Commons;
 
 namespace MatchMaking.Connection {
     using Models;
     using Networking.Models;
     using Protobuf.Coders;
 
-    public sealed class ClientConnection<MMClient>: WeakListener<IClientConnectionDelegate<MMClient>>, INetworkingListener, INetClientReadListener where MMClient: Client, new() {
+    public sealed class ClientConnection<MMClient>: INetworkingListener, INetClientReadListener where MMClient: Client, new() {
         private readonly INetworking networking;
 
         private MMClient client;
@@ -16,6 +15,8 @@ namespace MatchMaking.Connection {
         public bool IsConnecting { get; private set; }
 
         public bool IsConnected { get { return this.client?.IsConnected ?? false; } }
+
+        public IClientConnectionDelegate<MMClient> listener { get; set; }
 
         public ClientConnection(INetworking networking) {
             this.networking = networking;

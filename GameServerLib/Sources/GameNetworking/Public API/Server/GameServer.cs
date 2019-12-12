@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using Messages.Models;
-using Commons;
 using Networking;
 
 namespace GameNetworking {
@@ -9,7 +8,7 @@ namespace GameNetworking {
     using Models.Server;
     using Messages;
 
-    public class GameServer : WeakListener<IGameServerListener>, IGameInstance, INetworkingServerDelegate, INetworkingServerMessagesDelegate {
+    public class GameServer : IGameInstance, INetworkingServerListener, INetworkingServerMessagesListener {
         private readonly NetworkPlayersStorage playersStorage;
 
         private readonly GameServerClientAcceptor clientAcceptor;
@@ -19,6 +18,8 @@ namespace GameNetworking {
 
         public readonly GameServerPingController pingController;
         public readonly GameServerSyncController syncController;
+
+        public IGameServerListener listener { get; set; }
 
         public GameServer(INetworking backend) {
             this.playersStorage = new NetworkPlayersStorage();
@@ -32,7 +33,7 @@ namespace GameNetworking {
             this.pingController = new GameServerPingController(this, this.playersStorage);
 
             this.networkingServer.listener = this;
-            this.networkingServer.MessagesDelegate = this;
+            this.networkingServer.messagesListener = this;
         }
 
         public void Listen(int port) {
@@ -44,9 +45,12 @@ namespace GameNetworking {
         }
 
         public void StartGame() {
-            this.playersStorage.players.ForEach(each => {
-                this.networkingServer.Send(new StartGameMessage(), each.client);
-            });
+            NetworkPlayer player;
+            var message = new StartGameMessage();
+            for (int i = 0; i < this.playersStorage.players.Count; i++) {
+                player = this.playersStorage.players[i];
+                this.networkingServer.Send(message, player.client);
+            }
         }
 
         public float GetPing(NetworkPlayer player) {
@@ -87,11 +91,13 @@ namespace GameNetworking {
         }
 
         internal void SendBroadcast(ITypedMessage message, NetworkPlayer excludePlayer) {
-            this.playersStorage.players.ForEach(player => {
+            NetworkPlayer player;
+            for (int i = 0; i < this.playersStorage.players.Count; i++) {
+                player = this.playersStorage.players[i];
                 if (player != excludePlayer) {
                     this.networkingServer.Send(message, player.client);
                 }
-            });
+            }
         }
 
         internal void Send(ITypedMessage message, NetworkClient client) {
@@ -100,7 +106,7 @@ namespace GameNetworking {
 
         #region INetworkingServerMessagesDelegate
 
-        void INetworkingServerMessagesDelegate.NetworkingServerDidReadMessage(MessageContainer container, NetworkClient client) {
+        void INetworkingServerMessagesListener.NetworkingServerDidReadMessage(MessageContainer container, NetworkClient client) {
             var player = this.playersStorage.Find(client);
             this.router.Route(container, player);
         }
@@ -109,11 +115,11 @@ namespace GameNetworking {
 
         #region INetworkingServerDelegate
 
-        void INetworkingServerDelegate.NetworkingServerDidAcceptClient(NetworkClient client) {
+        void INetworkingServerListener.NetworkingServerDidAcceptClient(NetworkClient client) {
             this.clientAcceptor.AcceptClient(client);
         }
 
-        void INetworkingServerDelegate.NetworkingServerClientDidDisconnect(NetworkClient client) {
+        void INetworkingServerListener.NetworkingServerClientDidDisconnect(NetworkClient client) {
             var player = this.playersStorage.Find(client);
             this.clientAcceptor.Disconnect(player);
         }

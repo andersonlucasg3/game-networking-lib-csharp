@@ -2,7 +2,7 @@ namespace Networking {
     using Models;
 
     public interface INetworking {
-        int Port { get; }
+        int port { get; }
 
         INetworkingListener listener { get; set; }
 

@@ -2,16 +2,17 @@ using System.Net.Sockets;
 
 namespace Networking.Models {
     using IO;
-    using Commons;
     using System;
 
-    public sealed class NetClient : WeakListener<INetClientReadListener>, INetClient, IReaderListener {
+    public sealed class NetClient : INetClient, IReaderListener {
         internal ISocket socket;
 
         public IReader reader { get; }
         public IWriter writer { get; }
 
         public bool isConnected { get { return this.socket.isConnected; } }
+
+        public INetClientReadListener listener { get; set; }
 
         internal NetClient(ISocket socket, IReader reader, IWriter writer) {
             this.socket = socket;

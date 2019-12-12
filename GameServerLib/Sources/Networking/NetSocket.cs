@@ -3,18 +3,19 @@ using System.Net.Sockets;
 using System.Collections.Generic;
 
 namespace Networking {
-    using Commons;
     using Models;
     using IO.Extensions;
     using Networking.IO;
     using Logging;
 
-    public sealed class NetSocket : WeakListener<INetworkingListener>, INetworking {
+    public sealed class NetSocket : INetworking {
         private readonly ISocket socket;
         private readonly Queue<ISocket> acceptedQueue;
         private bool isAccepting = false;
 
-        public int Port { get; private set; }
+        public int port { get; private set; }
+
+        public INetworkingListener listener { get; set; }
 
         public NetSocket(ISocket socket) {
             this.socket = socket;
@@ -22,7 +23,7 @@ namespace Networking {
         }
 
         public void StartServer(int port) {
-            this.Port = port;
+            this.port = port;
             NetEndPoint ep = new NetEndPoint(IPAddress.Any.ToString(), port);
             this.socket.Bind(ep);
             this.socket.Listen(10);

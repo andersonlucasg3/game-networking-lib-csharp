@@ -6,12 +6,12 @@ namespace Networking.IO {
     public sealed class NetworkingWriter : IWriter {
         private readonly ISocket socket;
 
-        private byte[] buffer;
+        private List<byte> buffer;
         private bool isSending;
 
         internal NetworkingWriter(ISocket socket) {
             this.socket = socket;
-            this.buffer = new byte[0];
+            this.buffer = new List<byte>();
         }
 
         private void Write() {
@@ -20,7 +20,7 @@ namespace Networking.IO {
 
                 this.isSending = true;
 
-                this.socket.Write(this.buffer, (written) => {
+                this.socket.Write(this.buffer.ToArray(), (written) => {
                     if (written > 0) { this.ShrinkBuffer(written); }
                     this.isSending = false;
                 });
@@ -28,9 +28,7 @@ namespace Networking.IO {
         }
 
         public void Write(byte[] data) {
-            List<byte> bytes = new List<byte>(this.buffer);
-            bytes.AddRange(data);
-            this.buffer = bytes.ToArray();
+            this.buffer.AddRange(data);
             this.Write();
         }
 
@@ -39,9 +37,7 @@ namespace Networking.IO {
         }
 
         private void ShrinkBuffer(int written) {
-            List<byte> bytes = new List<byte>(this.buffer);
-            bytes.RemoveRange(0, written);
-            this.buffer = bytes.ToArray();
+            this.buffer.RemoveRange(0, written);
         }
     }
 

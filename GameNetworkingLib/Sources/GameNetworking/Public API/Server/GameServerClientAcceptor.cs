@@ -11,6 +11,7 @@
         public void AcceptClient(NetworkClient client) {
             NetworkPlayer player = new NetworkPlayer(client);
             this.instance.AddPlayer(player);
+            instance.listener.GameServerPlayerDidConnect(player);
 
             Logger.Log($"(AcceptClient) count {this.instance.AllPlayers().Count}");
 

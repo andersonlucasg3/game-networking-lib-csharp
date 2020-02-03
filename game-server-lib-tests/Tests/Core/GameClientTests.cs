@@ -5,8 +5,6 @@ using Tests.Core.Model;
 using Messages.Models;
 using System.Collections.Generic;
 using GameNetworking.Models.Client;
-using GameNetworking.Messages.Client;
-using GameNetworking.Messages;
 using GameNetworking.Commons;
 using System;
 
@@ -58,6 +56,8 @@ namespace Tests.Core {
 
             Assert.IsTrue(clientListener.connectedCalled);
 
+            Assert.AreEqual(client.player.playerId, serverListener.connectedPlayers[0].playerId);
+
             var playerId = client.player.playerId;
             var serverPlayer = server.FindPlayer(playerId);
 
@@ -105,6 +105,9 @@ namespace Tests.Core {
             Assert.IsTrue(clientListener1.connectedCalled);
             Assert.IsTrue(clientListener2.connectedCalled);
             Assert.IsTrue(clientListener3.connectedCalled);
+            Assert.AreEqual(client1.player.playerId, serverListener.connectedPlayers[0].playerId);
+            Assert.AreEqual(client2.player.playerId, serverListener.connectedPlayers[1].playerId);
+            Assert.AreEqual(client3.player.playerId, serverListener.connectedPlayers[2].playerId);
 
             var playerId1 = client1.player.playerId;
             var playerId2 = client2.player.playerId;

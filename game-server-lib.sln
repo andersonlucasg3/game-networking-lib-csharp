@@ -8,6 +8,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GameServerLib", "GameServer
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FakeUnityEngine", "FakeUnityEngine\FakeUnityEngine.csproj", "{97FF848F-6CEF-4FCE-B3F1-49405EE4CAB9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameServerLibForUnity", "GameServerLibForUnity\GameServerLibForUnity.csproj", "{4F6F36BA-F167-40B6-B2BE-0621D0AE8809}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,6 +28,10 @@ Global
 		{97FF848F-6CEF-4FCE-B3F1-49405EE4CAB9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{97FF848F-6CEF-4FCE-B3F1-49405EE4CAB9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{97FF848F-6CEF-4FCE-B3F1-49405EE4CAB9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4F6F36BA-F167-40B6-B2BE-0621D0AE8809}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F6F36BA-F167-40B6-B2BE-0621D0AE8809}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4F6F36BA-F167-40B6-B2BE-0621D0AE8809}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4F6F36BA-F167-40B6-B2BE-0621D0AE8809}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

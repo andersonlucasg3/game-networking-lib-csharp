@@ -22,7 +22,7 @@
         <Folder Include="Tests\Core\Model\" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\GameServerLib\GameNetworkingLib.csproj" />
+        <ProjectReference Include="..\GameNetworkingLib\GameNetworkingLib.csproj" />
     </ItemGroup>
     <ItemGroup>
         <Reference Include="Google.Protobuf">

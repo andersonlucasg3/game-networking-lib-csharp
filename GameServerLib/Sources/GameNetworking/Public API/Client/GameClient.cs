@@ -7,8 +7,9 @@ namespace GameNetworking {
     using Networking;
     using Models;
     using Models.Client;
+    using GameNetworking.Commons;
 
-    public class GameClient : IGameClientInstance {
+    public class GameClient {
         private readonly NetworkPlayersStorage playersStorage;
         private readonly GameClientConnection connection;
         private readonly GameClientMessageRouter router;
@@ -18,15 +19,14 @@ namespace GameNetworking {
         public NetworkPlayer player { get; internal set; }
 
         public IGameClientListener listener { get; set; }
-        public IGameClientInstanceListener instanceListener { get; set; }
 
-        public GameClient(INetworking backend) {
+        public GameClient(INetworking backend, IMainThreadDispatcher dispatcher) {
             this.playersStorage = new NetworkPlayersStorage();
 
             this.networkingClient = new NetworkingClient(backend);
 
-            this.connection = new GameClientConnection(this);
-            this.router = new GameClientMessageRouter(this);
+            this.connection = new GameClientConnection(this, dispatcher);
+            this.router = new GameClientMessageRouter(this, dispatcher);
         }
 
         public void Connect(string host, int port) {

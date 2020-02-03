@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace GameNetworking {
     using Models;
@@ -14,7 +13,7 @@ namespace GameNetworking {
 
         public float PingInterval { get; set; }
 
-        public GameServerPingController(GameServer instance, NetworkPlayersStorage storage) : base(instance) {
+        public GameServerPingController(GameServer instance, NetworkPlayersStorage storage, IMainThreadDispatcher dispatcher) : base(instance, dispatcher) {
             storage.listeners.Add(this);
         }
 
@@ -63,7 +62,7 @@ namespace GameNetworking {
 
         private float pingSentTime;
 
-        private float PingElapsedTime { get { return Time.time - this.pingSentTime; } }
+        private float PingElapsedTime { get { return CurrentTime() - this.pingSentTime; } }
 
         internal bool PingSent { get; private set; }
         internal bool CanSendNextPing { get { return this.PingElapsedTime > (PingController?.PingInterval ?? 0.5F); } }
@@ -83,7 +82,7 @@ namespace GameNetworking {
 
         internal void SendingPing() {
             this.PingSent = true;
-            this.pingSentTime = Time.time;
+            this.pingSentTime = CurrentTime();
         }
 
         internal float ReceivedPong() {
@@ -97,6 +96,10 @@ namespace GameNetworking {
                 return this.player == (NetworkPlayer)obj;
             }
             return Equals(this, obj);
+        }
+
+        private float CurrentTime() {
+            return (float)TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds;
         }
 
         public override int GetHashCode() {

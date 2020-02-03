@@ -5,7 +5,7 @@ namespace GameNetworking {
     using Commons;
 
     internal class GameClientConnection : BaseWorker<GameClient>, INetworkingClientListener {
-        internal GameClientConnection(GameClient client) : base(client) {
+        internal GameClientConnection(GameClient client, IMainThreadDispatcher dispatcher) : base(client, dispatcher) {
             client.networkingClient.listener = this;
         }
 

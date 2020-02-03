@@ -1,9 +1,7 @@
 namespace GameNetworking.Messages {
     public enum MessageType {
-        SPAWN_REQUEST = 100,
-        CONNECTED_PLAYER,
+        CONNECTED_PLAYER = 100,
         DISCONNECTED_PLAYER,
-        SYNC,
         START_GAME,
         PING,
         PONG,

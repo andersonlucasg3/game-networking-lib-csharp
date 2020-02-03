@@ -7,8 +7,9 @@ namespace GameNetworking {
     using Models;
     using Models.Server;
     using Messages;
+    using GameNetworking.Commons;
 
-    public class GameServer : IGameInstance, INetworkingServerListener, INetworkingServerMessagesListener {
+    public class GameServer : INetworkingServerListener, INetworkingServerMessagesListener {
         private readonly NetworkPlayersStorage playersStorage;
 
         private readonly GameServerClientAcceptor clientAcceptor;
@@ -17,20 +18,18 @@ namespace GameNetworking {
         internal readonly NetworkingServer networkingServer;
 
         public readonly GameServerPingController pingController;
-        public readonly GameServerSyncController syncController;
 
         public IGameServerListener listener { get; set; }
 
-        public GameServer(INetworking backend) {
+        public GameServer(INetworking backend, IMainThreadDispatcher dispatcher) {
             this.playersStorage = new NetworkPlayersStorage();
 
             this.networkingServer = new NetworkingServer(backend);
 
-            this.clientAcceptor = new GameServerClientAcceptor(this);
-            this.router = new GameServerMessageRouter(this);
+            this.clientAcceptor = new GameServerClientAcceptor(this, dispatcher);
+            this.router = new GameServerMessageRouter(this, dispatcher);
 
-            this.syncController = new GameServerSyncController(this, this.playersStorage);
-            this.pingController = new GameServerPingController(this, this.playersStorage);
+            this.pingController = new GameServerPingController(this, this.playersStorage, dispatcher);
 
             this.networkingServer.listener = this;
             this.networkingServer.messagesListener = this;
@@ -63,7 +62,6 @@ namespace GameNetworking {
 
         public void Update() {
             this.networkingServer.Update();
-            this.syncController.Update();
             this.pingController.Update();
         }
 

@@ -1,18 +1,11 @@
-﻿using UnityEngine;
-using System;
+﻿using System;
 
 namespace GameNetworking.Models {
     namespace Contract {
         namespace Server {
             public interface INetworkPlayer {
                 int playerId { get; }
-                int spawnId { get; }
                 float mostRecentPingValue { get; }
-
-                GameObject gameObject { get; }
-                Transform transform { get; }
-
-                void Despawn();
             }
         }
         namespace Client {
@@ -26,8 +19,6 @@ namespace GameNetworking.Models {
         public class NetworkPlayer : Contract.Server.INetworkPlayer {
             private static readonly Random random = new Random();
 
-            private WeakReference weakGameObject;
-
             internal NetworkClient client {
                 get; private set;
             }
@@ -36,22 +27,7 @@ namespace GameNetworking.Models {
                 get; private set;
             }
 
-            public int spawnId {
-                get; internal set;
-            }
-
             public float mostRecentPingValue { get; internal set; }
-
-            public GameObject gameObject {
-                get { return this.weakGameObject?.Target as GameObject; }
-                internal set { this.weakGameObject = new WeakReference(value); }
-            }
-
-            public Transform transform {
-                get { return this.gameObject?.transform; }
-            }
-
-            internal InputState inputState = new InputState();
 
             internal NetworkPlayer(NetworkClient client) {
                 this.playerId = random.Next();
@@ -60,11 +36,6 @@ namespace GameNetworking.Models {
 
             internal NetworkPlayer(int playerId) {
                 this.playerId = playerId;
-            }
-
-            public void Despawn() {
-                GameObject.Destroy(this.gameObject);
-                this.gameObject = null;
             }
 
             public override bool Equals(object obj) {

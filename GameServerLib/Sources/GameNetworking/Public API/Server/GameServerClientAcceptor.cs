@@ -6,7 +6,7 @@
     using Logging;
 
     internal class GameServerClientAcceptor : BaseWorker<GameServer> {
-        public GameServerClientAcceptor(GameServer server) : base(server) { }
+        public GameServerClientAcceptor(GameServer server, IMainThreadDispatcher dispatcher) : base(server, dispatcher) { }
 
         public void AcceptClient(NetworkClient client) {
             NetworkPlayer player = new NetworkPlayer(client);

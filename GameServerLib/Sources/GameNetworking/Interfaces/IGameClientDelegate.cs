@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-using Messages.Models;
-using System.Collections.Generic;
+﻿using Messages.Models;
 
 namespace GameNetworking {
     using Models.Client;
@@ -11,8 +9,6 @@ namespace GameNetworking {
         void GameClientDidDisconnect();
 
         void GameClientDidReceiveMessage(MessageContainer container);
-
-        GameObject GameClientSpawnCharacter(NetworkPlayer player);
 
         void GameClientNetworkPlayerDidDisconnect(NetworkPlayer player);
     }

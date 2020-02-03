@@ -24,13 +24,6 @@
     <Folder Include="Sources\GameNetworking\Public API\Server\Executors\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\FakeUnityEngine\FakeUnityEngine.csproj">
-      <Private>false</Private>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <EmbedInteropTypes>false</EmbedInteropTypes>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <Reference Include="Google.Protobuf">
       <HintPath>..\..\..\.nuget\packages\google.protobuf\3.10.1\lib\netstandard2.0\Google.Protobuf.dll</HintPath>
       <Private>true</Private>

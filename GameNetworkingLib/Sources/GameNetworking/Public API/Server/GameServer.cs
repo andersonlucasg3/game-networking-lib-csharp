@@ -6,8 +6,7 @@ namespace GameNetworking {
     using Networking;
     using Models;
     using Models.Server;
-    using Messages;
-    using GameNetworking.Commons;
+    using Commons;
 
     public class GameServer : INetworkingServerListener, INetworkingServerMessagesListener {
         private readonly NetworkPlayersStorage playersStorage;
@@ -75,11 +74,11 @@ namespace GameNetworking {
             return this.playersStorage.players;
         }
 
-        internal void SendBroadcast(ITypedMessage message) {
+        public void SendBroadcast(ITypedMessage message) {
             this.networkingServer.SendBroadcast(message, this.AllPlayers().ConvertAll(c => c.client));
         }
 
-        internal void SendBroadcast(ITypedMessage message, NetworkPlayer excludePlayer) {
+        public void SendBroadcast(ITypedMessage message, NetworkPlayer excludePlayer) {
             NetworkPlayer player;
             for (int i = 0; i < this.playersStorage.players.Count; i++) {
                 player = this.playersStorage.players[i];
@@ -89,7 +88,7 @@ namespace GameNetworking {
             }
         }
 
-        internal void Send(ITypedMessage message, NetworkClient client) {
+        public void Send(ITypedMessage message, NetworkClient client) {
             this.networkingServer.Send(message, client);
         }
 

@@ -1,9 +1,7 @@
 ﻿using Messages.Models;
 
 namespace GameNetworking {
-    using Models;
     using Messages;
-    using Messages.Client;
     using Executors.Server;
     using Executors;
     using Commons;

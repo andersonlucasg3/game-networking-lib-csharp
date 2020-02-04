@@ -6,7 +6,6 @@ namespace GameNetworking {
     using Executors.Client;
     using Executors;
     using Commons;
-    using System.Threading;
 
     internal class GameClientMessageRouter : BaseWorker<GameClient> {
         internal GameClientMessageRouter(GameClient client, IMainThreadDispatcher dispatcher) : base(client, dispatcher) { }

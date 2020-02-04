@@ -43,15 +43,6 @@ namespace GameNetworking {
             this.networkingServer.Stop();
         }
 
-        public void StartGame() {
-            NetworkPlayer player;
-            var message = new StartGameMessage();
-            for (int i = 0; i < this.playersStorage.players.Count; i++) {
-                player = this.playersStorage.players[i];
-                this.networkingServer.Send(message, player.client);
-            }
-        }
-
         public float GetPing(NetworkPlayer player) {
             return this.pingController.GetPingValue(player);
         }

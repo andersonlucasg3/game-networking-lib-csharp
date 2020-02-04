@@ -7,6 +7,7 @@ namespace GameNetworking {
     using Models;
     using Models.Server;
     using Commons;
+    using GameNetworking.Models.Contract.Server;
 
     public class GameServer : INetworkingServerListener, INetworkingServerMessagesListener {
         private readonly NetworkPlayersStorage playersStorage;
@@ -88,8 +89,8 @@ namespace GameNetworking {
             }
         }
 
-        public void Send(ITypedMessage message, NetworkClient client) {
-            this.networkingServer.Send(message, client);
+        public void Send(ITypedMessage message, NetworkPlayer player) {
+            this.networkingServer.Send(message, player.client);
         }
 
         #region INetworkingServerMessagesDelegate

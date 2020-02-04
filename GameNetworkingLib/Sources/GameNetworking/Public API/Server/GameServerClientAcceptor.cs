@@ -24,7 +24,7 @@
                 this.instance.Send(new ConnectedPlayerMessage {
                     playerId = player.playerId,
                     isMe = (player == each)
-                }, each.client);
+                }, each);
 
                 if (each == player) { return; }
 
@@ -32,7 +32,7 @@
                 this.instance.Send(new ConnectedPlayerMessage {
                     playerId = each.playerId,
                     isMe = false
-                }, player.client);
+                }, player);
             }
         }
 

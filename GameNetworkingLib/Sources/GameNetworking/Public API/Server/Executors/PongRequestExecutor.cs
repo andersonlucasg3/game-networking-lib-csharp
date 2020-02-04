@@ -20,7 +20,7 @@ namespace GameNetworking.Executors.Server {
             for (int i = 0; i < players.Count; i++) {
                 player = players[i];
                 message = new PingResultRequestMessage(player.playerId, player.mostRecentPingValue);
-                this.server.Send(message, this.player.client);
+                this.server.Send(message, this.player);
             }
         }
     }

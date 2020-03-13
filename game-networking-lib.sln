@@ -2,7 +2,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29509.3
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "game-networking-lib-tests", "game-server-lib-tests\game-networking-lib-tests.csproj", "{4A7B1BE3-EC0C-4125-8319-2DC060742759}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "game-networking-lib-tests", "game-networking-lib-tests\game-networking-lib-tests.csproj", "{4A7B1BE3-EC0C-4125-8319-2DC060742759}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GameNetworkingLib", "GameNetworkingLib\GameNetworkingLib.csproj", "{BBD3D2F8-B619-4D10-8054-73953DE7B164}"
 EndProject

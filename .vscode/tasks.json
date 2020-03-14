@@ -31,6 +31,20 @@
                 "${workspaceFolder}/game-server-lib-tests/game-server-lib-tests.csproj"
             ],
             "problemMatcher": "$tsc"
+        },
+        {
+            "label": "test",
+            "command": "dotnet",
+            "type": "process",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "args": [
+                "test",
+                "${workspaceFolder}/game-networking-lib-tests/game-networking-lib-tests.csproj"
+            ],
+            "problemMatcher": "$tsc"
         }
     ]
 }

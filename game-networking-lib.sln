@@ -1,0 +1,36 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29509.3
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "game-networking-lib-tests", "game-networking-lib-tests\game-networking-lib-tests.csproj", "{4A7B1BE3-EC0C-4125-8319-2DC060742759}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GameNetworkingLib", "GameNetworkingLib\GameNetworkingLib.csproj", "{BBD3D2F8-B619-4D10-8054-73953DE7B164}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4A7B1BE3-EC0C-4125-8319-2DC060742759}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A7B1BE3-EC0C-4125-8319-2DC060742759}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A7B1BE3-EC0C-4125-8319-2DC060742759}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A7B1BE3-EC0C-4125-8319-2DC060742759}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BBD3D2F8-B619-4D10-8054-73953DE7B164}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BBD3D2F8-B619-4D10-8054-73953DE7B164}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BBD3D2F8-B619-4D10-8054-73953DE7B164}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BBD3D2F8-B619-4D10-8054-73953DE7B164}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4E2ECC78-74C9-48DF-8373-62AB4C0266DE}
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		Policies = $0
+		$0.DotNetNamingPolicy = $1
+		$1.DirectoryNamespaceAssociation = PrefixedHierarchical
+		$0.StandardHeader = $2
+	EndGlobalSection
+EndGlobal

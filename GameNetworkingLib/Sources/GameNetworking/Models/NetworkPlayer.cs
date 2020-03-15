@@ -29,7 +29,7 @@ namespace GameNetworking.Models {
 
             public float mostRecentPingValue { get; internal set; }
 
-            public NetworkPlayer() { }
+            public NetworkPlayer() { playerId = random.Next(); }
 
             public override bool Equals(object obj) {
                 if (obj is NetworkPlayer) {

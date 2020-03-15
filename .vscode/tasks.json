@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/game-server-lib-tests/game-server-lib-tests.csproj"
+                "${workspaceFolder}/game-networking-lib-tests/game-networking-lib-tests.csproj"
             ],
             "problemMatcher": "$tsc"
         },
@@ -17,7 +17,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/game-server-lib-tests/game-server-lib-tests.csproj"
+                "${workspaceFolder}/game-networking-lib-tests/game-networking-lib-tests.csproj"
             ],
             "problemMatcher": "$tsc"
         },
@@ -28,7 +28,7 @@
             "args": [
                 "watch",
                 "run",
-                "${workspaceFolder}/game-server-lib-tests/game-server-lib-tests.csproj"
+                "${workspaceFolder}/game-networking-lib-tests/game-networking-lib-tests.csproj"
             ],
             "problemMatcher": "$tsc"
         },

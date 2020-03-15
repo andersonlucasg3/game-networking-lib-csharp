@@ -5,18 +5,18 @@
     using Commons;
     using Logging;
 
-    internal class GameServerClientAcceptor : BaseWorker<GameServer> {
-        public GameServerClientAcceptor(GameServer server, IMainThreadDispatcher dispatcher) : base(server, dispatcher) { }
+    internal class GameServerClientAcceptor<PlayerType> : BaseWorker<GameServer<PlayerType>> where PlayerType : NetworkPlayer, new() {
+        public GameServerClientAcceptor(GameServer<PlayerType> server, IMainThreadDispatcher dispatcher) : base(server, dispatcher) { }
 
         public void AcceptClient(NetworkClient client) {
-            NetworkPlayer player = new NetworkPlayer(client);
+            var player = new PlayerType() { client = client };
             this.instance.AddPlayer(player);
             instance.listener.GameServerPlayerDidConnect(player);
 
             Logger.Log($"(AcceptClient) count {this.instance.AllPlayers().Count}");
 
             var players = this.instance.AllPlayers();
-            NetworkPlayer each;
+            PlayerType each;
             for (int i = 0; i < players.Count; i++) {
                 each = players[i];
 
@@ -36,7 +36,7 @@
             }
         }
 
-        public void Disconnect(NetworkPlayer player) {
+        public void Disconnect(PlayerType player) {
             this.instance.RemovePlayer(player);
 
             Logger.Log($"(Disconnect) count {this.instance.AllPlayers().Count}");

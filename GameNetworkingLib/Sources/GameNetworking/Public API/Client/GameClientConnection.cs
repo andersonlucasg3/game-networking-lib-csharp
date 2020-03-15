@@ -3,9 +3,10 @@
 namespace GameNetworking {
     using Networking;
     using Commons;
+    using Models.Client;
 
-    internal class GameClientConnection : BaseWorker<GameClient>, INetworkingClientListener {
-        internal GameClientConnection(GameClient client, IMainThreadDispatcher dispatcher) : base(client, dispatcher) {
+    internal class GameClientConnection<PlayerType> : BaseWorker<GameClient<PlayerType>>, INetworkingClientListener where PlayerType : NetworkPlayer, new() {
+        internal GameClientConnection(GameClient<PlayerType> client, IMainThreadDispatcher dispatcher) : base(client, dispatcher) {
             client.networkingClient.listener = this;
         }
 

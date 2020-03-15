@@ -7,29 +7,29 @@ namespace GameNetworking {
     using Models;
     using Models.Server;
     using Commons;
-    using GameNetworking.Models.Contract.Server;
+    using Models.Contract.Server;
 
-    public class GameServer : INetworkingServerListener, INetworkingServerMessagesListener {
-        private readonly NetworkPlayersStorage playersStorage;
+    public class GameServer<PlayerType> : INetworkingServerListener, INetworkingServerMessagesListener where PlayerType : NetworkPlayer, new() {
+        private readonly NetworkPlayersStorage<PlayerType> playersStorage;
 
-        private readonly GameServerClientAcceptor clientAcceptor;
-        private readonly GameServerMessageRouter router;
+        private readonly GameServerClientAcceptor<PlayerType> clientAcceptor;
+        private readonly GameServerMessageRouter<PlayerType> router;
 
         internal readonly NetworkingServer networkingServer;
 
-        public readonly GameServerPingController pingController;
+        public readonly GameServerPingController<PlayerType> pingController;
 
         public IGameServerListener listener { get; set; }
 
         public GameServer(INetworking backend, IMainThreadDispatcher dispatcher) {
-            this.playersStorage = new NetworkPlayersStorage();
+            this.playersStorage = new NetworkPlayersStorage<PlayerType>();
 
             this.networkingServer = new NetworkingServer(backend);
 
-            this.clientAcceptor = new GameServerClientAcceptor(this, dispatcher);
-            this.router = new GameServerMessageRouter(this, dispatcher);
+            this.clientAcceptor = new GameServerClientAcceptor<PlayerType>(this, dispatcher);
+            this.router = new GameServerMessageRouter<PlayerType>(this, dispatcher);
 
-            this.pingController = new GameServerPingController(this, this.playersStorage, dispatcher);
+            this.pingController = new GameServerPingController<PlayerType>(this, this.playersStorage, dispatcher);
 
             this.networkingServer.listener = this;
             this.networkingServer.messagesListener = this;
@@ -43,11 +43,11 @@ namespace GameNetworking {
             this.networkingServer.Stop();
         }
 
-        public float GetPing(NetworkPlayer player) {
+        public float GetPing(PlayerType player) {
             return this.pingController.GetPingValue(player);
         }
 
-        public void Disconnect(NetworkPlayer player) {
+        public void Disconnect(PlayerType player) {
             this.networkingServer.Disconnect(player.client);
         }
 
@@ -56,22 +56,22 @@ namespace GameNetworking {
             this.pingController.Update();
         }
 
-        internal void AddPlayer(NetworkPlayer player) {
+        internal void AddPlayer(PlayerType player) {
             this.playersStorage.Add(player);
         }
 
-        internal void RemovePlayer(NetworkPlayer player) {
+        internal void RemovePlayer(PlayerType player) {
             this.playersStorage.Remove(player.playerId);
         }
 
-        public NetworkPlayer FindPlayer(int playerId) {
-            if (this.playersStorage.TryGetPlayer(playerId, out NetworkPlayer player)) {
+        public PlayerType FindPlayer(int playerId) {
+            if (this.playersStorage.TryGetPlayer(playerId, out PlayerType player)) {
                 return player;
             }
             return null;
         }
 
-        public List<NetworkPlayer> AllPlayers() {
+        public List<PlayerType> AllPlayers() {
             return this.playersStorage.players;
         }
 
@@ -79,8 +79,8 @@ namespace GameNetworking {
             this.networkingServer.SendBroadcast(message, this.AllPlayers().ConvertAll(c => c.client));
         }
 
-        public void SendBroadcast(ITypedMessage message, NetworkPlayer excludePlayer) {
-            NetworkPlayer player;
+        public void SendBroadcast(ITypedMessage message, PlayerType excludePlayer) {
+            PlayerType player;
             for (int i = 0; i < this.playersStorage.players.Count; i++) {
                 player = this.playersStorage.players[i];
                 if (player != excludePlayer) {
@@ -89,7 +89,7 @@ namespace GameNetworking {
             }
         }
 
-        public void Send(ITypedMessage message, NetworkPlayer player) {
+        public void Send(ITypedMessage message, PlayerType player) {
             this.networkingServer.Send(message, player.client);
         }
 

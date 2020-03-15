@@ -7,13 +7,13 @@ namespace GameNetworking {
     using Messages.Server;
     using Commons;
 
-    public class GameServerPingController : BaseWorker<GameServer>, INetworkPlayerStorageChangeListener {
-        private readonly Dictionary<int, PingPlayer> pingPlayers = new Dictionary<int, PingPlayer>();
-        private PingPlayer[] pingPlayersArray;
+    public class GameServerPingController<PlayerType> : BaseWorker<GameServer<PlayerType>>, NetworkPlayersStorage<PlayerType>.IListener where PlayerType : NetworkPlayer, new() {
+        private readonly Dictionary<int, PingPlayer<PlayerType>> pingPlayers = new Dictionary<int, PingPlayer<PlayerType>>();
+        private PingPlayer<PlayerType>[] pingPlayersArray;
 
         public float PingInterval { get; set; }
 
-        public GameServerPingController(GameServer instance, NetworkPlayersStorage storage, IMainThreadDispatcher dispatcher) : base(instance, dispatcher) {
+        public GameServerPingController(GameServer<PlayerType> instance, NetworkPlayersStorage<PlayerType> storage, IMainThreadDispatcher dispatcher) : base(instance, dispatcher) {
             storage.listeners.Add(this);
         }
 
@@ -23,7 +23,7 @@ namespace GameNetworking {
 
         internal void Update() {
             if (this.pingPlayersArray == null) { return; }
-            PingPlayer pingPlayer;
+            PingPlayer<PlayerType> pingPlayer;
             for (int i = 0; i < this.pingPlayersArray.Length; i++) {
                 pingPlayer = this.pingPlayersArray[i];
                 if (!pingPlayer.PingSent && pingPlayer.CanSendNextPing) {
@@ -40,12 +40,12 @@ namespace GameNetworking {
             return pingValue;
         }
 
-        void INetworkPlayerStorageChangeListener.PlayerStorageDidAdd(NetworkPlayer player) {
-            this.pingPlayers[player.playerId] = new PingPlayer(player);
+        void NetworkPlayersStorage<PlayerType>.IListener.PlayerStorageDidAdd(PlayerType player) {
+            this.pingPlayers[player.playerId] = new PingPlayer<PlayerType>(player);
             this.UpdateArray();
         }
 
-        void INetworkPlayerStorageChangeListener.PlayerStorageDidRemove(NetworkPlayer player) {
+        void NetworkPlayersStorage<PlayerType>.IListener.PlayerStorageDidRemove(PlayerType player) {
             if (this.pingPlayers.ContainsKey(player.playerId)) {
                 this.pingPlayers.Remove(player.playerId);
                 this.UpdateArray();
@@ -53,11 +53,11 @@ namespace GameNetworking {
         }
 
         private void UpdateArray() {
-            this.pingPlayersArray = new List<PingPlayer>(this.pingPlayers.Values).ToArray();
+            this.pingPlayersArray = new List<PingPlayer<PlayerType>>(this.pingPlayers.Values).ToArray();
         }
     }
 
-    internal class PingPlayer : WeakReference {
+    internal class PingPlayer<PlayerType> : WeakReference where PlayerType : NetworkPlayer, new() {
         private WeakReference pingController;
 
         private float pingSentTime;
@@ -68,17 +68,17 @@ namespace GameNetworking {
         internal bool CanSendNextPing { get { return this.PingElapsedTime > (PingController?.PingInterval ?? 0.5F); } }
         internal float PingValue { get; private set; }
 
-        internal NetworkPlayer player { get { return this.Target as NetworkPlayer; } }
+        internal PlayerType player { get { return this.Target as PlayerType; } }
 
-        internal GameServerPingController PingController {
-            get { return pingController?.Target as GameServerPingController; }
+        internal GameServerPingController<PlayerType> PingController {
+            get { return pingController?.Target as GameServerPingController<PlayerType>; }
             set {
                 if (value == null) { pingController = null; return; }
                 pingController = new WeakReference(value);
             }
         }
 
-        internal PingPlayer(NetworkPlayer instance) : base(instance) { }
+        internal PingPlayer(PlayerType instance) : base(instance) { }
 
         internal void SendingPing() {
             this.PingSent = true;
@@ -92,8 +92,8 @@ namespace GameNetworking {
         }
 
         public override bool Equals(object obj) {
-            if (obj is NetworkPlayer) {
-                return this.player == (NetworkPlayer)obj;
+            if (obj is PlayerType player) {
+                return this.player == player;
             }
             return Equals(this, obj);
         }

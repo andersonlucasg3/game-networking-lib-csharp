@@ -20,23 +20,16 @@ namespace GameNetworking.Models {
             private static readonly Random random = new Random();
 
             internal NetworkClient client {
-                get; private set;
+                get; set;
             }
 
             public int playerId {
-                get; private set;
+                get; internal set;
             }
 
             public float mostRecentPingValue { get; internal set; }
 
-            internal NetworkPlayer(NetworkClient client) {
-                this.playerId = random.Next();
-                this.client = client;
-            }
-
-            internal NetworkPlayer(int playerId) {
-                this.playerId = playerId;
-            }
+            public NetworkPlayer() { }
 
             public override bool Equals(object obj) {
                 if (obj is NetworkPlayer) {
@@ -58,8 +51,6 @@ namespace GameNetworking.Models {
             public bool isLocalPlayer {
                 get; internal set;
             }
-
-            public NetworkPlayer(int playerId) : base(playerId) { }
         }
     }
 }

@@ -1,9 +1,9 @@
 ﻿namespace GameNetworking.Executors.Client {
     using Logging;
     using Messages.Server;
-    using Models.Client;
+    using Models.Contract.Client;
 
-    internal struct ConnectedPlayerExecutor<PlayerType> : IExecutor where PlayerType : NetworkPlayer, new() {
+    internal struct ConnectedPlayerExecutor<PlayerType> : IExecutor where PlayerType : INetworkPlayer, new() {
         private readonly GameClient<PlayerType> gameClient;
         private readonly ConnectedPlayerMessage message;
 

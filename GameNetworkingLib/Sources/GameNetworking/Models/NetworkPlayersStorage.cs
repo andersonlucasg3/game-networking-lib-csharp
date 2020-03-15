@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 
 namespace GameNetworking.Models {
-    using Server;
+    using Models.Contract.Server;
 
-    public class NetworkPlayersStorage<PlayerType> where PlayerType : NetworkPlayer, new() {
+    public class NetworkPlayersStorage<PlayerType> where PlayerType : INetworkPlayer, new() {
         public interface IListener {
             void PlayerStorageDidAdd(PlayerType player);
             void PlayerStorageDidRemove(PlayerType player);

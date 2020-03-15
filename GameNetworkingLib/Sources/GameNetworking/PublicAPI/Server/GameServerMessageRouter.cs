@@ -5,9 +5,9 @@ namespace GameNetworking {
     using Executors.Server;
     using Executors;
     using Commons;
-    using GameNetworking.Models.Server;
+    using Models.Contract.Server;
 
-    internal class GameServerMessageRouter<PlayerType> : BaseWorker<GameServer<PlayerType>> where PlayerType : NetworkPlayer, new() {
+    internal class GameServerMessageRouter<PlayerType> : BaseWorker<GameServer<PlayerType>> where PlayerType : class, INetworkPlayer, new() {
         internal GameServerMessageRouter(GameServer<PlayerType> server, IMainThreadDispatcher dispatcher) : base(server, dispatcher) { }
 
         private void Execute(IExecutor executor) {

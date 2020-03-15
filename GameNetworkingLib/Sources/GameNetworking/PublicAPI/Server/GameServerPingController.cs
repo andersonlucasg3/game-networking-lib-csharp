@@ -3,11 +3,12 @@ using System.Collections.Generic;
 
 namespace GameNetworking {
     using Models;
+    using Models.Contract.Server;
     using Models.Server;
     using Messages.Server;
     using Commons;
 
-    public class GameServerPingController<PlayerType> : BaseWorker<GameServer<PlayerType>>, NetworkPlayersStorage<PlayerType>.IListener where PlayerType : NetworkPlayer, new() {
+    public class GameServerPingController<PlayerType> : BaseWorker<GameServer<PlayerType>>, NetworkPlayersStorage<PlayerType>.IListener where PlayerType : class, INetworkPlayer, new() {
         private readonly Dictionary<int, PingPlayer<PlayerType>> pingPlayers = new Dictionary<int, PingPlayer<PlayerType>>();
         private PingPlayer<PlayerType>[] pingPlayersArray;
 
@@ -17,7 +18,7 @@ namespace GameNetworking {
             storage.listeners.Add(this);
         }
 
-        public float GetPingValue(NetworkPlayer player) {
+        public float GetPingValue(PlayerType player) {
             return this.pingPlayers[player.playerId].PingValue;
         }
 
@@ -33,7 +34,7 @@ namespace GameNetworking {
             }
         }
 
-        public float PongReceived(NetworkPlayer player) {
+        public float PongReceived(PlayerType player) {
             var pingPlayer = this.pingPlayers[player.playerId];
             var pingValue = pingPlayer?.ReceivedPong() ?? 0F;
             player.mostRecentPingValue = pingValue;
@@ -57,7 +58,7 @@ namespace GameNetworking {
         }
     }
 
-    internal class PingPlayer<PlayerType> : WeakReference where PlayerType : NetworkPlayer, new() {
+    internal class PingPlayer<PlayerType> : WeakReference where PlayerType : class, INetworkPlayer, new() {
         private WeakReference pingController;
 
         private float pingSentTime;
@@ -68,7 +69,7 @@ namespace GameNetworking {
         internal bool CanSendNextPing { get { return this.PingElapsedTime > (PingController?.PingInterval ?? 0.5F); } }
         internal float PingValue { get; private set; }
 
-        internal PlayerType player { get { return this.Target as PlayerType; } }
+        internal PlayerType player { get { return (PlayerType)this.Target; } }
 
         internal GameServerPingController<PlayerType> PingController {
             get { return pingController?.Target as GameServerPingController<PlayerType>; }
@@ -93,7 +94,7 @@ namespace GameNetworking {
 
         public override bool Equals(object obj) {
             if (obj is PlayerType player) {
-                return this.player == player;
+                return this.player.Equals(player);
             }
             return Equals(this, obj);
         }

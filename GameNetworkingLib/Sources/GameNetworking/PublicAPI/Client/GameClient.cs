@@ -1,15 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Messages.Models;
 using Networking;
 
 namespace GameNetworking {
     using Networking;
     using Models;
-    using Models.Client;
+    using Models.Contract.Client;
     using GameNetworking.Commons;
 
-    public class GameClient<PlayerType> where PlayerType : NetworkPlayer, new() {
+    public class GameClient<PlayerType> where PlayerType : INetworkPlayer, new() {
         public interface IListener {
             void GameClientDidConnect();
             void GameClientConnectDidTimeout();

@@ -1,11 +1,11 @@
 ﻿namespace GameNetworking {
     using Models;
-    using Models.Server;
+    using Models.Contract.Server;
     using Messages.Server;
     using Commons;
     using Logging;
 
-    internal class GameServerClientAcceptor<PlayerType> : BaseWorker<GameServer<PlayerType>> where PlayerType : NetworkPlayer, new() {
+    internal class GameServerClientAcceptor<PlayerType> : BaseWorker<GameServer<PlayerType>> where PlayerType : class, INetworkPlayer, new() {
         public GameServerClientAcceptor(GameServer<PlayerType> server, IMainThreadDispatcher dispatcher) : base(server, dispatcher) { }
 
         public void AcceptClient(NetworkClient client) {
@@ -23,10 +23,10 @@
                 // Sends the connected player message to all players
                 this.instance.Send(new ConnectedPlayerMessage {
                     playerId = player.playerId,
-                    isMe = (player == each)
+                    isMe = (player.Equals(each))
                 }, each);
 
-                if (each == player) { return; }
+                if (each.Equals(player)) { return; }
 
                 // Sends the existing players to the player that just connected
                 this.instance.Send(new ConnectedPlayerMessage {

@@ -235,7 +235,7 @@ namespace Tests.Core {
         }
     }
 
-    class ClientListener : IGameClientListener {
+    class ClientListener : GameClient<ClientPlayer>.IListener {
         public readonly List<MessageContainer> receivedMessages = new List<MessageContainer>();
         public readonly List<ClientPlayer> disconnectedPlayers = new List<ClientPlayer>();
         public bool connectedCalled { get; private set; }
@@ -244,44 +244,44 @@ namespace Tests.Core {
 
         #region IGameClientListener
 
-        void IGameClientListener.GameClientDidConnect() {
+        void GameClient<ClientPlayer>.IListener.GameClientDidConnect() {
             this.connectedCalled = true;
         }
 
-        void IGameClientListener.GameClientConnectDidTimeout() {
+        void GameClient<ClientPlayer>.IListener.GameClientConnectDidTimeout() {
             this.connectTimeoutCalled = true;
         }
 
-        void IGameClientListener.GameClientDidDisconnect() {
+        void GameClient<ClientPlayer>.IListener.GameClientDidDisconnect() {
             this.disconnectCalled = true;
         }
 
-        void IGameClientListener.GameClientDidReceiveMessage(MessageContainer container) {
+        void GameClient<ClientPlayer>.IListener.GameClientDidReceiveMessage(MessageContainer container) {
             this.receivedMessages.Add(container);
         }
 
-        void IGameClientListener.GameClientNetworkPlayerDidDisconnect(ClientPlayer player) {
+        void GameClient<ClientPlayer>.IListener.GameClientNetworkPlayerDidDisconnect(ClientPlayer player) {
             this.disconnectedPlayers.Add(player);
         }
 
         #endregion
     }
 
-    class ServerListener : IGameServerListener {
+    class ServerListener : GameServer<ServerPlayer>.IListener {
         public readonly List<GameNetworking.Models.Server.NetworkPlayer> connectedPlayers = new List<GameNetworking.Models.Server.NetworkPlayer>();
         public readonly List<GameNetworking.Models.Server.NetworkPlayer> disconnectedPlayers = new List<GameNetworking.Models.Server.NetworkPlayer>();
 
         #region IGameServerListener
 
-        void IGameServerListener.GameServerPlayerDidConnect(GameNetworking.Models.Server.NetworkPlayer player) {
+        void GameServer<ServerPlayer>.IListener.GameServerPlayerDidConnect(GameNetworking.Models.Server.NetworkPlayer player) {
             connectedPlayers.Add(player);
         }
 
-        void IGameServerListener.GameServerPlayerDidDisconnect(GameNetworking.Models.Server.NetworkPlayer player) {
+        void GameServer<ServerPlayer>.IListener.GameServerPlayerDidDisconnect(GameNetworking.Models.Server.NetworkPlayer player) {
             disconnectedPlayers.Add(player);
         }
 
-        void IGameServerListener.GameServerDidReceiveClientMessage(MessageContainer container, GameNetworking.Models.Server.NetworkPlayer player) {
+        void GameServer<ServerPlayer>.IListener.GameServerDidReceiveClientMessage(MessageContainer container, GameNetworking.Models.Server.NetworkPlayer player) {
 
         }
 

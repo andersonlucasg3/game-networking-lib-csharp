@@ -60,20 +60,20 @@ namespace GameNetworking {
             return serverPlayer.mostRecentPingValue;
         }
 
+        public PlayerType FindPlayer(int playerId) {
+            return this.playersStorage[playerId];
+        }
+
+        public List<PlayerType> AllPlayers() {
+            return this.playersStorage.players;
+        }
+
         internal void AddPlayer(PlayerType n_player) {
             this.playersStorage.Add(n_player);
         }
 
         internal PlayerType RemovePlayer(int playerId) {
             return this.playersStorage.Remove(playerId);
-        }
-
-        internal PlayerType FindPlayer(int playerId) {
-            return this.playersStorage[playerId];
-        }
-
-        internal List<PlayerType> AllPlayers() {
-            return this.playersStorage.players;
         }
 
         internal void GameClientConnectionDidReceiveMessage(MessageContainer container) {

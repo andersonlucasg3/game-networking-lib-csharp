@@ -10,6 +10,16 @@ namespace GameNetworking {
     using GameNetworking.Commons;
 
     public class GameClient<PlayerType> where PlayerType : NetworkPlayer, new() {
+        public interface IListener {
+            void GameClientDidConnect();
+            void GameClientConnectDidTimeout();
+            void GameClientDidDisconnect();
+
+            void GameClientDidReceiveMessage(MessageContainer container);
+
+            void GameClientNetworkPlayerDidDisconnect(PlayerType player);
+        }
+
         private readonly NetworkPlayersStorage<PlayerType> playersStorage;
         private readonly GameClientConnection<PlayerType> connection;
         private readonly GameClientMessageRouter<PlayerType> router;
@@ -18,7 +28,7 @@ namespace GameNetworking {
 
         public PlayerType player { get; internal set; }
 
-        public IGameClientListener listener { get; set; }
+        public IListener listener { get; set; }
 
         public GameClient(INetworking backend, IMainThreadDispatcher dispatcher) {
             this.playersStorage = new NetworkPlayersStorage<PlayerType>();

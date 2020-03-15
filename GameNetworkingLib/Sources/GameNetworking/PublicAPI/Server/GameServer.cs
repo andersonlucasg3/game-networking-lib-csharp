@@ -10,6 +10,12 @@ namespace GameNetworking {
     using Models.Contract.Server;
 
     public class GameServer<PlayerType> : INetworkingServerListener, INetworkingServerMessagesListener where PlayerType : NetworkPlayer, new() {
+        public interface IListener {
+            void GameServerPlayerDidConnect(PlayerType player);
+            void GameServerPlayerDidDisconnect(PlayerType player);
+            void GameServerDidReceiveClientMessage(MessageContainer container, PlayerType player);
+        }
+
         private readonly NetworkPlayersStorage<PlayerType> playersStorage;
 
         private readonly GameServerClientAcceptor<PlayerType> clientAcceptor;
@@ -19,7 +25,7 @@ namespace GameNetworking {
 
         public readonly GameServerPingController<PlayerType> pingController;
 
-        public IGameServerListener listener { get; set; }
+        public IListener listener { get; set; }
 
         public GameServer(INetworking backend, IMainThreadDispatcher dispatcher) {
             this.playersStorage = new NetworkPlayersStorage<PlayerType>();

@@ -20,8 +20,8 @@
     <Folder Include="Sources\GameNetworking\Interfaces\" />
     <Folder Include="Sources\GameNetworking\Networking\" />
     <Folder Include="Sources\GameNetworking\Models\" />
-    <Folder Include="Sources\GameNetworking\Public API\Client\Messages\" />
-    <Folder Include="Sources\GameNetworking\Public API\Server\Executors\" />
+    <Folder Include="Sources\GameNetworking\PublicAPI\Client\Messages\" />
+    <Folder Include="Sources\GameNetworking\PublicAPI\Server\Executors\" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Google.Protobuf">

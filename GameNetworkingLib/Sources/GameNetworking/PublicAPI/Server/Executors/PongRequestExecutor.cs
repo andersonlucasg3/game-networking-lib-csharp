@@ -2,11 +2,11 @@ namespace GameNetworking.Executors.Server {
     using Models.Server;
     using Messages.Server;
 
-    internal struct PongRequestExecutor : IExecutor {
-        private GameServer server;
-        private NetworkPlayer player;
+    internal struct PongRequestExecutor<PlayerType> : IExecutor where PlayerType : NetworkPlayer, new() {
+        private GameServer<PlayerType> server;
+        private PlayerType player;
 
-        public PongRequestExecutor(GameServer server, NetworkPlayer player) {
+        public PongRequestExecutor(GameServer<PlayerType> server, PlayerType player) {
             this.server = server;
             this.player = player;
         }
@@ -16,7 +16,7 @@ namespace GameNetworking.Executors.Server {
 
             var players = this.server.AllPlayers();
             PingResultRequestMessage message;
-            NetworkPlayer player;
+            PlayerType player;
             for (int i = 0; i < players.Count; i++) {
                 player = players[i];
                 message = new PingResultRequestMessage(player.playerId, player.mostRecentPingValue);

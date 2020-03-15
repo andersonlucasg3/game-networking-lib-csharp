@@ -1,12 +1,13 @@
 ﻿namespace GameNetworking.Executors.Client {
     using Logging;
     using Messages.Server;
+    using Models.Client;
 
-    internal struct DisconnectedPlayerExecutor : IExecutor {
-        private readonly GameClient gameClient;
+    internal struct DisconnectedPlayerExecutor<PlayerType> : IExecutor where PlayerType : NetworkPlayer, new() {
+        private readonly GameClient<PlayerType> gameClient;
         private readonly DisconnectedPlayerMessage message;
 
-        internal DisconnectedPlayerExecutor(GameClient client, DisconnectedPlayerMessage message) {
+        internal DisconnectedPlayerExecutor(GameClient<PlayerType> client, DisconnectedPlayerMessage message) {
             this.gameClient = client;
             this.message = message;
         }

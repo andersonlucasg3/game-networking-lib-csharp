@@ -1,13 +1,12 @@
-﻿using GameNetworking.Executors;
-
-namespace GameNetworking.Executors.Client {
+﻿namespace GameNetworking.Executors.Client {
     using Messages.Server;
+    using Models.Client;
 
-    internal struct PingResultRequestExecutor : IExecutor {
-        private GameClient client;
+    internal struct PingResultRequestExecutor<PlayerType> : IExecutor where PlayerType : NetworkPlayer, new() {
+        private GameClient<PlayerType> client;
         private readonly PingResultRequestMessage message;
 
-        public PingResultRequestExecutor(GameClient client, PingResultRequestMessage message) {
+        public PingResultRequestExecutor(GameClient<PlayerType> client, PingResultRequestMessage message) {
             this.client = client;
             this.message = message;
         }

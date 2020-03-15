@@ -9,24 +9,24 @@ namespace GameNetworking {
     using Models.Client;
     using GameNetworking.Commons;
 
-    public class GameClient {
-        private readonly NetworkPlayersStorage playersStorage;
-        private readonly GameClientConnection connection;
-        private readonly GameClientMessageRouter router;
+    public class GameClient<PlayerType> where PlayerType : NetworkPlayer, new() {
+        private readonly NetworkPlayersStorage<PlayerType> playersStorage;
+        private readonly GameClientConnection<PlayerType> connection;
+        private readonly GameClientMessageRouter<PlayerType> router;
 
         internal readonly NetworkingClient networkingClient;
 
-        public NetworkPlayer player { get; internal set; }
+        public PlayerType player { get; internal set; }
 
         public IGameClientListener listener { get; set; }
 
         public GameClient(INetworking backend, IMainThreadDispatcher dispatcher) {
-            this.playersStorage = new NetworkPlayersStorage();
+            this.playersStorage = new NetworkPlayersStorage<PlayerType>();
 
             this.networkingClient = new NetworkingClient(backend);
 
-            this.connection = new GameClientConnection(this, dispatcher);
-            this.router = new GameClientMessageRouter(this, dispatcher);
+            this.connection = new GameClientConnection<PlayerType>(this, dispatcher);
+            this.router = new GameClientMessageRouter<PlayerType>(this, dispatcher);
         }
 
         public void Connect(string host, int port) {
@@ -50,19 +50,19 @@ namespace GameNetworking {
             return serverPlayer.mostRecentPingValue;
         }
 
-        internal void AddPlayer(NetworkPlayer n_player) {
+        internal void AddPlayer(PlayerType n_player) {
             this.playersStorage.Add(n_player);
         }
 
-        internal NetworkPlayer RemovePlayer(int playerId) {
-            return this.playersStorage.Remove(playerId) as NetworkPlayer;
+        internal PlayerType RemovePlayer(int playerId) {
+            return this.playersStorage.Remove(playerId);
         }
 
-        internal NetworkPlayer FindPlayer(int playerId) {
-            return this.playersStorage[playerId] as NetworkPlayer;
+        internal PlayerType FindPlayer(int playerId) {
+            return this.playersStorage[playerId];
         }
 
-        internal List<Models.Server.NetworkPlayer> AllPlayers() {
+        internal List<PlayerType> AllPlayers() {
             return this.playersStorage.players;
         }
 

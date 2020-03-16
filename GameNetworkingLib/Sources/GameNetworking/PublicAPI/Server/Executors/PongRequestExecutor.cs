@@ -1,8 +1,8 @@
 namespace GameNetworking.Executors.Server {
-    using Models.Contract.Server;
     using Messages.Server;
+    using GameNetworking.Models.Server;
 
-    internal struct PongRequestExecutor<PlayerType> : IExecutor where PlayerType : class, INetworkPlayer, new() {
+    internal struct PongRequestExecutor<PlayerType> : IExecutor where PlayerType : NetworkPlayer, new() {
         private GameServer<PlayerType> server;
         private PlayerType player;
 

@@ -5,60 +5,50 @@ namespace GameNetworking.Models {
     namespace Contract {
         namespace Server {
             public interface INetworkPlayer : IEquatable<INetworkPlayer> {
-                int playerId { get; internal set; }
-                float mostRecentPingValue { get; internal set; }
+                int playerId { get; }
+                float mostRecentPingValue { get; }
 
-                NetworkClient client { get; internal set; }
+                NetworkClient client { get; }
             }
         }
         namespace Client {
             public interface INetworkPlayer : Server.INetworkPlayer {
-                bool isLocalPlayer { get; internal set; }
+                bool isLocalPlayer { get; }
             }
         }
     }
 
     namespace Server {
-        public class NetworkPlayer : Contract.Server.INetworkPlayer, IEquatable<NetworkPlayer> {
-            private static readonly Random random = new Random();
-
-            NetworkClient Contract.Server.INetworkPlayer.client { get; set; }
-            int Contract.Server.INetworkPlayer.playerId { get; set; }
-            float Contract.Server.INetworkPlayer.mostRecentPingValue { get; set; }
-
-            internal NetworkClient client { get; set; }
-
+        public class NetworkPlayer : INetworkPlayer, IEquatable<INetworkPlayer> {
+            public NetworkClient client { get; internal set; }
             public int playerId { get; internal set; }
             public float mostRecentPingValue { get; internal set; }
 
-            public NetworkPlayer() { playerId = random.Next(); }
+            public NetworkPlayer() { }
 
             public override bool Equals(object obj) {
+                INetworkPlayer self = this;
                 if (obj is NetworkPlayer player) {
                     return this.Equals(player);
                 } else if (obj is NetworkClient client) {
-                    return this.client.Equals(client);
+                    return self.client.Equals(client);
                 }
                 return object.Equals(this, obj);
             }
 
-            public bool Equals(NetworkPlayer other) {
-                return this.playerId == other.playerId;
+            public bool Equals(INetworkPlayer other) {
+                INetworkPlayer self = this;
+                return self.playerId == other.playerId;
             }
 
             public override int GetHashCode() {
                 return base.GetHashCode();
-            }
-
-            public bool Equals(INetworkPlayer other) {
-                return this.playerId == other?.playerId;
             }
         }
     }
 
     namespace Client {
         public class NetworkPlayer : Server.NetworkPlayer, Contract.Client.INetworkPlayer {
-            bool Contract.Client.INetworkPlayer.isLocalPlayer { get; set; }
             public bool isLocalPlayer { get; internal set; }
         }
     }

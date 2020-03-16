@@ -8,7 +8,7 @@ namespace GameNetworking {
     using Messages.Server;
     using Commons;
 
-    public class GameServerPingController<PlayerType> : BaseWorker<GameServer<PlayerType>>, NetworkPlayersStorage<PlayerType>.IListener where PlayerType : class, INetworkPlayer, new() {
+    public class GameServerPingController<PlayerType> : BaseWorker<GameServer<PlayerType>>, NetworkPlayersStorage<PlayerType>.IListener where PlayerType : NetworkPlayer, new() {
         private readonly Dictionary<int, PingPlayer<PlayerType>> pingPlayers = new Dictionary<int, PingPlayer<PlayerType>>();
         private PingPlayer<PlayerType>[] pingPlayersArray;
 
@@ -58,7 +58,7 @@ namespace GameNetworking {
         }
     }
 
-    internal class PingPlayer<PlayerType> : WeakReference where PlayerType : class, INetworkPlayer, new() {
+    internal class PingPlayer<PlayerType> : WeakReference where PlayerType : NetworkPlayer, new() {
         private WeakReference pingController;
 
         private float pingSentTime;

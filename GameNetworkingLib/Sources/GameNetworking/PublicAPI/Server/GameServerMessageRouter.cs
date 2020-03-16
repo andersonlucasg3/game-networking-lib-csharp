@@ -5,9 +5,9 @@ namespace GameNetworking {
     using Executors.Server;
     using Executors;
     using Commons;
-    using Models.Contract.Server;
+    using GameNetworking.Models.Server;
 
-    internal class GameServerMessageRouter<PlayerType> : BaseWorker<GameServer<PlayerType>> where PlayerType : class, INetworkPlayer, new() {
+    internal class GameServerMessageRouter<PlayerType> : BaseWorker<GameServer<PlayerType>> where PlayerType : NetworkPlayer, new() {
         internal GameServerMessageRouter(GameServer<PlayerType> server, IMainThreadDispatcher dispatcher) : base(server, dispatcher) { }
 
         private void Execute(IExecutor executor) {
@@ -18,13 +18,13 @@ namespace GameNetworking {
             if (container == null) { return; }
 
             switch ((MessageType)container.Type) {
-                case MessageType.PONG:
-                    Execute(new PongRequestExecutor<PlayerType>(this.instance, player));
-                    break;
+            case MessageType.PONG:
+                Execute(new PongRequestExecutor<PlayerType>(this.instance, player));
+                break;
 
-                default:
-                    this.instance.listener?.GameServerDidReceiveClientMessage(container, player);
-                    break;
+            default:
+                this.instance.listener?.GameServerDidReceiveClientMessage(container, player);
+                break;
             }
         }
     }

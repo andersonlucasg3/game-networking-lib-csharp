@@ -1,22 +1,18 @@
-﻿namespace GameNetworking.Executors.Client
-{
+﻿namespace GameNetworking.Executors.Client {
+    using GameNetworking.Models.Client;
     using Logging;
     using Messages.Server;
-    using Models.Contract.Client;
 
-    internal struct DisconnectedPlayerExecutor<PlayerType> : IExecutor where PlayerType : INetworkPlayer, new()
-    {
+    internal struct DisconnectedPlayerExecutor<PlayerType> : IExecutor where PlayerType : NetworkPlayer, new() {
         private readonly GameClient<PlayerType> gameClient;
         private readonly DisconnectedPlayerMessage message;
 
-        internal DisconnectedPlayerExecutor(GameClient<PlayerType> client, DisconnectedPlayerMessage message)
-        {
+        internal DisconnectedPlayerExecutor(GameClient<PlayerType> client, DisconnectedPlayerMessage message) {
             this.gameClient = client;
             this.message = message;
         }
 
-        public void Execute()
-        {
+        public void Execute() {
             Logger.Log($"Executing for playerId {this.message.playerId}");
 
             var player = this.gameClient.RemovePlayer(this.message.playerId);

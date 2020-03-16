@@ -7,9 +7,8 @@ namespace GameNetworking {
     using Models;
     using Models.Server;
     using Commons;
-    using Models.Contract.Server;
 
-    public class GameServer<PlayerType> : INetworkingServerListener, INetworkingServerMessagesListener where PlayerType : class, INetworkPlayer, new() {
+    public class GameServer<PlayerType> : INetworkingServerListener, INetworkingServerMessagesListener where PlayerType : NetworkPlayer, new() {
         public interface IListener {
             void GameServerPlayerDidConnect(PlayerType player);
             void GameServerPlayerDidDisconnect(PlayerType player);

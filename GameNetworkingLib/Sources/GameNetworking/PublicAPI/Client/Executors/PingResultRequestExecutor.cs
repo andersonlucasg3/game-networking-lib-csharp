@@ -1,27 +1,20 @@
-﻿namespace GameNetworking.Executors.Client
-{
+﻿namespace GameNetworking.Executors.Client {
+    using GameNetworking.Models.Client;
     using Messages.Server;
-    using Models.Contract.Client;
 
-    internal struct PingResultRequestExecutor<PlayerType> : IExecutor where PlayerType : INetworkPlayer, new()
-    {
+    internal struct PingResultRequestExecutor<PlayerType> : IExecutor where PlayerType : NetworkPlayer, new() {
         private GameClient<PlayerType> client;
         private readonly PingResultRequestMessage message;
 
-        public PingResultRequestExecutor(GameClient<PlayerType> client, PingResultRequestMessage message)
-        {
+        public PingResultRequestExecutor(GameClient<PlayerType> client, PingResultRequestMessage message) {
             this.client = client;
             this.message = message;
         }
 
-        void IExecutor.Execute()
-        {
-            if (this.message.playerId == this.client.player.playerId)
-            {
+        void IExecutor.Execute() {
+            if (this.message.playerId == this.client.player.playerId) {
                 this.client.player.mostRecentPingValue = this.message.pingValue;
-            }
-            else
-            {
+            } else {
                 var player = client.FindPlayer(this.message.playerId);
                 player.mostRecentPingValue = this.message.pingValue;
             }

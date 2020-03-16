@@ -5,10 +5,10 @@ using Networking;
 namespace GameNetworking {
     using Networking;
     using Models;
-    using Models.Contract.Client;
     using GameNetworking.Commons;
+    using GameNetworking.Models.Client;
 
-    public class GameClient<PlayerType> where PlayerType : INetworkPlayer, new() {
+    public class GameClient<PlayerType> where PlayerType : NetworkPlayer, new() {
         public interface IListener {
             void GameClientDidConnect();
             void GameClientConnectDidTimeout();

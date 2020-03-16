@@ -25,6 +25,8 @@
             for (int i = 0; i < players.Count; i++) {
                 each = players[i];
 
+                Logger.Log($"Sending ConnectedPlayerMessage from {player.playerId} to {each.playerId}");
+
                 // Sends the connected player message to all players
                 this.instance.Send(new ConnectedPlayerMessage {
                     playerId = player.playerId,
@@ -32,6 +34,8 @@
                 }, each);
 
                 if (each.Equals(player)) { return; }
+
+                Logger.Log($"Sending ConnectedPlayerMessage from {each.playerId} to {player.playerId}");
 
                 // Sends the existing players to the player that just connected
                 this.instance.Send(new ConnectedPlayerMessage {

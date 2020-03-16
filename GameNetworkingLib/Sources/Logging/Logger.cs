@@ -1,9 +1,12 @@
 using System;
 using System.Runtime.CompilerServices;
+using System.Collections.Generic;
 
 namespace Logging {
     public static class Logger {
         public static bool IsLoggingEnabled = true;
+
+        public static readonly List<Action<string>> externalLoggers = new List<Action<string>>();
 
         public static void Log(string message, [CallerFilePath] string filePath = "", [CallerMemberName] string memberName = "", [CallerLineNumber] int lineNumber = 0) {
             if (!IsLoggingEnabled) { return; }
@@ -16,6 +19,8 @@ namespace Logging {
             }
 
             Console.WriteLine($"[{fileName}.{memberName}() : {lineNumber}] {message}");
+
+            externalLoggers.ForEach(each => each.Invoke(message));
         }
     }
 }

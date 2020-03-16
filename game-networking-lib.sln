@@ -4,7 +4,7 @@ VisualStudioVersion = 16.0.29509.3
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "game-networking-lib-tests", "game-networking-lib-tests\game-networking-lib-tests.csproj", "{1B3713C5-4002-4ECB-95FE-48111286B2AE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameNetworkingLib", "GameNetworkingLib\GameNetworkingLib.csproj", "{19174441-4B5C-4122-A855-C74D94CD14CB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameNetworkingLib", "GameNetworkingLib\GameNetworkingLib.csproj", "{C3DC81E6-DB91-4D2C-8D48-2E7ABDEB3754}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -16,10 +16,10 @@ Global
 		{1B3713C5-4002-4ECB-95FE-48111286B2AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1B3713C5-4002-4ECB-95FE-48111286B2AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1B3713C5-4002-4ECB-95FE-48111286B2AE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{19174441-4B5C-4122-A855-C74D94CD14CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{19174441-4B5C-4122-A855-C74D94CD14CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{19174441-4B5C-4122-A855-C74D94CD14CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{19174441-4B5C-4122-A855-C74D94CD14CB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3DC81E6-DB91-4D2C-8D48-2E7ABDEB3754}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3DC81E6-DB91-4D2C-8D48-2E7ABDEB3754}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3DC81E6-DB91-4D2C-8D48-2E7ABDEB3754}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3DC81E6-DB91-4D2C-8D48-2E7ABDEB3754}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -4,8 +4,6 @@ using Networking;
 using Tests.Core.Model;
 using Messages.Models;
 using System.Collections.Generic;
-using GameNetworking.Models.Client;
-using GameNetworking.Models.Server;
 using GameNetworking.Commons;
 using System;
 
@@ -282,7 +280,7 @@ namespace Tests.Core {
         }
 
         void GameServer<ServerPlayer>.IListener.GameServerDidReceiveClientMessage(MessageContainer container, GameNetworking.Models.Server.NetworkPlayer player) {
-
+            Assert.NotNull(player);
         }
 
         #endregion

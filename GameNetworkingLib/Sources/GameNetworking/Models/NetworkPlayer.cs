@@ -19,7 +19,7 @@ namespace GameNetworking.Models {
     }
 
     namespace Server {
-        public class NetworkPlayer : Contract.Server.INetworkPlayer {
+        public class NetworkPlayer : Contract.Server.INetworkPlayer, IEquatable<NetworkPlayer> {
             private static readonly Random random = new Random();
 
             NetworkClient Contract.Server.INetworkPlayer.client { get; set; }
@@ -34,12 +34,16 @@ namespace GameNetworking.Models {
             public NetworkPlayer() { playerId = random.Next(); }
 
             public override bool Equals(object obj) {
-                if (obj is NetworkPlayer) {
-                    return this.playerId == ((NetworkPlayer)obj).playerId;
-                } else if (obj is NetworkClient) {
-                    return this.client == ((NetworkClient)obj);
+                if (obj is NetworkPlayer player) {
+                    return this.Equals(player);
+                } else if (obj is NetworkClient client) {
+                    return this.client.Equals(client);
                 }
                 return object.Equals(this, obj);
+            }
+
+            public bool Equals(NetworkPlayer other) {
+                return this.playerId == other.playerId;
             }
 
             public override int GetHashCode() {

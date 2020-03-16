@@ -4,7 +4,7 @@ namespace Networking.Models {
     using IO;
     using System;
 
-    public sealed class NetClient : INetClient, IReaderListener {
+    public sealed class NetClient : INetClient, IEquatable<NetClient>, IReaderListener {
         internal ISocket socket;
 
         public IReader reader { get; }
@@ -31,13 +31,17 @@ namespace Networking.Models {
         }
 
         public override bool Equals(object obj) {
-            if (obj is NetClient) {
-                return this.socket == ((NetClient)obj).socket;
+            if (obj is NetClient n_client) {
+                return this.Equals(n_client);
             }
-            if (obj is Socket) {
-                return this.socket == obj;
+            if (obj is Socket socket) {
+                return this.socket.Equals(socket);
             }
             return object.Equals(this, obj);
+        }
+
+        public bool Equals(NetClient client) {
+            return this.socket.Equals(client.socket);
         }
 
         public override int GetHashCode() {

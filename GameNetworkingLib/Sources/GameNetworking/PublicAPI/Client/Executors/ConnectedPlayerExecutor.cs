@@ -19,11 +19,7 @@
                 playerId = this.message.playerId,
                 isLocalPlayer = this.message.isMe
             };
-            if (this.message.isMe) {
-                this.gameClient.player = player;
-            } else {
-                this.gameClient.AddPlayer(player);
-            }
+            this.gameClient.AddPlayer(player);
         }
     }
 }

@@ -2,9 +2,10 @@ using System;
 using System.Collections.Generic;
 
 namespace GameNetworking.Models {
+    using System.Collections;
     using GameNetworking.Models.Server;
 
-    public class NetworkPlayersStorage<PlayerType> where PlayerType : NetworkPlayer, new() {
+    public class NetworkPlayersStorage<PlayerType> : IEnumerable<PlayerType> where PlayerType : NetworkPlayer, new() {
         public interface IListener {
             void PlayerStorageDidAdd(PlayerType player);
             void PlayerStorageDidRemove(PlayerType player);
@@ -56,6 +57,14 @@ namespace GameNetworking.Models {
 
         public PlayerType Find(NetworkClient client) {
             return this.players.Find(each => each.Equals(client));
+        }
+
+        public IEnumerator<PlayerType> GetEnumerator() {
+            return this.players.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() {
+            return this.players.GetEnumerator();
         }
     }
 }

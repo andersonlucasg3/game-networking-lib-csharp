@@ -58,9 +58,10 @@ namespace Tests.Core {
 
             Assert.IsTrue(clientListener.connectedCalled);
 
-            Assert.AreEqual(client.player.playerId, serverListener.connectedPlayers[0].playerId);
+            var player = client.FindPlayer(player => player.isLocalPlayer);
+            Assert.AreEqual(player.playerId, serverListener.connectedPlayers[0].playerId);
 
-            var playerId = client.player.playerId;
+            var playerId = player.playerId;
             var serverPlayer = server.FindPlayer(playerId);
 
             Assert.IsNotNull(serverPlayer);
@@ -75,7 +76,7 @@ namespace Tests.Core {
             Assert.IsTrue(clientListener.disconnectCalled);
             Assert.IsNull(notServerPlayer);
 
-            Assert.AreEqual(client.player.playerId, serverListener.disconnectedPlayers[0].playerId);
+            Assert.AreEqual(player.playerId, serverListener.disconnectedPlayers[0].playerId);
 
             Assert.AreEqual(0, clientListener.disconnectedPlayers.Count);
         }
@@ -107,13 +108,18 @@ namespace Tests.Core {
             Assert.IsTrue(clientListener1.connectedCalled);
             Assert.IsTrue(clientListener2.connectedCalled);
             Assert.IsTrue(clientListener3.connectedCalled);
-            Assert.AreEqual(client1.player.playerId, serverListener.connectedPlayers[0].playerId);
-            Assert.AreEqual(client2.player.playerId, serverListener.connectedPlayers[1].playerId);
-            Assert.AreEqual(client3.player.playerId, serverListener.connectedPlayers[2].playerId);
 
-            var playerId1 = client1.player.playerId;
-            var playerId2 = client2.player.playerId;
-            var playerId3 = client3.player.playerId;
+            var player1 = client1.FindPlayer(player => player.isLocalPlayer);
+            var player2 = client2.FindPlayer(player => player.isLocalPlayer);
+            var player3 = client3.FindPlayer(player => player.isLocalPlayer);
+
+            Assert.AreEqual(player1.playerId, serverListener.connectedPlayers[0].playerId);
+            Assert.AreEqual(player2.playerId, serverListener.connectedPlayers[1].playerId);
+            Assert.AreEqual(player3.playerId, serverListener.connectedPlayers[2].playerId);
+
+            var playerId1 = player1.playerId;
+            var playerId2 = player2.playerId;
+            var playerId3 = player3.playerId;
 
             var serverPlayer1 = server.FindPlayer(playerId1);
             var serverPlayer2 = server.FindPlayer(playerId2);
@@ -139,12 +145,12 @@ namespace Tests.Core {
             Assert.AreEqual(1, clientListener2.disconnectedPlayers.Count);
             Assert.AreEqual(0, clientListener3.disconnectedPlayers.Count);
 
-            Assert.AreEqual(client3.player.playerId, clientListener1.disconnectedPlayers[0].playerId);
-            Assert.AreEqual(client3.player.playerId, clientListener2.disconnectedPlayers[0].playerId);
+            Assert.AreEqual(player3.playerId, clientListener1.disconnectedPlayers[0].playerId);
+            Assert.AreEqual(player3.playerId, clientListener2.disconnectedPlayers[0].playerId);
 
-            Assert.AreNotEqual(client1.player.playerId, client2.player.playerId);
-            Assert.AreNotEqual(client1.player.playerId, client3.player.playerId);
-            Assert.AreNotEqual(client2.player.playerId, client3.player.playerId);
+            Assert.AreNotEqual(player1.playerId, player2.playerId);
+            Assert.AreNotEqual(player1.playerId, player3.playerId);
+            Assert.AreNotEqual(player2.playerId, player3.playerId);
 
             Assert.AreEqual(1, serverListener.disconnectedPlayers.Count);
         }
@@ -171,13 +177,14 @@ namespace Tests.Core {
 
             Update();
 
-            var disconnectedPlayerId = client2.player.playerId;
+            var player2 = client2.FindPlayer(player => player.isLocalPlayer);
+            var disconnectedPlayerId = player2.playerId;
 
             client2.Disconnect();
 
             Update();
 
-            Assert.IsNull(server.FindPlayer(client2.player.playerId));
+            Assert.IsNull(server.FindPlayer(player2.playerId));
             ClientListener listener2_c;
             this.New(out client2, out listener2_c);
 
@@ -217,19 +224,22 @@ namespace Tests.Core {
             Update();
             Update();
 
-            var serverPlayer1 = server.FindPlayer(client1.player.playerId);
-            var serverPlayer2 = server.FindPlayer(client2.player.playerId);
+            var player1 = client1.FindPlayer(player => player.isLocalPlayer);
+            var player2 = client2.FindPlayer(player => player.isLocalPlayer);
+
+            var serverPlayer1 = server.FindPlayer(player1.playerId);
+            var serverPlayer2 = server.FindPlayer(player2.playerId);
             var serverPing1 = serverPlayer1.mostRecentPingValue;
             var serverPing2 = serverPlayer2.mostRecentPingValue;
 
-            Assert.AreEqual(serverPing1, client1.player.mostRecentPingValue);
-            Assert.AreEqual(serverPing2, client2.player.mostRecentPingValue);
+            Assert.AreEqual(serverPing1, player1.mostRecentPingValue);
+            Assert.AreEqual(serverPing2, player2.mostRecentPingValue);
 
-            var client1client2Ping = client1.GetPing(client2.player.playerId);
-            var client2client1Ping = client2.GetPing(client1.player.playerId);
+            var client1client2Ping = client1.GetPing(player2.playerId);
+            var client2client1Ping = client2.GetPing(player1.playerId);
 
-            Assert.AreEqual(client1.player.mostRecentPingValue, client2client1Ping);
-            Assert.AreEqual(client2.player.mostRecentPingValue, client1client2Ping);
+            Assert.AreEqual(player1.mostRecentPingValue, client2client1Ping);
+            Assert.AreEqual(player2.mostRecentPingValue, client1client2Ping);
         }
     }
 

@@ -1,12 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Messages.Models;
 using Networking;
+using System.Linq;
 
 namespace GameNetworking {
+    using Commons;
     using Networking;
     using Models;
-    using GameNetworking.Commons;
-    using GameNetworking.Models.Client;
+    using Models.Client;
 
     public class GameClient<PlayerType> where PlayerType : NetworkPlayer, new() {
         public interface IListener {
@@ -24,8 +26,6 @@ namespace GameNetworking {
         private readonly GameClientMessageRouter<PlayerType> router;
 
         internal readonly NetworkingClient networkingClient;
-
-        public PlayerType player { get; internal set; }
 
         public IListener listener { get; set; }
 
@@ -61,6 +61,10 @@ namespace GameNetworking {
 
         public PlayerType FindPlayer(int playerId) {
             return this.playersStorage[playerId];
+        }
+
+        public PlayerType FindPlayer(Func<PlayerType, bool> predicate) {
+            return this.playersStorage.First(predicate);
         }
 
         public List<PlayerType> AllPlayers() {

@@ -20,7 +20,7 @@ namespace Logging {
 
             Console.WriteLine($"[{fileName}.{memberName}() : {lineNumber}] {message}");
 
-            externalLoggers.ForEach(each => each.Invoke(message));
+            externalLoggers.ForEach(each => each.Invoke($"[GameNetworking] {message}"));
         }
     }
 }

@@ -12,12 +12,8 @@
         }
 
         void IExecutor.Execute() {
-            if (this.message.playerId == this.client.player.playerId) {
-                this.client.player.mostRecentPingValue = this.message.pingValue;
-            } else {
-                var player = client.FindPlayer(this.message.playerId);
-                player.mostRecentPingValue = this.message.pingValue;
-            }
+            var player = this.client.FindPlayer(this.message.playerId);
+            player.mostRecentPingValue = this.message.pingValue;
         }
     }
 }

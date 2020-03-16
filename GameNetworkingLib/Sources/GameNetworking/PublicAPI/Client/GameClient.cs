@@ -16,6 +16,8 @@ namespace GameNetworking {
             void GameClientConnectDidTimeout();
             void GameClientDidDisconnect();
 
+            void GameClientDidIdentifyLocalPlayer(PlayerType player);
+
             void GameClientDidReceiveMessage(MessageContainer container);
 
             void GameClientNetworkPlayerDidDisconnect(PlayerType player);

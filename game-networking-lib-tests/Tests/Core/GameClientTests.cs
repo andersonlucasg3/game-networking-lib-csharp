@@ -58,6 +58,7 @@ namespace Tests.Core {
 
             Assert.IsTrue(clientListener.connectedCalled);
 
+            Assert.IsNotNull(clientListener.localPlayer);
             var player = client.FindPlayer(player => player.isLocalPlayer);
             Assert.AreEqual(player.playerId, serverListener.connectedPlayers[0].playerId);
 
@@ -108,6 +109,10 @@ namespace Tests.Core {
             Assert.IsTrue(clientListener1.connectedCalled);
             Assert.IsTrue(clientListener2.connectedCalled);
             Assert.IsTrue(clientListener3.connectedCalled);
+
+            Assert.IsNotNull(clientListener1.localPlayer);
+            Assert.IsNotNull(clientListener2.localPlayer);
+            Assert.IsNotNull(clientListener3.localPlayer);
 
             var player1 = client1.FindPlayer(player => player.isLocalPlayer);
             var player2 = client2.FindPlayer(player => player.isLocalPlayer);
@@ -253,6 +258,7 @@ namespace Tests.Core {
         public bool connectedCalled { get; private set; }
         public bool connectTimeoutCalled { get; private set; }
         public bool disconnectCalled { get; private set; }
+        public ClientPlayer localPlayer { get; private set; }
 
         #region IGameClientListener
 
@@ -266,6 +272,10 @@ namespace Tests.Core {
 
         void GameClient<ClientPlayer>.IListener.GameClientDidDisconnect() {
             this.disconnectCalled = true;
+        }
+
+        void GameClient<ClientPlayer>.IListener.GameClientDidIdentifyLocalPlayer(ClientPlayer player) {
+            this.localPlayer = player;
         }
 
         void GameClient<ClientPlayer>.IListener.GameClientDidReceiveMessage(MessageContainer container) {

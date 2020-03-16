@@ -20,6 +20,10 @@
                 isLocalPlayer = this.message.isMe
             };
             this.gameClient.AddPlayer(player);
+
+            if (player.isLocalPlayer) {
+                this.gameClient.listener?.GameClientDidIdentifyLocalPlayer(player);
+            }
         }
     }
 }

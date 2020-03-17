@@ -62,7 +62,10 @@ namespace GameNetworking {
         }
 
         public PlayerType FindPlayer(int playerId) {
-            return this.playersStorage[playerId];
+            if (this.playersStorage.TryGetPlayer(playerId, out PlayerType player)) {
+                return player;
+            }
+            return null;
         }
 
         public PlayerType FindPlayer(Func<PlayerType, bool> predicate) {

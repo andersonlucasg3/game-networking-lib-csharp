@@ -16,7 +16,6 @@
             this.playerIdCounter++;
 
             this.instance.AddPlayer(player);
-            instance.listener.GameServerPlayerDidConnect(player);
 
             Logger.Log($"(AcceptClient) count {this.instance.AllPlayers().Count}");
 
@@ -43,6 +42,8 @@
                     isMe = false
                 }, player);
             }
+
+            instance.listener.GameServerPlayerDidConnect(player);
         }
 
         public void Disconnect(PlayerType player) {

@@ -1,6 +1,5 @@
 ﻿namespace GameNetworking.Executors.Client {
-    using GameNetworking.Models.Client;
-    using Logging;
+    using Models.Client;
     using Messages.Server;
 
     internal struct ConnectedPlayerExecutor<PlayerType> : IExecutor where PlayerType : NetworkPlayer, new() {
@@ -13,8 +12,6 @@
         }
 
         public void Execute() {
-            Logger.Log($"Executing for playerId {this.message.playerId} is me {this.message.isMe}");
-
             var player = new PlayerType() {
                 playerId = this.message.playerId,
                 isLocalPlayer = this.message.isMe

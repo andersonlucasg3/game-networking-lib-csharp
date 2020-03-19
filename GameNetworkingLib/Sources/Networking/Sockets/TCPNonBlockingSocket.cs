@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using Networking.Models;
 
-namespace Networking.IO {
+namespace Networking.Sockets {
+    using IO;
+    using Models;
+
+
     public class TCPNonBlockingSocket : ISocket {
         private Socket socket;
 

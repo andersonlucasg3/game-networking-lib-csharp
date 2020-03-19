@@ -5,8 +5,8 @@ using Networking.Models;
 
 namespace Tests.Core.Model {
     class SocketMock : ISocket {
-        private static Queue<SocketMock> pendingAcceptClients = new Queue<SocketMock>();
-        private static List<SocketMock> connectedClients = new List<SocketMock>();
+        private static readonly Queue<SocketMock> pendingAcceptClients = new Queue<SocketMock>();
+        private static readonly List<SocketMock> connectedClients = new List<SocketMock>();
 
         private byte[] buffer;
         private SocketMock serverCounterPart;

@@ -290,20 +290,20 @@ namespace Tests.Core {
     }
 
     class ServerListener : GameServer<ServerPlayer>.IListener {
-        public readonly List<GameNetworking.Models.Server.NetworkPlayer> connectedPlayers = new List<GameNetworking.Models.Server.NetworkPlayer>();
-        public readonly List<GameNetworking.Models.Server.NetworkPlayer> disconnectedPlayers = new List<GameNetworking.Models.Server.NetworkPlayer>();
+        public readonly List<ServerPlayer> connectedPlayers = new List<ServerPlayer>();
+        public readonly List<ServerPlayer> disconnectedPlayers = new List<ServerPlayer>();
 
         #region IGameServerListener
 
-        void GameServer<ServerPlayer>.IListener.GameServerPlayerDidConnect(GameNetworking.Models.Server.NetworkPlayer player) {
+        void GameServer<ServerPlayer>.IListener.GameServerPlayerDidConnect(ServerPlayer player) {
             connectedPlayers.Add(player);
         }
 
-        void GameServer<ServerPlayer>.IListener.GameServerPlayerDidDisconnect(GameNetworking.Models.Server.NetworkPlayer player) {
+        void GameServer<ServerPlayer>.IListener.GameServerPlayerDidDisconnect(ServerPlayer player) {
             disconnectedPlayers.Add(player);
         }
 
-        void GameServer<ServerPlayer>.IListener.GameServerDidReceiveClientMessage(MessageContainer container, GameNetworking.Models.Server.NetworkPlayer player) {
+        void GameServer<ServerPlayer>.IListener.GameServerDidReceiveClientMessage(MessageContainer container, ServerPlayer player) {
             Assert.NotNull(player);
         }
 

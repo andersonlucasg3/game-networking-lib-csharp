@@ -32,7 +32,7 @@
                     isMe = player.Equals(each)
                 }, each);
 
-                if (each.Equals(player)) { return; }
+                if (each.Equals(player)) { continue; }
 
                 Logger.Log($"Sending ConnectedPlayerMessage from {each.playerId} to {player.playerId}");
 

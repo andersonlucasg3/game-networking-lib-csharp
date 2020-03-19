@@ -8,7 +8,7 @@ namespace Networking {
 
         void StartServer(int port);
         INetClient Accept();
-        void Stop();
+        void StopServer();
 
         void Connect(string host, int port);
         void Disconnect(INetClient client);

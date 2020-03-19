@@ -1,7 +1,7 @@
 ﻿using System.IO;
 
 namespace Messages.Coders {
-    internal sealed class Decoder : IDecoder {
+    internal sealed class Decoder : IDecoder, System.IDisposable {
         internal BinaryReader reader;
 
         internal Decoder(byte[] buffer) {
@@ -12,56 +12,52 @@ namespace Messages.Coders {
             this.reader = new BinaryReader(stream);
         }
 
-        ~Decoder() {
-            this.reader.Dispose();
-        }
-
-        public int Int() {
+        public int GetInt() {
             return this.reader.ReadInt32();
         }
 
-        public short Short() {
+        public short GetShort() {
             return this.reader.ReadInt16();
         }
 
-        public long Long() {
+        public long GetLong() {
             return this.reader.ReadInt64();
         }
 
-        public uint UInt() {
+        public uint GetUInt() {
             return this.reader.ReadUInt32();
         }
 
-        public ushort UShort() {
+        public ushort GetUShort() {
             return this.reader.ReadUInt16();
         }
 
-        public ulong ULong() {
+        public ulong GetULong() {
             return this.reader.ReadUInt64();
         }
 
-        public float Float() {
+        public float GetFloat() {
             return this.reader.ReadSingle();
         }
 
-        public double Double() {
+        public double GetDouble() {
             return this.reader.ReadDouble();
         }
 
-        public string String() {
+        public string GetString() {
             return this.reader.ReadString();
         }
 
-        public byte[] Bytes() {
+        public byte[] GetBytes() {
             int length = this.reader.ReadInt32();
             return this.reader.ReadBytes(length);
         }
 
-        public bool Bool() {
+        public bool GetBool() {
             return this.reader.ReadBoolean();
         }
 
-        public T Object<T>() where T : class, IDecodable, new() {
+        public T GetObject<T>() where T : class, IDecodable, new() {
             if (this.reader.ReadBoolean()) {
                 T value = new T();
                 value.Decode(this);
@@ -69,14 +65,19 @@ namespace Messages.Coders {
             }
             return null;
         }
+
+        public void Dispose() {
+            this.reader.Dispose();
+        }
     }
 
     namespace Binary {
         public sealed class Decoder {
-            public T Decode<T>(byte[] buffer) where T : IDecodable, new() {
+            public static TDecodable Decode<TDecodable>(byte[] buffer) where TDecodable : IDecodable, new() {
                 Coders.Decoder decoder = new Coders.Decoder(buffer);
-                T value = new T();
+                TDecodable value = new TDecodable();
                 value.Decode(decoder);
+                decoder.Dispose();
                 return value;
             }
         }

@@ -2,6 +2,6 @@
     using Models;
 
     public interface IStreamWriter {
-        byte[] Write<Message>(Message message) where Message : ITypedMessage;
+        byte[] Write<TMessage>(TMessage message) where TMessage : ITypedMessage;
     }
 }

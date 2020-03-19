@@ -3,28 +3,27 @@ using System.Collections.Generic;
 
 namespace GameNetworking {
     using Models;
-    using Models.Contract.Server;
     using Models.Server;
     using Messages.Server;
     using Commons;
 
-    public class GameServerPingController<PlayerType> : BaseWorker<GameServer<PlayerType>>, NetworkPlayersCollection<PlayerType>.IListener where PlayerType : NetworkPlayer, new() {
-        private readonly Dictionary<int, PingPlayer<PlayerType>> pingPlayers = new Dictionary<int, PingPlayer<PlayerType>>();
-        private PingPlayer<PlayerType>[] pingPlayersArray;
+    public class GameServerPingController<TPlayer> : BaseWorker<GameServer<TPlayer>>, NetworkPlayersCollection<TPlayer>.IListener where TPlayer : NetworkPlayer, new() {
+        private readonly Dictionary<int, PingPlayer<TPlayer>> pingPlayers = new Dictionary<int, PingPlayer<TPlayer>>();
+        private PingPlayer<TPlayer>[] pingPlayersArray;
 
         public float PingInterval { get; set; }
 
-        public GameServerPingController(GameServer<PlayerType> instance, NetworkPlayersCollection<PlayerType> storage, IMainThreadDispatcher dispatcher) : base(instance, dispatcher) {
+        public GameServerPingController(GameServer<TPlayer> instance, NetworkPlayersCollection<TPlayer> storage, IMainThreadDispatcher dispatcher) : base(instance, dispatcher) {
             storage.listeners.Add(this);
         }
 
-        public float GetPingValue(PlayerType player) {
+        public float GetPingValue(TPlayer player) {
             return this.pingPlayers[player.playerId].PingValue;
         }
 
         internal void Update() {
             if (this.pingPlayersArray == null) { return; }
-            PingPlayer<PlayerType> pingPlayer;
+            PingPlayer<TPlayer> pingPlayer;
             for (int i = 0; i < this.pingPlayersArray.Length; i++) {
                 pingPlayer = this.pingPlayersArray[i];
                 if (!pingPlayer.PingSent && pingPlayer.CanSendNextPing) {
@@ -34,19 +33,19 @@ namespace GameNetworking {
             }
         }
 
-        public float PongReceived(PlayerType player) {
+        public float PongReceived(TPlayer player) {
             var pingPlayer = this.pingPlayers[player.playerId];
             var pingValue = pingPlayer?.ReceivedPong() ?? 0F;
             player.mostRecentPingValue = pingValue;
             return pingValue;
         }
 
-        void NetworkPlayersCollection<PlayerType>.IListener.PlayerStorageDidAdd(PlayerType player) {
-            this.pingPlayers[player.playerId] = new PingPlayer<PlayerType>(player);
+        void NetworkPlayersCollection<TPlayer>.IListener.PlayerStorageDidAdd(TPlayer player) {
+            this.pingPlayers[player.playerId] = new PingPlayer<TPlayer>(player);
             this.UpdateArray();
         }
 
-        void NetworkPlayersCollection<PlayerType>.IListener.PlayerStorageDidRemove(PlayerType player) {
+        void NetworkPlayersCollection<TPlayer>.IListener.PlayerStorageDidRemove(TPlayer player) {
             if (this.pingPlayers.ContainsKey(player.playerId)) {
                 this.pingPlayers.Remove(player.playerId);
                 this.UpdateArray();
@@ -54,7 +53,7 @@ namespace GameNetworking {
         }
 
         private void UpdateArray() {
-            this.pingPlayersArray = new List<PingPlayer<PlayerType>>(this.pingPlayers.Values).ToArray();
+            this.pingPlayersArray = new List<PingPlayer<TPlayer>>(this.pingPlayers.Values).ToArray();
         }
     }
 
@@ -99,7 +98,7 @@ namespace GameNetworking {
             return Equals(this, obj);
         }
 
-        private float CurrentTime() {
+        private static float CurrentTime() {
             return (float)TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds;
         }
 

@@ -54,7 +54,7 @@ namespace Networking {
             return null;
         }
 
-        public void Stop() {
+        public void StopServer() {
             this.socket.Close();
         }
 

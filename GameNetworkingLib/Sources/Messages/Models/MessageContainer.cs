@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Messages.Models {
     using Coders;
@@ -20,13 +19,13 @@ namespace Messages.Models {
             return type == this.Type;
         }
 
-        public Message Parse<Message>() where Message : class, IDecodable, new() {
+        public TMessage Parse<TMessage>() where TMessage : class, IDecodable, new() {
             var headerSize = sizeof(int);
             var count = this.messageBytes.Length - headerSize;
             byte[] message = new byte[count];
             Array.Copy(this.messageBytes, headerSize, message, 0, count);
 
-            return new Coders.Binary.Decoder().Decode<Message>(message);
+            return Coders.Binary.Decoder.Decode<TMessage>(message);
         }
     }
 }

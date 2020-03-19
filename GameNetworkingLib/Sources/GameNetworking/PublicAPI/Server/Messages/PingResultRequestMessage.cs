@@ -24,8 +24,8 @@ namespace GameNetworking.Messages.Server {
         }
 
         public void Decode(IDecoder decoder) {
-            this.playerId = decoder.Int();
-            this.pingValue = decoder.Float();
+            this.playerId = decoder.GetInt();
+            this.pingValue = decoder.GetFloat();
         }
     }
 }

@@ -5,12 +5,12 @@ namespace GameNetworking.Messages.Server {
     public class ConnectedPlayerMessage: ITypedMessage {
         int ITypedMessage.type => (int)MessageType.connectedPlayer;
 
-        public int playerId;
-        public bool isMe;
+        public int playerId { get; set; }
+        public bool isMe { get; set; }
 
         void IDecodable.Decode(IDecoder decoder) {
-            this.playerId = decoder.Int();
-            this.isMe = decoder.Bool();
+            this.playerId = decoder.GetInt();
+            this.isMe = decoder.GetBool();
         }
 
         void IEncodable.Encode(IEncoder encoder) {

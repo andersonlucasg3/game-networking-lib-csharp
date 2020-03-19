@@ -4,21 +4,21 @@ using Google.Protobuf.Reflection;
 
 namespace MatchMaking.Models {
     public sealed class MessageContainer {
-        private MessagePackage package;
+        private readonly MessagePackage package;
 
-        public string TypeName { get { return this.package.Message.TypeUrl; } }
+        public string TypeName { get { return this.package.message.TypeUrl; } }
 
         internal MessageContainer(MessagePackage package) {
             this.package = package;
         }
 
         public bool Is(MessageDescriptor descriptor) {
-            return this.package.Message.Is(descriptor);
+            return this.package.message.Is(descriptor);
         }
 
-        public Message Parse<Message>() where Message: class, IMessage<Message>, new() {
-            MessageParser<Message> parser = new MessageParser<Message>(() => { return new Message(); });
-            return parser.ParseFrom(this.package.Message.Value.ToByteArray());
+        public TMessage Parse<TMessage>() where TMessage: class, IMessage<TMessage>, new() {
+            MessageParser<TMessage> parser = new MessageParser<TMessage>(() => { return new TMessage(); });
+            return parser.ParseFrom(this.package.message.Value.ToByteArray());
         }
     }
 }

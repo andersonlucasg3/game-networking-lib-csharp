@@ -1,7 +1,7 @@
 ﻿namespace MatchMaking.Connection {
     using Models;
 
-    public interface IClientConnectionDelegate<MMClient> where MMClient: Client {
+    public interface IClientConnectionDelegate<TClient> where TClient: MatchMakingClient {
         void ClientConnectionDidConnect();
 
         void ClientConnectionDidTimeout();

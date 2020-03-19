@@ -26,9 +26,8 @@ namespace Tests.IO {
         [Test]
         public void TestEncoder() {
             Value value = new Value();
-            Encoder encoder = new Encoder();
             this.Measure(() => {
-                encoder.Encode(value);
+                Encoder.Encode(value);
             }, "Encoder");
         }
 
@@ -36,30 +35,26 @@ namespace Tests.IO {
         public void TestDecoder() {
             Value value = new Value();
 
-            Encoder encoder = new Encoder();
-            byte[] encoded = encoder.Encode(value);
+            byte[] encoded = Encoder.Encode(value);
 
             Decoder decoder = new Decoder();
             this.Measure(() => {
-                decoder.Decode<Value>(encoded);
+                Decoder.Decode<Value>(encoded);
             }, "Decoder");
         }
 
         [Test]
         public void TestEncoderDecoder() {
-            Encoder encoder = new Encoder();
-            Decoder decoder = new Decoder();
-
             Value value = new Value();
 
             Value decoded = null;
 
             this.Measure(() => {
-                byte[] encoded = encoder.Encode(value);
+                byte[] encoded = Encoder.Encode(value);
 
                 Logger.Log($"Encoded message size: {encoded.Length}");
 
-                decoded = decoder.Decode<Value>(encoded);
+                decoded = Decoder.Decode<Value>(encoded);
             }, "Encoder and Decoder");
 
             Assert.AreEqual(value.intVal, decoded.intVal);
@@ -114,16 +109,18 @@ namespace Tests.IO {
             var port = (short)6109;
 
 
-            var loginRequest = new LoginRequest();
-            loginRequest.accessToken = firstToken;
-            loginRequest.username = username;
+            var loginRequest = new LoginRequest {
+                accessToken = firstToken,
+                username = username
+            };
 
             var matchRequest = new MatchRequest();
 
-            var connectRequest = new ConnectGameInstanceResponse();
-            connectRequest.token = secondToken;
-            connectRequest.ip = ip;
-            connectRequest.port = port;
+            var connectRequest = new ConnectGameInstanceResponse {
+                token = secondToken,
+                ip = ip,
+                port = port
+            };
 
             var encoder = new MessageStreamWriter();
             List<byte> data = new List<byte>();
@@ -160,14 +157,12 @@ namespace Tests.IO {
 
         [Test]
         public void TestMessageSize() {
-            var encoder = new Encoder();
-
             LoginRequest request = new LoginRequest {
                 accessToken = "asdfasdfasdf",
                 username = "andersonlucasg3"
             };
 
-            int size = encoder.Encode(request).Length;
+            int size = Encoder.Encode(request).Length;
             Logger.Log($"LoginRequest Message size: {size}");
         }
     }
@@ -190,8 +185,8 @@ namespace Tests.IO {
         }
 
         public void Decode(IDecoder decoder) {
-            this.accessToken = decoder.String();
-            this.username = decoder.String();
+            this.accessToken = decoder.GetString();
+            this.username = decoder.GetString();
         }
     }
 
@@ -229,9 +224,9 @@ namespace Tests.IO {
         }
 
         public void Decode(IDecoder decoder) {
-            this.token = decoder.String();
-            this.ip = decoder.String();
-            this.port = decoder.Short();
+            this.token = decoder.GetString();
+            this.ip = decoder.GetString();
+            this.port = decoder.GetShort();
         }
     }
 
@@ -270,15 +265,15 @@ namespace Tests.IO {
         }
 
         public void Decode(IDecoder decoder) {
-            this.intVal = decoder.Int();
-            this.shortVal = decoder.Short();
-            this.longVal = decoder.Long();
-            this.uintVal = decoder.UInt();
-            this.ushortVal = decoder.UShort();
-            this.ulongVal = decoder.ULong();
-            this.stringVal = decoder.String();
-            this.bytesVal = decoder.Bytes();
-            this.subValue = decoder.Object<SubValue>();
+            this.intVal = decoder.GetInt();
+            this.shortVal = decoder.GetShort();
+            this.longVal = decoder.GetLong();
+            this.uintVal = decoder.GetUInt();
+            this.ushortVal = decoder.GetUShort();
+            this.ulongVal = decoder.GetULong();
+            this.stringVal = decoder.GetString();
+            this.bytesVal = decoder.GetBytes();
+            this.subValue = decoder.GetObject<SubValue>();
         }
     }
 
@@ -307,10 +302,10 @@ namespace Tests.IO {
         }
 
         public void Decode(IDecoder decoder) {
-            this.name = decoder.String();
-            this.age = decoder.Int();
-            this.height = decoder.Float();
-            this.weight = decoder.Float();
+            this.name = decoder.GetString();
+            this.age = decoder.GetInt();
+            this.height = decoder.GetFloat();
+            this.weight = decoder.GetFloat();
         }
 
         public override bool Equals(object obj) {
@@ -344,7 +339,7 @@ namespace Tests.IO {
         }
 
         public void Decode(IDecoder decoder) {
-            this.empty = decoder.String();
+            this.empty = decoder.GetString();
         }
     }
 }

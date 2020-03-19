@@ -6,18 +6,18 @@ namespace MatchMaking {
     using Models;
     using Networking.IO;
 
-    public class MatchMakingClient<MMClient> : IClientConnectionDelegate<MMClient> where MMClient : Client, new() {
-        private ClientConnection<MMClient> connection;
+    public class MatchMakingClient<TClient> : IClientConnectionDelegate<TClient> where TClient : MatchMakingClient, new() {
+        private ClientConnection<TClient> connection;
 
         public bool IsConnecting { get { return this.connection?.IsConnecting ?? false; } }
 
         public bool IsConnected { get { return this.connection?.IsConnected ?? false; } }
 
-        public IMatchMakingClientDelegate<MMClient> listener { get; set; }
+        public IMatchMakingClientDelegate<TClient> listener { get; set; }
 
         public void Start(string host, int port, ISocket socket) {
             if (!(this.connection?.IsConnecting ?? false)) {
-                this.connection = new ClientConnection<MMClient>(new NetSocket(socket));
+                this.connection = new ClientConnection<TClient>(new NetSocket(socket));
                 this.connection.Connect(host, port);
             }
         }
@@ -65,21 +65,21 @@ namespace MatchMaking {
 
         #region IClientConnectionDelegate<MMClient>
 
-        void IClientConnectionDelegate<MMClient>.ClientConnectionDidConnect() {
+        void IClientConnectionDelegate<TClient>.ClientConnectionDidConnect() {
             this.listener?.MatchMakingClientDidConnect(this);
         }
 
-        void IClientConnectionDelegate<MMClient>.ClientConnectionDidTimeout() {
+        void IClientConnectionDelegate<TClient>.ClientConnectionDidTimeout() {
             this.connection = null;
             this.listener?.MatchMakingClientConnectDidTimeout(this);
         }
 
-        void IClientConnectionDelegate<MMClient>.ClientConnectionDidDisconnect() {
+        void IClientConnectionDelegate<TClient>.ClientConnectionDidDisconnect() {
             this.connection = null;
             this.listener?.MatchMakingClientDidDisconnect(this);
         }
 
-        void IClientConnectionDelegate<MMClient>.ClientDidReadMessage(MessageContainer container) {
+        void IClientConnectionDelegate<TClient>.ClientDidReadMessage(MessageContainer container) {
             if (container != null) { this.RouteMessage(container); }
         }
 

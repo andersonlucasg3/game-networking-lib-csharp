@@ -33,7 +33,7 @@ namespace GameNetworking.Networking {
             for (int i = 0; i < this.clientsStorage.Count; i++) {
                 this.Disconnect(this.clientsStorage[i]);
             }
-            this.networking.Stop();
+            this.networking.StopServer();
         }
 
         public void Disconnect(NetworkClient client) {

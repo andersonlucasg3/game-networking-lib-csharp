@@ -2,14 +2,14 @@
     using Coders;
     using Networking.Models;
 
-    public class Client {
+    public class MatchMakingClient {
         internal INetClient client;
         internal IMessageDecoder decoder;
         internal IMessageEncoder encoder;
 
         public bool IsConnected { get { return this.client.isConnected; } }
 
-        internal static MMClient Create<MMClient>(INetClient client, IMessageDecoder decoder, IMessageEncoder encoder) where MMClient: Client, new() {
+        internal static MMClient Create<MMClient>(INetClient client, IMessageDecoder decoder, IMessageEncoder encoder) where MMClient: MatchMakingClient, new() {
             return new MMClient {
                 client = client,
                 decoder = decoder,
@@ -17,11 +17,11 @@
             };
         }
 
-        protected Client() { }
+        protected MatchMakingClient() { }
 
         public override bool Equals(object obj) {
-            if (obj is Client) {
-                Client other = obj as Client;
+            if (obj is MatchMakingClient) {
+                MatchMakingClient other = obj as MatchMakingClient;
                 return other.client == this.client;
             }
             return object.ReferenceEquals(this, obj);

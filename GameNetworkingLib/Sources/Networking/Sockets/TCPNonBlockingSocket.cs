@@ -6,9 +6,8 @@ namespace Networking.Sockets {
     using IO;
     using Models;
 
-
-    public class TCPNonBlockingSocket : ISocket {
-        private Socket socket;
+    public sealed class TCPNonBlockingSocket : ISocket, IDisposable {
+        private readonly Socket socket;
 
         public TCPNonBlockingSocket() {
             this.socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp) {
@@ -30,6 +29,10 @@ namespace Networking.Sockets {
 
         public bool noDelay { get => this.socket.NoDelay; set => this.socket.NoDelay = value; }
         public bool blocking { get => this.socket.Blocking; set => this.socket.Blocking = value; }
+
+        public void Dispose() {
+            this.socket.Dispose();
+        }
 
         #region Server
 

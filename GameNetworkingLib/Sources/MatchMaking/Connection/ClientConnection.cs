@@ -7,16 +7,16 @@ namespace MatchMaking.Connection {
     using Networking.Models;
     using Protobuf.Coders;
 
-    public sealed class ClientConnection<MMClient>: INetworkingListener, INetClientReadListener where MMClient: Client, new() {
+    public sealed class ClientConnection<TClient>: INetworkingListener, INetClientReadListener where TClient: MatchMakingClient, new() {
         private readonly INetworking networking;
 
-        private MMClient client;
+        private TClient client;
         
         public bool IsConnecting { get; private set; }
 
         public bool IsConnected { get { return this.client?.IsConnected ?? false; } }
 
-        public IClientConnectionDelegate<MMClient> listener { get; set; }
+        public IClientConnectionDelegate<TClient> listener { get; set; }
 
         public ClientConnection(INetworking networking) {
             this.networking = networking;
@@ -33,7 +33,7 @@ namespace MatchMaking.Connection {
             }
         }
 
-        public void Send<Message>(Message message) where Message: IMessage {
+        public void Send<TMessage>(TMessage message) where TMessage: IMessage {
             byte[] bytes = this.client?.encoder?.Encode(message);
             if (bytes != null) {
                 this.networking.Send(this.client.client, bytes);
@@ -56,7 +56,7 @@ namespace MatchMaking.Connection {
 
         void INetClientReadListener.ClientDidReadBytes(NetClient client, byte[] bytes) {
             this.client.decoder.Add(bytes);
-            MessageContainer message = null;
+            MessageContainer message;
             do {
                 message = this.client.decoder.Decode();
                 this.listener?.ClientDidReadMessage(message);
@@ -68,7 +68,7 @@ namespace MatchMaking.Connection {
         #region INetworkingDelegate
 
         void INetworkingListener.NetworkingDidConnect(INetClient client) {
-            this.client = Client.Create<MMClient>(client, new MessageDecoder(), new MessageEncoder());
+            this.client = MatchMakingClient.Create<TClient>(client, new MessageDecoder(), new MessageEncoder());
             this.IsConnecting = false;
             this.listener?.ClientConnectionDidConnect();
         }

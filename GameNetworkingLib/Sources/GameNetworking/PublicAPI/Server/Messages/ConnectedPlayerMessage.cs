@@ -3,7 +3,7 @@ using Messages.Models;
 
 namespace GameNetworking.Messages.Server {
     public class ConnectedPlayerMessage: ITypedMessage {
-        int ITypedMessage.type => (int)MessageType.CONNECTED_PLAYER;
+        int ITypedMessage.type => (int)MessageType.connectedPlayer;
 
         public int playerId;
         public bool isMe;

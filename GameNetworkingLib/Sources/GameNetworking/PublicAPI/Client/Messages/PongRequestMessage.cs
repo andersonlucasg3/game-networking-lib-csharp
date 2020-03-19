@@ -3,7 +3,7 @@ using Messages.Coders;
 
 namespace GameNetworking.Messages.Client {
     internal class PongRequestMessage: ITypedMessage {
-        public static int Type { get { return (int)MessageType.PONG; } }
+        public static int Type { get { return (int)MessageType.pong; } }
 
         int ITypedMessage.type { get { return PongRequestMessage.Type; } }
 

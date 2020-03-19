@@ -4,7 +4,7 @@ using Messages.Coders;
 namespace GameNetworking.Messages.Server {
     internal class PingRequestMessage : ITypedMessage {
         public static int Type {
-            get { return (int)MessageType.PING; }
+            get { return (int)MessageType.ping; }
         }
 
         int ITypedMessage.type {

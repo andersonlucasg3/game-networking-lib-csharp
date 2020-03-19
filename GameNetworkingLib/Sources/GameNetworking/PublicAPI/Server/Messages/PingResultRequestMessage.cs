@@ -3,7 +3,7 @@ using Messages.Coders;
 
 namespace GameNetworking.Messages.Server {
     internal class PingResultRequestMessage : ITypedMessage {
-        int ITypedMessage.type => (int)MessageType.PING_RESULT;
+        int ITypedMessage.type => (int)MessageType.pingResult;
 
         public float pingValue { get; private set; }
         public int playerId { get; private set; }

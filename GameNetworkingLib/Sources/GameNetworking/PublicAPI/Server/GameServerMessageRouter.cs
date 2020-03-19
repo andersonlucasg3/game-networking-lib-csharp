@@ -18,7 +18,7 @@ namespace GameNetworking {
             if (container == null) { return; }
 
             switch ((MessageType)container.Type) {
-            case MessageType.PONG:
+            case MessageType.pong:
                 Execute(new PongRequestExecutor<PlayerType>(this.instance, player));
                 break;
 

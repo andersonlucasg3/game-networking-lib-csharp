@@ -19,10 +19,10 @@ namespace GameNetworking {
             if (container == null) { return; }
 
             switch ((MessageType)container.Type) {
-                case MessageType.CONNECTED_PLAYER: this.Execute(new ConnectedPlayerExecutor<PlayerType>(this.instance, container.Parse<ConnectedPlayerMessage>())); break;
-                case MessageType.PING: this.Execute(new PingRequestExecutor<PlayerType>(this.instance)); break;
-                case MessageType.PING_RESULT: this.Execute(new PingResultRequestExecutor<PlayerType>(this.instance, container.Parse<PingResultRequestMessage>())); break;
-                case MessageType.DISCONNECTED_PLAYER: this.Execute(new DisconnectedPlayerExecutor<PlayerType>(this.instance, container.Parse<DisconnectedPlayerMessage>())); break;
+                case MessageType.connectedPlayer: this.Execute(new ConnectedPlayerExecutor<PlayerType>(this.instance, container.Parse<ConnectedPlayerMessage>())); break;
+                case MessageType.ping: this.Execute(new PingRequestExecutor<PlayerType>(this.instance)); break;
+                case MessageType.pingResult: this.Execute(new PingResultRequestExecutor<PlayerType>(this.instance, container.Parse<PingResultRequestMessage>())); break;
+                case MessageType.disconnectedPlayer: this.Execute(new DisconnectedPlayerExecutor<PlayerType>(this.instance, container.Parse<DisconnectedPlayerMessage>())); break;
                 default: this.instance?.listener?.GameClientDidReceiveMessage(container); break;
             }
         }

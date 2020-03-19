@@ -10,34 +10,34 @@ namespace GameNetworking {
     using Models;
     using Models.Client;
 
-    public class GameClient<PlayerType> where PlayerType : NetworkPlayer, new() {
+    public class GameClient<TPlayer> where TPlayer : NetworkPlayer, new() {
         public interface IListener {
             void GameClientDidConnect();
             void GameClientConnectDidTimeout();
             void GameClientDidDisconnect();
 
-            void GameClientDidIdentifyLocalPlayer(PlayerType player);
+            void GameClientDidIdentifyLocalPlayer(TPlayer player);
 
             void GameClientDidReceiveMessage(MessageContainer container);
 
-            void GameClientNetworkPlayerDidDisconnect(PlayerType player);
+            void GameClientNetworkPlayerDidDisconnect(TPlayer player);
         }
 
-        private readonly NetworkPlayersStorage<PlayerType> playersStorage;
-        private readonly GameClientConnection<PlayerType> connection;
-        private readonly GameClientMessageRouter<PlayerType> router;
+        private readonly NetworkPlayersCollection<TPlayer> playersStorage;
+        private readonly GameClientConnection<TPlayer> connection;
+        private readonly GameClientMessageRouter<TPlayer> router;
 
         internal readonly NetworkingClient networkingClient;
 
         public IListener listener { get; set; }
 
         public GameClient(INetworking backend, IMainThreadDispatcher dispatcher) {
-            this.playersStorage = new NetworkPlayersStorage<PlayerType>();
+            this.playersStorage = new NetworkPlayersCollection<TPlayer>();
 
             this.networkingClient = new NetworkingClient(backend);
 
-            this.connection = new GameClientConnection<PlayerType>(this, dispatcher);
-            this.router = new GameClientMessageRouter<PlayerType>(this, dispatcher);
+            this.connection = new GameClientConnection<TPlayer>(this, dispatcher);
+            this.router = new GameClientMessageRouter<TPlayer>(this, dispatcher);
         }
 
         public void Connect(string host, int port) {
@@ -61,26 +61,26 @@ namespace GameNetworking {
             return serverPlayer.mostRecentPingValue;
         }
 
-        public PlayerType FindPlayer(int playerId) {
-            if (this.playersStorage.TryGetPlayer(playerId, out PlayerType player)) {
+        public TPlayer FindPlayer(int playerId) {
+            if (this.playersStorage.TryGetPlayer(playerId, out TPlayer player)) {
                 return player;
             }
             return null;
         }
 
-        public PlayerType FindPlayer(Func<PlayerType, bool> predicate) {
+        public TPlayer FindPlayer(Func<TPlayer, bool> predicate) {
             return this.playersStorage.First(predicate);
         }
 
-        public List<PlayerType> AllPlayers() {
+        public List<TPlayer> AllPlayers() {
             return this.playersStorage.players;
         }
 
-        internal void AddPlayer(PlayerType n_player) {
+        internal void AddPlayer(TPlayer n_player) {
             this.playersStorage.Add(n_player);
         }
 
-        internal PlayerType RemovePlayer(int playerId) {
+        internal TPlayer RemovePlayer(int playerId) {
             return this.playersStorage.Remove(playerId);
         }
 

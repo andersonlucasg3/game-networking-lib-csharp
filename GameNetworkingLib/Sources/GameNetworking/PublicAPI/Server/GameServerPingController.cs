@@ -8,13 +8,13 @@ namespace GameNetworking {
     using Messages.Server;
     using Commons;
 
-    public class GameServerPingController<PlayerType> : BaseWorker<GameServer<PlayerType>>, NetworkPlayersStorage<PlayerType>.IListener where PlayerType : NetworkPlayer, new() {
+    public class GameServerPingController<PlayerType> : BaseWorker<GameServer<PlayerType>>, NetworkPlayersCollection<PlayerType>.IListener where PlayerType : NetworkPlayer, new() {
         private readonly Dictionary<int, PingPlayer<PlayerType>> pingPlayers = new Dictionary<int, PingPlayer<PlayerType>>();
         private PingPlayer<PlayerType>[] pingPlayersArray;
 
         public float PingInterval { get; set; }
 
-        public GameServerPingController(GameServer<PlayerType> instance, NetworkPlayersStorage<PlayerType> storage, IMainThreadDispatcher dispatcher) : base(instance, dispatcher) {
+        public GameServerPingController(GameServer<PlayerType> instance, NetworkPlayersCollection<PlayerType> storage, IMainThreadDispatcher dispatcher) : base(instance, dispatcher) {
             storage.listeners.Add(this);
         }
 
@@ -41,12 +41,12 @@ namespace GameNetworking {
             return pingValue;
         }
 
-        void NetworkPlayersStorage<PlayerType>.IListener.PlayerStorageDidAdd(PlayerType player) {
+        void NetworkPlayersCollection<PlayerType>.IListener.PlayerStorageDidAdd(PlayerType player) {
             this.pingPlayers[player.playerId] = new PingPlayer<PlayerType>(player);
             this.UpdateArray();
         }
 
-        void NetworkPlayersStorage<PlayerType>.IListener.PlayerStorageDidRemove(PlayerType player) {
+        void NetworkPlayersCollection<PlayerType>.IListener.PlayerStorageDidRemove(PlayerType player) {
             if (this.pingPlayers.ContainsKey(player.playerId)) {
                 this.pingPlayers.Remove(player.playerId);
                 this.UpdateArray();

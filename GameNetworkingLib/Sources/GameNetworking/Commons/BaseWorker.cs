@@ -1,13 +1,13 @@
 using System;
 
 namespace GameNetworking.Commons {
-    public abstract class BaseWorker<GameType> where GameType : class {
+    public abstract class BaseWorker<TGame> where TGame : class {
         private readonly WeakReference weakServer;
 
-        protected GameType instance => this.weakServer?.Target as GameType;
-        protected readonly IMainThreadDispatcher dispatcher;
+        protected TGame instance => this.weakServer?.Target as TGame;
+        protected IMainThreadDispatcher dispatcher { get; private set; }
 
-        protected BaseWorker(GameType instance, IMainThreadDispatcher dispatcher) {
+        protected BaseWorker(TGame instance, IMainThreadDispatcher dispatcher) {
             this.weakServer = new WeakReference(instance);
             this.dispatcher = dispatcher;
         }

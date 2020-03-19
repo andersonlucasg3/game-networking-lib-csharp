@@ -15,7 +15,7 @@ namespace GameNetworking {
             void GameServerDidReceiveClientMessage(MessageContainer container, PlayerType player);
         }
 
-        private readonly NetworkPlayersStorage<PlayerType> playersStorage;
+        private readonly NetworkPlayersCollection<PlayerType> playersStorage;
 
         private readonly GameServerClientAcceptor<PlayerType> clientAcceptor;
         private readonly GameServerMessageRouter<PlayerType> router;
@@ -27,7 +27,7 @@ namespace GameNetworking {
         public IListener listener { get; set; }
 
         public GameServer(INetworking backend, IMainThreadDispatcher dispatcher) {
-            this.playersStorage = new NetworkPlayersStorage<PlayerType>();
+            this.playersStorage = new NetworkPlayersCollection<PlayerType>();
 
             this.networkingServer = new NetworkingServer(backend);
 

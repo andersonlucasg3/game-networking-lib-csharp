@@ -5,35 +5,37 @@ namespace GameNetworking.Models {
     using System.Collections;
     using GameNetworking.Models.Server;
 
-    public class NetworkPlayersStorage<PlayerType> : IEnumerable<PlayerType> where PlayerType : NetworkPlayer, new() {
+    public class NetworkPlayersCollection<TPlayer> : IEnumerable<TPlayer> where TPlayer : NetworkPlayer, new() {
         public interface IListener {
-            void PlayerStorageDidAdd(PlayerType player);
-            void PlayerStorageDidRemove(PlayerType player);
+            void PlayerStorageDidAdd(TPlayer player);
+            void PlayerStorageDidRemove(TPlayer player);
         }
 
-        private Dictionary<int, PlayerType> playersDict { get; }
+        private Dictionary<int, TPlayer> playersDict { get; }
 
-        public List<PlayerType> players { get; private set; }
+        public List<TPlayer> players { get; private set; }
 
-        public List<IListener> listeners { get; set; }
+        public List<IListener> listeners { get; }
 
-        public PlayerType this[int key] {
+        public TPlayer this[int key] {
             get { return this.playersDict[key]; }
         }
 
-        public NetworkPlayersStorage() {
+        public NetworkPlayersCollection() {
             this.listeners = new List<IListener>();
-            this.playersDict = new Dictionary<int, PlayerType>();
+            this.playersDict = new Dictionary<int, TPlayer>();
             this.UpdateList();
         }
 
-        private void UpdateList() => this.players = new List<PlayerType>(this.playersDict.Values);
+        private void UpdateList() => this.players = new List<TPlayer>(this.playersDict.Values);
 
-        public bool TryGetPlayer(int key, out PlayerType value) {
+        public bool TryGetPlayer(int key, out TPlayer value) {
             return this.playersDict.TryGetValue(key, out value);
         }
 
-        public void Add(PlayerType player) {
+        public void Add(TPlayer player) {
+            if (player == null) { return; }
+
             if (this.playersDict.ContainsKey(player.playerId)) {
                 throw new OperationCanceledException($"Player id {player.playerId} already present.");
             } else {
@@ -45,7 +47,7 @@ namespace GameNetworking.Models {
             }
         }
 
-        public PlayerType Remove(int playerId) {
+        public TPlayer Remove(int playerId) {
             var player = this.playersDict[playerId];
             this.playersDict.Remove(playerId);
             this.UpdateList();
@@ -55,11 +57,11 @@ namespace GameNetworking.Models {
             return player;
         }
 
-        public PlayerType Find(NetworkClient client) {
+        public TPlayer Find(NetworkClient client) {
             return this.players.Find(each => each.Equals(client));
         }
 
-        public IEnumerator<PlayerType> GetEnumerator() {
+        public IEnumerator<TPlayer> GetEnumerator() {
             return this.players.GetEnumerator();
         }
 

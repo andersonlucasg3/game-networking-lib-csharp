@@ -6,6 +6,8 @@ namespace Networking.IO {
         bool isConnected { get; }
         bool isBound { get; }
 
+        bool isAcceptClientSupported { get; }
+
         #region Server
 
         void Bind(NetEndPoint endPoint);

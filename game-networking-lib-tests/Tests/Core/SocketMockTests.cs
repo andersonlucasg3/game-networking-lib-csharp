@@ -8,10 +8,7 @@ namespace Tests.Core {
         private NetEndPoint endPoint = new NetEndPoint("127.0.0.1", 30000);
 
         private SocketMock New() {
-            return new SocketMock {
-                noDelay = true,
-                blocking = false
-            };
+            return new SocketMock();
         }
 
         private SocketMock ListeningServer() {
@@ -36,8 +33,6 @@ namespace Tests.Core {
         public void TestSockServer() {
             SocketMock socket = this.ListeningServer();
 
-            Assert.IsFalse(socket.blocking);
-            Assert.IsTrue(socket.noDelay);
             Assert.IsTrue(socket.isBound);
         }
 
@@ -57,8 +52,6 @@ namespace Tests.Core {
             this.AcceptedClient(server, out SocketMock connectedSocket, out SocketMock acceptedSocket);
 
             Assert.IsNotNull(acceptedSocket);
-            Assert.IsTrue(acceptedSocket.noDelay);
-            Assert.IsFalse(acceptedSocket.blocking);
             Assert.IsTrue(connectedSocket.isConnected);
         }
 

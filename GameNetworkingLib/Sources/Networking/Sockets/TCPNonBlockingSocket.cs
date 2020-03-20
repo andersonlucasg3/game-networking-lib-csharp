@@ -11,6 +11,7 @@ namespace Networking.Sockets {
 
         public bool isConnected => this.socket.Connected;
         public bool isBound => this.socket.IsBound;
+        public bool isAcceptClientSupported => true;
 
         public TCPNonBlockingSocket() {
             this.socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp) {

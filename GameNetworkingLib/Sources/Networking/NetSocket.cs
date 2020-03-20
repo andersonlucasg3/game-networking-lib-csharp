@@ -29,17 +29,12 @@ namespace Networking {
         }
 
         private void AcceptNewClient() {
-            if (this.isAccepting) { return; }
+            if (!this.socket.isAcceptClientSupported || this.isAccepting) { return; }
 
             this.isAccepting = true;
 
             this.socket.Accept((accepted) => {
-                if (accepted != null) {
-                    accepted.noDelay = true;
-                    accepted.blocking = false;
-                    this.acceptedQueue.Enqueue(accepted);
-                }
-
+                if (accepted != null) { this.acceptedQueue.Enqueue(accepted); }
                 this.isAccepting = false;
             });
         }

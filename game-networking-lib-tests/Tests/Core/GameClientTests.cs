@@ -16,10 +16,7 @@ namespace Tests.Core {
         private readonly int port = 30000;
 
         private INetworking New() {
-            return new NetSocket(new SocketMock {
-                blocking = false,
-                noDelay = true
-            });
+            return new NetSocket(new SocketMock());
         }
 
         private void New(out GameServer<ServerPlayer> server, out ServerListener listener) {

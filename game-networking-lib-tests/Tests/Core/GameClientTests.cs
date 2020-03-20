@@ -1,10 +1,10 @@
 ﻿using NUnit.Framework;
 using GameNetworking;
-using Networking;
 using Tests.Core.Model;
 using Messages.Models;
 using System.Collections.Generic;
 using GameNetworking.Commons;
+using Networking.Reliable;
 using System;
 
 using ClientPlayer = GameNetworking.Models.Client.NetworkPlayer;
@@ -15,13 +15,13 @@ namespace Tests.Core {
         private readonly string host = "127.0.0.1";
         private readonly int port = 30000;
 
-        private INetworking New() {
-            return new NetSocket(new SocketMock());
+        private IReliableSocket New() {
+            return new ReliableSocket(new SocketMock());
         }
 
-        private void New(out GameServer<ServerPlayer> server, out ServerListener listener) {
+        private void New(out ReliableGameServer<ServerPlayer> server, out ServerListener listener) {
             listener = new ServerListener();
-            server = new GameServer<ServerPlayer>(this.New(), new MainThreadDispatcher()) {
+            server = new ReliableGameServer<ServerPlayer>(this.New(), new MainThreadDispatcher()) {
                 listener = listener
             };
         }
@@ -33,7 +33,7 @@ namespace Tests.Core {
             };
         }
 
-        private void Update(GameServer<ServerPlayer> server) {
+        private void Update(ReliableGameServer<ServerPlayer> server) {
             server.Update();
         }
 
@@ -286,21 +286,21 @@ namespace Tests.Core {
         #endregion
     }
 
-    class ServerListener : GameServer<ServerPlayer>.IListener {
+    class ServerListener : ReliableGameServer<ServerPlayer>.IListener {
         public readonly List<ServerPlayer> connectedPlayers = new List<ServerPlayer>();
         public readonly List<ServerPlayer> disconnectedPlayers = new List<ServerPlayer>();
 
         #region IGameServerListener
 
-        void GameServer<ServerPlayer>.IListener.GameServerPlayerDidConnect(ServerPlayer player) {
+        void ReliableGameServer<ServerPlayer>.IListener.GameServerPlayerDidConnect(ServerPlayer player) {
             connectedPlayers.Add(player);
         }
 
-        void GameServer<ServerPlayer>.IListener.GameServerPlayerDidDisconnect(ServerPlayer player) {
+        void ReliableGameServer<ServerPlayer>.IListener.GameServerPlayerDidDisconnect(ServerPlayer player) {
             disconnectedPlayers.Add(player);
         }
 
-        void GameServer<ServerPlayer>.IListener.GameServerDidReceiveClientMessage(MessageContainer container, ServerPlayer player) {
+        void ReliableGameServer<ServerPlayer>.IListener.GameServerDidReceiveClientMessage(MessageContainer container, ServerPlayer player) {
             Assert.NotNull(player);
         }
 

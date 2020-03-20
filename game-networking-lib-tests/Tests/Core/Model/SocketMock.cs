@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using Networking.IO;
-using Networking.Models;
+using Networking.Sockets;
+using Networking.Commons.Models;
 
 namespace Tests.Core.Model {
-    class SocketMock : ISocket {
+    class SocketMock : ITCPSocket {
         private static readonly Queue<SocketMock> pendingAcceptClients = new Queue<SocketMock>();
         private static readonly List<SocketMock> connectedClients = new List<SocketMock>();
 
@@ -24,7 +24,7 @@ namespace Tests.Core.Model {
             connectedClients.Clear();
         }
 
-        public void Accept(Action<ISocket> acceptAction) {
+        public void Accept(Action<ITCPSocket> acceptAction) {
             if (pendingAcceptClients.TryDequeue(out SocketMock socket)) {
                 connectedClients.Add(socket);
             }

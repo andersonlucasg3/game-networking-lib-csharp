@@ -1,10 +1,9 @@
-﻿using System;
-using Networking;
+﻿using Networking.Sockets;
+using Networking.Reliable;
 
 namespace MatchMaking {
     using Connection;
     using Models;
-    using Networking.IO;
 
     public class MatchMakingClient<TClient> : IClientConnectionDelegate<TClient> where TClient : MatchMakingClient, new() {
         private ClientConnection<TClient> connection;
@@ -15,9 +14,9 @@ namespace MatchMaking {
 
         public IMatchMakingClientDelegate<TClient> listener { get; set; }
 
-        public void Start(string host, int port, ISocket socket) {
+        public void Start(string host, int port, ITCPSocket socket) {
             if (!(this.connection?.IsConnecting ?? false)) {
-                this.connection = new ClientConnection<TClient>(new NetSocket(socket));
+                this.connection = new ClientConnection<TClient>(new ReliableSocket(socket));
                 this.connection.Connect(host, port);
             }
         }

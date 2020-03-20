@@ -1,0 +1,119 @@
+using System;
+using System.Collections.Generic;
+using GameNetworking.Commons.Models.Server;
+using GameNetworking.Commons.Models;
+using Networking.Commons.Sockets;
+using Networking.Commons.Models;
+
+namespace GameNetworking {
+    using Messages.Server;
+    using Commons;
+
+    public class GameServerPingController<TPlayer, TSocket, TClient, TNetClient> : 
+        NetworkPlayerCollection<TPlayer, TSocket, TClient, TNetClient>.IListener 
+        where TPlayer : NetworkPlayer<TSocket, TClient, TNetClient>, new()
+        where TSocket : ISocket
+        where TClient : INetworkClient<TSocket, TNetClient>
+        where TNetClient : INetClient<TSocket, TNetClient> {
+        private readonly Dictionary<int, PingPlayer<TPlayer, TSocket, TClient, TNetClient>> pingPlayers = new Dictionary<int, PingPlayer<TPlayer, TSocket, TClient, TNetClient>>();
+        private PingPlayer<TPlayer, TSocket, TClient, TNetClient>[] pingPlayersArray;
+
+        private readonly GameServer<TPlayer, TSocket, TClient, TNetClient> instance;
+        private readonly IMainThreadDispatcher dispatcher;
+
+        public float PingInterval { get; set; }
+
+        public GameServerPingController(GameServer<TPlayer, TSocket, TClient, TNetClient> instance, NetworkPlayerCollection<TPlayer, TSocket, TClient, TNetClient> storage, IMainThreadDispatcher dispatcher) {
+            this.instance = instance;
+            this.dispatcher = dispatcher;
+            storage.listeners.Add(this);
+        }
+
+        public float GetPingValue(TPlayer player) {
+            return this.pingPlayers[player.playerId].PingValue;
+        }
+
+        internal void Update() {
+            if (this.pingPlayersArray == null) { return; }
+            PingPlayer<TPlayer, TSocket, TClient, TNetClient> pingPlayer;
+            for (int i = 0; i < this.pingPlayersArray.Length; i++) {
+                pingPlayer = this.pingPlayersArray[i];
+                if (!pingPlayer.PingSent && pingPlayer.CanSendNextPing) {
+                    pingPlayer.SendingPing();
+                    this.instance.Send(new PingRequestMessage(), pingPlayer.player);
+                }
+            }
+        }
+
+        public float PongReceived(TPlayer player) {
+            var pingPlayer = this.pingPlayers[player.playerId];
+            var pingValue = pingPlayer?.ReceivedPong() ?? 0F;
+            player.mostRecentPingValue = pingValue;
+            return pingValue;
+        }
+
+        void NetworkPlayerCollection<TPlayer, TSocket, TClient, TNetClient>.IListener.PlayerStorageDidAdd(TPlayer player) {
+            this.pingPlayers[player.playerId] = new PingPlayer<TPlayer, TSocket, TClient, TNetClient>(player);
+            this.UpdateArray();
+        }
+
+        void NetworkPlayerCollection<TPlayer, TSocket, TClient, TNetClient>.IListener.PlayerStorageDidRemove(TPlayer player) {
+            if (this.pingPlayers.ContainsKey(player.playerId)) {
+                this.pingPlayers.Remove(player.playerId);
+                this.UpdateArray();
+            }
+        }
+
+        private void UpdateArray() {
+            this.pingPlayersArray = new List<PingPlayer<TPlayer, TSocket, TClient, TNetClient>>(this.pingPlayers.Values).ToArray();
+        }
+    }
+
+    internal class PingPlayer<TPlayer, TSocket, TClient, TNetClient> 
+        where TPlayer : NetworkPlayer<TSocket, TClient, TNetClient>, new()
+        where TSocket : ISocket
+        where TClient : INetworkClient<TSocket, TNetClient>
+        where TNetClient : INetClient<TSocket, TNetClient> {
+        private GameServerPingController<TPlayer, TSocket, TClient, TNetClient> pingController;
+
+        private float pingSentTime;
+
+        private float PingElapsedTime { get { return CurrentTime() - this.pingSentTime; } }
+
+        internal bool PingSent { get; private set; }
+        internal bool CanSendNextPing { get { return this.PingElapsedTime > (pingController?.PingInterval ?? 0.5F); } }
+        internal float PingValue { get; private set; }
+
+        internal TPlayer player { get; }
+
+        internal PingPlayer(TPlayer instance) {
+            this.player = instance;
+        }
+
+        internal void SendingPing() {
+            this.PingSent = true;
+            this.pingSentTime = CurrentTime();
+        }
+
+        internal float ReceivedPong() {
+            this.PingSent = false;
+            this.PingValue = this.PingElapsedTime;
+            return this.PingValue;
+        }
+
+        public override bool Equals(object obj) {
+            if (obj is TPlayer player) {
+                return this.player.Equals(player);
+            }
+            return Equals(this, obj);
+        }
+
+        private static float CurrentTime() {
+            return (float)TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds;
+        }
+
+        public override int GetHashCode() {
+            return base.GetHashCode();
+        }
+    }
+}

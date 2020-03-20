@@ -1,14 +1,15 @@
-﻿using System;
-using Networking;
-using Google.Protobuf;
+﻿using Google.Protobuf;
+using Networking.Commons.Models;
+using Networking.Models;
+using Networking.Reliable;
+using Networking.Sockets;
 
 namespace MatchMaking.Connection {
     using Models;
-    using Networking.Models;
     using Protobuf.Coders;
 
-    public sealed class ClientConnection<TClient>: INetworkingListener, INetClientReadListener where TClient: MatchMakingClient, new() {
-        private readonly INetworking networking;
+    public sealed class ClientConnection<TClient>: IReliableSocket.IListener, INetClient<ITCPSocket>.IListener where TClient: MatchMakingClient, new() {
+        private readonly IReliableSocket networking;
 
         private TClient client;
         
@@ -18,7 +19,7 @@ namespace MatchMaking.Connection {
 
         public IClientConnectionDelegate<TClient> listener { get; set; }
 
-        public ClientConnection(INetworking networking) {
+        public ClientConnection(IReliableSocket networking) {
             this.networking = networking;
         }
 
@@ -52,9 +53,9 @@ namespace MatchMaking.Connection {
             }
         }
 
-        #region INetClientReadDelegate
+        #region INetClient<ITCPSocket>.IListener
 
-        void INetClientReadListener.ClientDidReadBytes(NetClient client, byte[] bytes) {
+        void INetClient<ITCPSocket>.IListener.ClientDidReadBytes(INetClient<ITCPSocket> client, byte[] bytes) {
             this.client.decoder.Add(bytes);
             MessageContainer message;
             do {
@@ -65,21 +66,21 @@ namespace MatchMaking.Connection {
 
         #endregion
 
-        #region INetworkingDelegate
+        #region IReliableNetworking.IListener
 
-        void INetworkingListener.NetworkingDidConnect(INetClient client) {
+        void IReliableSocket.IListener.NetworkingDidConnect(IReliableNetClient client) {
             this.client = MatchMakingClient.Create<TClient>(client, new MessageDecoder(), new MessageEncoder());
             this.IsConnecting = false;
             this.listener?.ClientConnectionDidConnect();
         }
 
-        void INetworkingListener.NetworkingConnectDidTimeout() {
+        void IReliableSocket.IListener.NetworkingConnectDidTimeout() {
             this.client = null;
             this.IsConnecting = false;
             this.listener?.ClientConnectionDidTimeout();
         }
 
-        void INetworkingListener.NetworkingDidDisconnect(INetClient client) {
+        void IReliableSocket.IListener.NetworkingDidDisconnect(IReliableNetClient client) {
             this.client = null;
             this.IsConnecting = false;
             this.listener?.ClientConnectionDidDisconnect();

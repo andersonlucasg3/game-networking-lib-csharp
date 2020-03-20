@@ -16,11 +16,9 @@
     <OutputPath></OutputPath>
   </PropertyGroup>
   <ItemGroup>
+    <Folder Include="Sources\GameNetworking\PublicAPI\Reliable\Models\" />
     <Folder Include="Sources\MatchMaking\Connection\" />
-    <Folder Include="Sources\GameNetworking\Interfaces\" />
-    <Folder Include="Sources\GameNetworking\Networking\" />
-    <Folder Include="Sources\GameNetworking\PublicAPI\Client\Messages\" />
-    <Folder Include="Sources\GameNetworking\PublicAPI\Server\Executors\" />
+    <Folder Include="Sources\GameNetworking\Commons\Interfaces\" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Google.Protobuf">

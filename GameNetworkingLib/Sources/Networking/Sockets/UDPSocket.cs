@@ -97,6 +97,7 @@ namespace Networking.Sockets {
         protected BaseUDPSocket(BaseUDPSocket socket) {
             if (socket.socket.SocketType != SocketType.Dgram) { throw new ArgumentException("The socket param MUST be a Dgram socket"); }
             this.socket = socket.socket;
+            this.remoteEndPoint = socket.remoteEndPoint;
             this.Configure();
         }
 

@@ -6,29 +6,26 @@ namespace Networking.IO {
         bool isConnected { get; }
         bool isBound { get; }
 
-        bool noDelay { get; set; }
-        bool blocking { get; set; }
-
         #region Server
 
         void Bind(NetEndPoint endPoint);
         void Listen(int backlog);
-        void Accept(Action<ISocket> acceptAction);
+        void Accept(Action<ISocket> callback);
         void Close();
 
         #endregion
 
         #region Client
 
-        void Connect(NetEndPoint endPoint, Action connectAction);
-        void Disconnect(Action disconnectAction);
+        void Connect(NetEndPoint endPoint, Action callback);
+        void Disconnect(Action callback);
 
         #endregion
 
         #region Read & Write
 
-        void Read(Action<byte[]> readAction);
-        void Write(byte[] bytes, Action<int> writeAction);
+        void Read(Action<byte[]> callback);
+        void Write(byte[] bytes, Action<int> callback);
 
         #endregion
     }

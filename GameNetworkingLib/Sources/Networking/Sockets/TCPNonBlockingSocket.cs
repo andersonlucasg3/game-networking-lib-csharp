@@ -9,6 +9,9 @@ namespace Networking.Sockets {
     public sealed class TCPNonBlockingSocket : ISocket, IDisposable {
         private readonly Socket socket;
 
+        public bool isConnected => this.socket.Connected;
+        public bool isBound => this.socket.IsBound;
+
         public TCPNonBlockingSocket() {
             this.socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp) {
                 NoDelay = true,
@@ -22,13 +25,9 @@ namespace Networking.Sockets {
             this.socket = socket;
             this.socket.NoDelay = true;
             this.socket.Blocking = false;
+            this.socket.SendTimeout = 2000;
+            this.socket.ReceiveTimeout = 2000;
         }
-
-        public bool isConnected => this.socket.Connected;
-        public bool isBound => this.socket.IsBound;
-
-        public bool noDelay { get => this.socket.NoDelay; set => this.socket.NoDelay = value; }
-        public bool blocking { get => this.socket.Blocking; set => this.socket.Blocking = value; }
 
         public void Dispose() {
             this.socket.Dispose();
@@ -44,6 +43,7 @@ namespace Networking.Sockets {
         }
 
         public void Bind(NetEndPoint endPoint) {
+            this.socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.ReuseAddress, true);
             this.socket.Bind(this.From(endPoint));
         }
 

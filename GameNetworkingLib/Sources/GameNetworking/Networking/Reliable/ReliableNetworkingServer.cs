@@ -25,6 +25,19 @@ namespace GameNetworking.Networking {
             base.Update();
         }
 
+        #region Protected methods
+
+        protected override void Flush(ReliableNetworkClient client) {
+            if (client.client.isConnected) {
+                base.Flush(client);
+            } else {
+                this.listener?.NetworkingServerClientDidDisconnect(client);
+                this.disconnectedClientsToRemove.Enqueue(client);
+            }
+        }
+
+        #endregion
+
         #region Private Methods
 
         private void AcceptClient() {

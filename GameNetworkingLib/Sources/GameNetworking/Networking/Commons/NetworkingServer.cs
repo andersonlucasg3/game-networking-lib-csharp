@@ -87,15 +87,19 @@ namespace GameNetworking.Networking.Commons {
             }
         }
 
-        #region Private methods
+        #region Protected methods
 
-        private void Read(TClient client) {
+        protected virtual void Read(TClient client) {
             this.networking.Read(client.client);
         }
 
-        private void Flush(TClient client) {
+        protected virtual void Flush(TClient client) {
             this.networking.Flush(client.client);
         }
+
+        #endregion
+
+        #region Private methods
 
         private void RemoveDisconnected() {
             while (this.disconnectedClientsToRemove.Count > 0) {

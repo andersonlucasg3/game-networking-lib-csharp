@@ -16,8 +16,9 @@ namespace Networking.Sockets {
 
         private NetEndPoint bindEndPoint;
 
-        public bool isConnected => this.socket.isConnected;
         public bool isBound => this.socket.isBound;
+
+        public bool isCommunicable => this.socket.isConnected;
 
         public UDPSocket() { }
 

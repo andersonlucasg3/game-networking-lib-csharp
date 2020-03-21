@@ -4,6 +4,7 @@ namespace Networking.Commons.Sockets {
     using Models;
 
     public interface ISocket {
+        bool isCommunicable { get; }
         bool isBound { get; }
 
         void Bind(NetEndPoint endPoint);

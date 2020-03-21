@@ -32,6 +32,8 @@ namespace Networking.Sockets {
         public bool isConnected => this.socket.Connected;
         public bool isBound => this.socket.IsBound;
 
+        public bool isCommunicable => this.isConnected;
+
         public TCPNonBlockingSocket() {
             this.socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp) {
                 NoDelay = true,

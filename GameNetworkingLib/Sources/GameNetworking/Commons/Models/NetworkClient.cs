@@ -5,7 +5,9 @@ using Networking.Commons.Models;
 using Networking.Commons.Sockets;
 
 namespace GameNetworking.Commons.Models {
-    public interface INetworkClient<TSocket, TNetClient> : IEquatable<INetworkClient<TSocket, TNetClient>> where TSocket : ISocket where TNetClient : INetClient<TSocket, TNetClient> {
+    public interface INetworkClient<TSocket, TNetClient> : IEquatable<INetworkClient<TSocket, TNetClient>>
+        where TSocket : ISocket
+        where TNetClient : INetClient<TSocket, TNetClient> {
         TNetClient client { get; }
         IStreamReader reader { get; }
         IStreamWriter writer { get; }

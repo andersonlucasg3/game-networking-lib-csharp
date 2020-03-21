@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using GameNetworking.Models;
+using GameNetworking.Commons.Models;
 using Messages.Models;
 using Messages.Streams;
 using Networking.Commons;
@@ -7,7 +7,7 @@ using Networking.Commons.Models;
 using Networking.Commons.Sockets;
 
 namespace GameNetworking.Networking.Commons {
-    public interface INetworkingServer<TSocket, TClient, TNetClient> 
+    public interface INetworkingServer<TSocket, TClient, TNetClient>
         where TSocket : ISocket
         where TClient : INetworkClient<TSocket, TNetClient>
         where TNetClient : INetClient<TSocket, TNetClient> {
@@ -34,7 +34,7 @@ namespace GameNetworking.Networking.Commons {
     }
 
     public abstract class NetworkingServer<TNetworking, TSocket, TClient, TNetClient> : INetworkingServer<TSocket, TClient, TNetClient>, INetClient<TSocket, TNetClient>.IListener
-        where TNetworking : INetworking<TSocket, TNetClient> 
+        where TNetworking : INetworking<TSocket, TNetClient>
         where TSocket : ISocket
         where TClient : INetworkClient<TSocket, TNetClient>
         where TNetClient : INetClient<TSocket, TNetClient> {

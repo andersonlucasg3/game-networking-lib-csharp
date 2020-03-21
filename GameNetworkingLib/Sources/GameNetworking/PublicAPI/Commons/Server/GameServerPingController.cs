@@ -4,28 +4,26 @@ using GameNetworking.Commons.Models.Server;
 using GameNetworking.Commons.Models;
 using Networking.Commons.Sockets;
 using Networking.Commons.Models;
+using GameNetworking.Networking.Commons;
+using GameNetworking.Messages.Server;
 
-namespace GameNetworking {
-    using Messages.Server;
-    using Commons;
-
-    public class GameServerPingController<TPlayer, TSocket, TClient, TNetClient> : 
-        NetworkPlayerCollection<TPlayer, TSocket, TClient, TNetClient>.IListener 
+namespace GameNetworking.Commons.Server {
+    public class GameServerPingController<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient> :
+        NetworkPlayerCollection<TPlayer, TSocket, TClient, TNetClient>.IListener
         where TPlayer : NetworkPlayer<TSocket, TClient, TNetClient>, new()
+        where TNetworkingServer : INetworkingServer<TSocket, TClient, TNetClient>
         where TSocket : ISocket
         where TClient : INetworkClient<TSocket, TNetClient>
         where TNetClient : INetClient<TSocket, TNetClient> {
-        private readonly Dictionary<int, PingPlayer<TPlayer, TSocket, TClient, TNetClient>> pingPlayers = new Dictionary<int, PingPlayer<TPlayer, TSocket, TClient, TNetClient>>();
-        private PingPlayer<TPlayer, TSocket, TClient, TNetClient>[] pingPlayersArray;
+        private readonly Dictionary<int, PingPlayer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>> pingPlayers = new Dictionary<int, PingPlayer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>>();
+        private PingPlayer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>[] pingPlayersArray;
 
-        private readonly GameServer<TPlayer, TSocket, TClient, TNetClient> instance;
-        private readonly IMainThreadDispatcher dispatcher;
+        private readonly GameServer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient> instance;
 
         public float PingInterval { get; set; }
 
-        public GameServerPingController(GameServer<TPlayer, TSocket, TClient, TNetClient> instance, NetworkPlayerCollection<TPlayer, TSocket, TClient, TNetClient> storage, IMainThreadDispatcher dispatcher) {
+        public GameServerPingController(GameServer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient> instance, NetworkPlayerCollection<TPlayer, TSocket, TClient, TNetClient> storage) {
             this.instance = instance;
-            this.dispatcher = dispatcher;
             storage.listeners.Add(this);
         }
 
@@ -35,7 +33,7 @@ namespace GameNetworking {
 
         internal void Update() {
             if (this.pingPlayersArray == null) { return; }
-            PingPlayer<TPlayer, TSocket, TClient, TNetClient> pingPlayer;
+            PingPlayer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient> pingPlayer;
             for (int i = 0; i < this.pingPlayersArray.Length; i++) {
                 pingPlayer = this.pingPlayersArray[i];
                 if (!pingPlayer.PingSent && pingPlayer.CanSendNextPing) {
@@ -53,7 +51,7 @@ namespace GameNetworking {
         }
 
         void NetworkPlayerCollection<TPlayer, TSocket, TClient, TNetClient>.IListener.PlayerStorageDidAdd(TPlayer player) {
-            this.pingPlayers[player.playerId] = new PingPlayer<TPlayer, TSocket, TClient, TNetClient>(player);
+            this.pingPlayers[player.playerId] = new PingPlayer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>(player);
             this.UpdateArray();
         }
 
@@ -65,16 +63,17 @@ namespace GameNetworking {
         }
 
         private void UpdateArray() {
-            this.pingPlayersArray = new List<PingPlayer<TPlayer, TSocket, TClient, TNetClient>>(this.pingPlayers.Values).ToArray();
+            this.pingPlayersArray = new List<PingPlayer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>>(this.pingPlayers.Values).ToArray();
         }
     }
 
-    internal class PingPlayer<TPlayer, TSocket, TClient, TNetClient> 
+    internal class PingPlayer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>
         where TPlayer : NetworkPlayer<TSocket, TClient, TNetClient>, new()
+        where TNetworkingServer : INetworkingServer<TSocket, TClient, TNetClient>
         where TSocket : ISocket
         where TClient : INetworkClient<TSocket, TNetClient>
         where TNetClient : INetClient<TSocket, TNetClient> {
-        private GameServerPingController<TPlayer, TSocket, TClient, TNetClient> pingController;
+        private GameServerPingController<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient> pingController;
 
         private float pingSentTime;
 

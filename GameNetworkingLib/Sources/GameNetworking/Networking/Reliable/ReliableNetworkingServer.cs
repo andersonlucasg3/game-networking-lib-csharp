@@ -3,14 +3,13 @@ using Messages.Streams;
 using Networking.Sockets;
 using GameNetworking.Networking.Commons;
 using Networking.Reliable;
+using GameNetworking.Networking.Models;
 
 namespace GameNetworking.Networking {
-    using NetworkClient = Models.NetworkClient<ITCPSocket, ReliableNetClient>;
-
-    public class ReliableNetworkingServer : NetworkingServer<IReliableSocket, ITCPSocket, NetworkClient, ReliableNetClient> {
+    public class ReliableNetworkingServer : NetworkingServer<ReliableSocket, ITCPSocket, ReliableNetworkClient, ReliableNetClient> {
         public ReliableNetworkingServer(ReliableSocket backend) : base(backend) { }
 
-        public void Disconnect(NetworkClient client) {
+        public void Disconnect(ReliableNetworkClient client) {
             this.networking.Disconnect(client.client);
         }
 
@@ -32,7 +31,7 @@ namespace GameNetworking.Networking {
             ReliableNetClient client = this.networking?.Accept();
             if (client != null) {
                 client.listener = this;
-                NetworkClient networkClient = new NetworkClient(client, new MessageStreamReader(), new MessageStreamWriter());
+                var networkClient = new ReliableNetworkClient(client, new MessageStreamReader(), new MessageStreamWriter());
                 clientsStorage.Add(networkClient);
                 this.listener?.NetworkingServerDidAcceptClient(networkClient);
             }

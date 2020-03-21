@@ -5,12 +5,17 @@ using System.Net.Sockets;
 
 namespace Networking.Sockets {
     using Commons.Models;
+    using Networking.Commons.Sockets;
 
-    public sealed class UDPSocket : ITCPSocket, IDisposable {
+    public interface IUDPSocket : ISocket {
+
+    }
+
+    public sealed class UDPSocket : IUDPSocket, IDisposable {
         private BaseUDPSocket socket;
 
         private NetEndPoint bindEndPoint;
-        
+
         public bool isConnected => this.socket.isConnected;
         public bool isBound => this.socket.isBound;
 
@@ -204,7 +209,7 @@ namespace Networking.Sockets {
                     callback.Invoke(availableBytesList[index]);
                 }
                 availableBytesList.Clear();
-            }else {
+            } else {
                 callback.Invoke(Array.Empty<byte>());
             }
         }

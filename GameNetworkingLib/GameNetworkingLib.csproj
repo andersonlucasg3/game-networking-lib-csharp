@@ -19,6 +19,7 @@
     <Folder Include="Sources\GameNetworking\PublicAPI\Reliable\Models\" />
     <Folder Include="Sources\MatchMaking\Connection\" />
     <Folder Include="Sources\GameNetworking\Commons\Interfaces\" />
+    <Folder Include="Sources\Networking\Unreliable\Models\" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Google.Protobuf">

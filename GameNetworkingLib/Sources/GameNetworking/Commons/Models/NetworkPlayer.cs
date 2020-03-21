@@ -6,7 +6,7 @@ using GameNetworking.Commons.Models.Contract.Server;
 namespace GameNetworking.Commons.Models {
     namespace Contract {
         namespace Server {
-            public interface INetworkPlayer<TSocket, TClient, TNetClient> : IEquatable<INetworkPlayer<TSocket, TClient, TNetClient>> 
+            public interface INetworkPlayer<TSocket, TClient, TNetClient> : IEquatable<INetworkPlayer<TSocket, TClient, TNetClient>>
                 where TSocket : ISocket
                 where TClient : INetworkClient<TSocket, TNetClient>
                 where TNetClient : INetClient<TSocket, TNetClient> {
@@ -36,8 +36,8 @@ namespace GameNetworking.Commons.Models {
             int INetworkPlayer<TSocket, TClient, TNetClient>.playerId { get; set; }
             float INetworkPlayer<TSocket, TClient, TNetClient>.mostRecentPingValue { get; set; }
 
-            public TClient client => self.client;
-            public int playerId => self.playerId;
+            public TClient client { get => self.client; internal set => self.client = value; }
+            public int playerId { get => self.playerId; internal set => self.playerId = value; }
             public float mostRecentPingValue { get => self.mostRecentPingValue; internal set => self.mostRecentPingValue = value; }
 
             public NetworkPlayer() { }

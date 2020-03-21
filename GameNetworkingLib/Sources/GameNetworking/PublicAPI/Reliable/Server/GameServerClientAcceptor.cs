@@ -1,33 +1,43 @@
-﻿namespace GameNetworking {
-    using Models;
-    using Messages.Server;
-    using Commons;
-    using Logging;
-    using GameNetworking.Models.Server;
+﻿using Logging;
+using Networking.Sockets;
+using GameNetworking.Commons.Models.Server;
+using GameNetworking.Commons;
+using GameNetworking.Networking.Models;
+using Networking.Models;
+using GameNetworking.Messages.Server;
 
-    internal class GameServerClientAcceptor<PlayerType> : BaseExecutor<ReliableGameServer<PlayerType>> where PlayerType : NetworkPlayer, new() {
+namespace GameNetworking {
+
+    internal class GameServerClientAcceptor<TPlayer>
+        where TPlayer : NetworkPlayer<ITCPSocket, ReliableNetworkClient, ReliableNetClient>, new() {
+        private readonly ReliableGameServer<TPlayer> server;
+        private readonly IMainThreadDispatcher dispatcher;
+
         private int playerIdCounter = 1;
 
-        public GameServerClientAcceptor(ReliableGameServer<PlayerType> server, IMainThreadDispatcher dispatcher) : base(server, dispatcher) { }
+        public GameServerClientAcceptor(ReliableGameServer<TPlayer> server, IMainThreadDispatcher dispatcher) {
+            this.server = server;
+            this.dispatcher = dispatcher;
+        }
 
-        public void AcceptClient(NetworkClient client) {
-            var player = new PlayerType() { client = client, playerId = this.playerIdCounter };
+        public void AcceptClient(ReliableNetworkClient client) {
+            var player = new TPlayer() { client = client, playerId = this.playerIdCounter };
 
             this.playerIdCounter++;
 
-            this.instance.AddPlayer(player);
+            this.server.AddPlayer(player);
 
-            Logger.Log($"(AcceptClient) count {this.instance.AllPlayers().Count}");
+            Logger.Log($"(AcceptClient) count {this.server.AllPlayers().Count}");
 
-            var players = this.instance.AllPlayers();
-            PlayerType each;
+            var players = this.server.AllPlayers();
+            TPlayer each;
             for (int i = 0; i < players.Count; i++) {
                 each = players[i];
 
                 Logger.Log($"Sending ConnectedPlayerMessage from {player.playerId} to {each.playerId}");
 
                 // Sends the connected player message to all players
-                this.instance.Send(new ConnectedPlayerMessage {
+                this.server.Send(new ConnectedPlayerMessage {
                     playerId = player.playerId,
                     isMe = player.Equals(each)
                 }, each);
@@ -37,23 +47,23 @@
                 Logger.Log($"Sending ConnectedPlayerMessage from {each.playerId} to {player.playerId}");
 
                 // Sends the existing players to the player that just connected
-                this.instance.Send(new ConnectedPlayerMessage {
+                this.server.Send(new ConnectedPlayerMessage {
                     playerId = each.playerId,
                     isMe = false
                 }, player);
             }
 
-            instance.listener.GameServerPlayerDidConnect(player);
+            this.server.listener?.GameServerPlayerDidConnect(player);
         }
 
-        public void Disconnect(PlayerType player) {
-            this.instance.RemovePlayer(player);
+        public void Disconnect(TPlayer player) {
+            this.server.RemovePlayer(player);
 
-            Logger.Log($"(Disconnect) count {this.instance.AllPlayers().Count}");
+            Logger.Log($"(Disconnect) count {this.server.AllPlayers().Count}");
 
             if (player != null) {
-                this.instance.listener?.GameServerPlayerDidDisconnect(player);
-                this.instance.SendBroadcast(new DisconnectedPlayerMessage { playerId = player.playerId });
+                this.server.listener?.GameServerPlayerDidDisconnect(player);
+                this.server.SendBroadcast(new DisconnectedPlayerMessage { playerId = player.playerId });
             }
         }
     }

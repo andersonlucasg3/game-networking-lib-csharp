@@ -5,14 +5,16 @@ namespace Networking.Models {
     using Commons.IO;
     using Sockets;
 
-    public interface IReliableNetClient<TDerived> : INetClient<ITCPSocket, TDerived> where TDerived : IReliableNetClient<TDerived> {
+    public interface IReliableNetClient<TSocket, TDerived> : INetClient<TSocket, TDerived>
+        where TDerived : IReliableNetClient<TSocket, TDerived>
+        where TSocket : ITCPSocket {
         bool isConnected { get; }
 
         void Connect(NetEndPoint endPoint, Action connectAction);
         void Disconnect(Action disconnectAction);
     }
 
-    public class ReliableNetClient : NetClient<ITCPSocket, ReliableNetClient>, IReliableNetClient<ReliableNetClient> {
+    public class ReliableNetClient : NetClient<ITCPSocket, ReliableNetClient>, IReliableNetClient<ITCPSocket, ReliableNetClient> {
         public ReliableNetClient(ITCPSocket socket, IReader reader, IWriter writer) : base(socket, reader, writer) { }
 
         public bool isConnected { get { return this.socket.isConnected; } }

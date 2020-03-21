@@ -1,16 +1,16 @@
-﻿using GameNetworking.Models;
+﻿using GameNetworking.Commons.Models;
 using Messages.Models;
 using Networking.Commons;
 using Networking.Commons.Models;
 using Networking.Commons.Sockets;
 
 namespace GameNetworking.Networking.Commons {
-    public interface INetworkingClient<TSocket, TClient, TNetClient, TListener> 
-        where TSocket : ISocket 
+    public interface INetworkingClient<TSocket, TClient, TNetClient, TListener>
+        where TSocket : ISocket
         where TClient : INetworkClient<TSocket, TNetClient>
         where TNetClient : INetClient<TSocket, TNetClient>
         where TListener : INetworkingClient<TSocket, TClient, TNetClient, TListener>.IListener {
-        
+
         public interface IListener {
             void NetworkingClientDidReadMessage(MessageContainer container);
         }
@@ -21,8 +21,8 @@ namespace GameNetworking.Networking.Commons {
     }
 
     public abstract class NetworkingClient<TNetworking, TSocket, TClient, TNetClient, TListener> : INetworkingClient<TSocket, TClient, TNetClient, TListener>, INetClient<TSocket, TNetClient>.IListener
-        where TNetworking: INetworking<TSocket, TNetClient> 
-        where TSocket : ISocket 
+        where TNetworking : INetworking<TSocket, TNetClient>
+        where TSocket : ISocket
         where TClient : INetworkClient<TSocket, TNetClient>
         where TNetClient : INetClient<TSocket, TNetClient>
         where TListener : INetworkingClient<TSocket, TClient, TNetClient, TListener>.IListener {

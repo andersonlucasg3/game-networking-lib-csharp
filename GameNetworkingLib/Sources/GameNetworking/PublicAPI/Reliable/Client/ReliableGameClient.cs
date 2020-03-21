@@ -7,7 +7,7 @@ using Networking.Models;
 using GameNetworking.Networking;
 
 namespace GameNetworking {
-    public class ReliableGameClient<TPlayer> : GameClient<ReliableNetworkingClient, TPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient> 
+    public class ReliableGameClient<TPlayer> : GameClient<ReliableNetworkingClient, TPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient>
         where TPlayer : class, INetworkPlayer<ITCPSocket, ReliableNetworkClient, ReliableNetClient>, new() {
         public new interface IListener : GameClient<ReliableNetworkingClient, TPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient>.IListener {
             void GameClientDidConnect();

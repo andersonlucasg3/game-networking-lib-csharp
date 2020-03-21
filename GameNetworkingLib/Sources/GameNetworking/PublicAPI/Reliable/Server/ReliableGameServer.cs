@@ -23,7 +23,8 @@ namespace GameNetworking {
         public new IListener listener { get => base.listener as IListener; set => base.listener = value; }
 
         public ReliableGameServer(ReliableNetworkingServer server, IMainThreadDispatcher dispatcher) : base(server, dispatcher) {
-            this.clientAcceptor = new GameServerClientAcceptor<TPlayer>(this, dispatcher);
+            this.clientAcceptor = new GameServerClientAcceptor<TPlayer>(this);
+            this.networkingServer.listener = this;
         }
 
         public void Disconnect(TPlayer player) {

@@ -1,7 +1,6 @@
 ﻿using Logging;
 using Networking.Sockets;
 using GameNetworking.Commons.Models.Server;
-using GameNetworking.Commons;
 using GameNetworking.Networking.Models;
 using Networking.Models;
 using GameNetworking.Messages.Server;
@@ -10,13 +9,11 @@ namespace GameNetworking {
     internal class GameServerClientAcceptor<TPlayer>
         where TPlayer : NetworkPlayer<ITCPSocket, ReliableNetworkClient, ReliableNetClient>, new() {
         private readonly ReliableGameServer<TPlayer> server;
-        private readonly IMainThreadDispatcher dispatcher;
 
         private int playerIdCounter = 1;
 
-        public GameServerClientAcceptor(ReliableGameServer<TPlayer> server, IMainThreadDispatcher dispatcher) {
+        public GameServerClientAcceptor(ReliableGameServer<TPlayer> server) {
             this.server = server;
-            this.dispatcher = dispatcher;
         }
 
         public void AcceptClient(ReliableNetworkClient client) {

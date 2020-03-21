@@ -32,8 +32,11 @@ namespace GameNetworking.Commons.Models {
         }
 
         public override bool Equals(object obj) {
-            if (obj is INetworkClient<TSocket, TNetClient> client) {
-                return this.Equals(client);
+            if (obj is INetworkClient<TSocket, TNetClient> n_client) {
+                return this.Equals(n_client);
+            }
+            if (obj is INetClient<TSocket, TNetClient> client) {
+                return this.client.Equals(client);
             }
             return object.Equals(this, obj);
         }

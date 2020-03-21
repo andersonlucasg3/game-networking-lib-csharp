@@ -45,6 +45,9 @@ namespace Networking.Commons.Models {
             if (obj is Socket socket) {
                 return this.socket.Equals(socket);
             }
+            if (obj is TDerived derived) {
+                return this.socket.Equals(derived.socket);
+            }
             return object.Equals(this, obj);
         }
 

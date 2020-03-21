@@ -13,7 +13,6 @@ namespace Tests.Core.Model {
 
         public bool isConnected { get; private set; }
         public bool isBound { get; private set; }
-        public bool isAcceptClientSupported => true;
 
         public void Bind(NetEndPoint endPoint) {
             this.isBound = true;

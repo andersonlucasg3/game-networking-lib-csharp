@@ -1,39 +1,45 @@
 ﻿using Messages.Models;
-using GameNetworking.Models.Client;
-using GameNetworking.Models.Contract.Client;
-using GameNetworking.Commons;
+using GameNetworking.Networking.Commons;
+using Networking.Sockets;
+using GameNetworking.Commons.Models.Contract.Client;
+using GameNetworking.Networking.Models;
+using Networking.Models;
 using GameNetworking.Networking;
 
 namespace GameNetworking {
-    internal class GameClientConnection<PlayerType> : BaseExecutor<GameClient<PlayerType>>, INetworkingClientListener where PlayerType : INetworkPlayer, new() {
-        internal GameClientConnection(GameClient<PlayerType> client, IMainThreadDispatcher dispatcher) : base(client, dispatcher) {
-            client.networkingClient.listener = this;
+    internal class GameClientConnection<TPlayer> : ReliableNetworkingClient.IListener
+        where TPlayer : class, INetworkPlayer<ITCPSocket, ReliableNetworkClient, ReliableNetClient>, new() {
+        private readonly ReliableGameClient<TPlayer> client;
+
+        internal GameClientConnection(ReliableGameClient<TPlayer> client) {
+            this.client = client;
+            this.client.networkingClient.listener = this;
         }
 
         internal void Connect(string host, int port) {
-            this.instance?.networkingClient.Connect(host, port);
+            this.client?.networkingClient.Connect(host, port);
         }
 
         internal void Disconnect() {
-            this.instance?.networkingClient.Disconnect();
+            this.client?.networkingClient.Disconnect();
         }
 
-        #region INetworkingClientDelegate
+        #region INetworkingClient<TSocket, TClient, TNetClient>.IListener
 
-        void INetworkingClientListener.NetworkingClientDidConnect() {
-            this.instance?.listener?.GameClientDidConnect();
+        void ReliableNetworkingClient.IListener.NetworkingClientDidConnect() {
+            this.client?.listener?.GameClientDidConnect();
         }
 
-        void INetworkingClientListener.NetworkingClientConnectDidTimeout() {
-            this.instance?.listener?.GameClientConnectDidTimeout();
+        void ReliableNetworkingClient.IListener.NetworkingClientConnectDidTimeout() {
+            this.client?.listener?.GameClientConnectDidTimeout();
         }
 
-        void INetworkingClientListener.NetworkingClientDidDisconnect() {
-            this.instance?.listener?.GameClientDidDisconnect();
+        void ReliableNetworkingClient.IListener.NetworkingClientDidDisconnect() {
+            this.client?.listener?.GameClientDidDisconnect();
         }
 
-        void INetworkingClientListener.NetworkingClientDidReadMessage(MessageContainer container) {
-            this.instance?.GameClientConnectionDidReceiveMessage(container);
+        void INetworkingClient<ITCPSocket, ReliableNetworkClient, ReliableNetClient>.IListener.NetworkingClientDidReadMessage(MessageContainer container) {
+            this.client?.GameClientConnectionDidReceiveMessage(container);
         }
 
         #endregion

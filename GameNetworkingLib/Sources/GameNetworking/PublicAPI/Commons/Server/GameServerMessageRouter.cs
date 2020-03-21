@@ -32,7 +32,7 @@ namespace GameNetworking.Commons.Server {
         public void Route(MessageContainer container, TPlayer player) {
             if (container == null) { return; }
 
-            switch ((MessageType)container.Type) {
+            switch ((MessageType)container.type) {
             case MessageType.pong:
                 Execute(new PongRequestExecutor<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>(this.server, player));
                 break;

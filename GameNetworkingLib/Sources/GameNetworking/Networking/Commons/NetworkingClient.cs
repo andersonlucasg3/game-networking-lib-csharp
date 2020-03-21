@@ -5,11 +5,10 @@ using Networking.Commons.Models;
 using Networking.Commons.Sockets;
 
 namespace GameNetworking.Networking.Commons {
-    public interface INetworkingClient<TSocket, TClient, TNetClient, TListener>
+    public interface INetworkingClient<TSocket, TClient, TNetClient>
         where TSocket : ISocket
         where TClient : INetworkClient<TSocket, TNetClient>
-        where TNetClient : INetClient<TSocket, TNetClient>
-        where TListener : INetworkingClient<TSocket, TClient, TNetClient, TListener>.IListener {
+        where TNetClient : INetClient<TSocket, TNetClient> {
 
         public interface IListener {
             void NetworkingClientDidReadMessage(MessageContainer container);
@@ -20,18 +19,17 @@ namespace GameNetworking.Networking.Commons {
         IListener listener { get; set; }
     }
 
-    public abstract class NetworkingClient<TNetworking, TSocket, TClient, TNetClient, TListener> : INetworkingClient<TSocket, TClient, TNetClient, TListener>, INetClient<TSocket, TNetClient>.IListener
+    public abstract class NetworkingClient<TNetworking, TSocket, TClient, TNetClient> : INetworkingClient<TSocket, TClient, TNetClient>, INetClient<TSocket, TNetClient>.IListener
         where TNetworking : INetworking<TSocket, TNetClient>
         where TSocket : ISocket
         where TClient : INetworkClient<TSocket, TNetClient>
-        where TNetClient : INetClient<TSocket, TNetClient>
-        where TListener : INetworkingClient<TSocket, TClient, TNetClient, TListener>.IListener {
+        where TNetClient : INetClient<TSocket, TNetClient> {
 
         protected TNetworking networking { get; }
 
         public TClient client { get; protected set; }
 
-        public INetworkingClient<TSocket, TClient, TNetClient, TListener>.IListener listener { get; set; }
+        public INetworkingClient<TSocket, TClient, TNetClient>.IListener listener { get; set; }
 
         public NetworkingClient(TNetworking backend) {
             this.networking = backend;
@@ -47,7 +45,7 @@ namespace GameNetworking.Networking.Commons {
             this.networking.Flush(this.client.client);
         }
 
-        #region INetClientReadDelegate
+        #region INetClient<TSocket, TNetClient>.IListener
 
         void INetClient<TSocket, TNetClient>.IListener.ClientDidReadBytes(TNetClient client, byte[] bytes) {
             this.client.reader.Add(bytes);

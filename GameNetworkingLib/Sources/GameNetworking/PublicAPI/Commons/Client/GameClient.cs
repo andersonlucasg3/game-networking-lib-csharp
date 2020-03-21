@@ -1,52 +1,38 @@
 ﻿using System;
 using System.Collections.Generic;
+using GameNetworking.Commons.Models;
+using GameNetworking.Commons.Models.Contract.Client;
+using GameNetworking.Networking.Commons;
 using Messages.Models;
-using System.Linq;
-using Networking.Commons;
-using Networking.Commons.Sockets;
 using Networking.Commons.Models;
-using GameNetworking.Models.Contract.Client;
-using GameNetworking.Commons;
-using GameNetworking.Networking;
-using GameNetworking.Models;
+using Networking.Commons.Sockets;
 
-namespace GameNetworking {
-    public class GameClient<TPlayer> where TPlayer : INetworkPlayer, new() {
+namespace GameNetworking.Commons.Client {
+    public abstract class GameClient<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient>
+        where TNetworkingClient : INetworkingClient<TSocket, TClient, TNetClient>
+        where TPlayer : class, INetworkPlayer<TSocket, TClient, TNetClient>, new()
+        where TSocket : ISocket
+        where TClient : INetworkClient<TSocket, TNetClient>
+        where TNetClient : INetClient<TSocket, TNetClient> {
         public interface IListener {
-            void GameClientDidConnect();
-            void GameClientConnectDidTimeout();
-            void GameClientDidDisconnect();
-
             void GameClientDidIdentifyLocalPlayer(TPlayer player);
-
             void GameClientDidReceiveMessage(MessageContainer container);
-
             void GameClientNetworkPlayerDidDisconnect(TPlayer player);
         }
 
-        private readonly NetworkPlayerCollection<TPlayer> playersStorage;
-        private readonly GameClientConnection<TPlayer> connection;
-        private readonly GameClientMessageRouter<TPlayer> router;
+        protected NetworkPlayerCollection<TPlayer, TSocket, TClient, TNetClient> playersStorage { get; private set; }
+        protected GameClientMessageRouter<TPlayer> router { get; private set; }
 
-        internal readonly ReliableNetworkingClient networkingClient;
+        internal TNetworkingClient networkingClient { get; private set; }
 
         public IListener listener { get; set; }
 
-        public GameClient(INetworking<ISocket, INetClient<ISocket>> backend, IMainThreadDispatcher dispatcher) {
-            this.playersStorage = new NetworkPlayerCollection<TPlayer>();
+        public GameClient(TNetworkingClient backend, IMainThreadDispatcher dispatcher) {
+            this.networkingClient = backend;
 
-            this.networkingClient = new ReliableNetworkingClient(backend);
+            this.playersStorage = new NetworkPlayerCollection<TPlayer, TSocket, TClient, TNetClient>();
 
-            this.connection = new GameClientConnection<TPlayer>(this, dispatcher);
             this.router = new GameClientMessageRouter<TPlayer>(this, dispatcher);
-        }
-
-        public void Connect(string host, int port) {
-            this.connection.Connect(host, port);
-        }
-
-        public void Disconnect() {
-            this.connection.Disconnect();
         }
 
         public void Send(ITypedMessage message) {

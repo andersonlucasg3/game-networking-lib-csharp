@@ -6,17 +6,17 @@ namespace Messages.Models {
     public sealed class MessageContainer {
         private readonly byte[] messageBytes;
 
-        public int Type {
+        public int type {
             get; private set;
         }
 
         public MessageContainer(byte[] messageBytes) {
             this.messageBytes = messageBytes;
-            this.Type = CoderHelper.ReadHeader(messageBytes);
+            this.type = CoderHelper.ReadHeader(messageBytes);
         }
 
         public bool Is(int type) {
-            return type == this.Type;
+            return type == this.type;
         }
 
         public TMessage Parse<TMessage>() where TMessage : class, IDecodable, new() {

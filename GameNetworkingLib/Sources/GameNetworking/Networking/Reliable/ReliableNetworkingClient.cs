@@ -6,9 +6,9 @@ using GameNetworking.Networking.Commons;
 using GameNetworking.Networking.Models;
 
 namespace GameNetworking.Networking {
-    public class ReliableNetworkingClient : NetworkingClient<ReliableSocket, ITCPSocket, ReliableNetworkClient, ReliableNetClient, ReliableNetworkingClient.IListener>, IReliableSocket.IListener {
+    public class ReliableNetworkingClient : NetworkingClient<ReliableSocket, ITCPSocket, ReliableNetworkClient, ReliableNetClient>, IReliableSocket.IListener {
 
-        public interface IListener : INetworkingClient<ITCPSocket, ReliableNetworkClient, ReliableNetClient, IListener>.IListener {
+        public interface IListener : INetworkingClient<ITCPSocket, ReliableNetworkClient, ReliableNetClient>.IListener {
             void NetworkingClientDidConnect();
             void NetworkingClientConnectDidTimeout();
             void NetworkingClientDidDisconnect();
@@ -35,7 +35,7 @@ namespace GameNetworking.Networking {
         void IReliableSocket.IListener.NetworkingDidConnect(ReliableNetClient client) {
             client.listener = this;
 
-            this.client = new NetworkClient<ITCPSocket, ReliableNetClient>(client, new MessageStreamReader(), new MessageStreamWriter());
+            this.client = new ReliableNetworkClient(client, new MessageStreamReader(), new MessageStreamWriter());
             this.listener?.NetworkingClientDidConnect();
         }
 

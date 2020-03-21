@@ -2,11 +2,13 @@
 using Messages.Models;
 
 namespace GameNetworking.Messages.Server {
-    public class ConnectedPlayerMessage: ITypedMessage {
+    public class ConnectedPlayerMessage : ITypedMessage {
         int ITypedMessage.type => (int)MessageType.connectedPlayer;
 
         public int playerId { get; set; }
         public bool isMe { get; set; }
+
+        public ConnectedPlayerMessage() { }
 
         void IDecodable.Decode(IDecoder decoder) {
             this.playerId = decoder.GetInt();

@@ -23,6 +23,8 @@ namespace Networking.Sockets {
         void Connect(NetEndPoint endPoint, Action callback);
         void Disconnect(Action callback);
 
+        void Read(Action<byte[]> callback);
+
         #endregion
     }
 

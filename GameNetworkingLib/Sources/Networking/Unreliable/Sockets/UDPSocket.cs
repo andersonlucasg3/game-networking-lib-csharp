@@ -8,146 +8,81 @@ namespace Networking.Sockets {
     using Networking.Commons.Sockets;
 
     public interface IUDPSocket : ISocket {
+        void Close();
 
+        void Read(Action<byte[], UDPSocket> callback);
     }
 
     public sealed class UDPSocket : IUDPSocket, IDisposable {
-        private BaseUDPSocket socket;
+        private const int bufferSize = 8 * 1024;
 
-        private NetEndPoint bindEndPoint;
+        private readonly Socket socket;
+        private readonly EndPoint remoteEndPoint;
+        private readonly Dictionary<EndPoint, UDPSocket> instantiatedEndPointSockets;
 
-        public bool isBound => this.socket.isBound;
+        public bool isBound => this.socket.IsBound;
+        public bool isCommunicable => this.socket.Connected;
 
-        public bool isCommunicable => this.socket.isConnected;
+        public UDPSocket() : this(new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp), null) { }
 
-        public UDPSocket() { }
-
-        private UDPSocket(BaseUDPSocket socket) {
+        private UDPSocket(Socket socket, EndPoint remoteEndPoint) {
+            if (socket.SocketType != SocketType.Dgram) { throw new ArgumentException("The socket param MUST be a Dgram socket"); }
             this.socket = socket;
+            this.remoteEndPoint = remoteEndPoint;
+            this.instantiatedEndPointSockets = new Dictionary<EndPoint, UDPSocket>();
+            this.Configure();
         }
 
         public void Dispose() {
             this.socket.Dispose();
+        }
+
+        public void Close() {
+            this.socket.Close();
+        }
+
+        public void Read(Action<byte[], UDPSocket> callback) {
+            byte[] buffer = new byte[bufferSize];
+            EndPoint endPoint = new IPEndPoint(0, 0);
+            this.socket.BeginReceiveFrom(buffer, 0, bufferSize, SocketFlags.None, ref endPoint, asyncResult => {
+                var count = this.socket.EndReceiveFrom(asyncResult, ref endPoint);
+                byte[] shrinked = new byte[count];
+                Copy(buffer, ref shrinked);
+
+                if (this.instantiatedEndPointSockets.TryGetValue(endPoint, out UDPSocket value)) {
+                    callback.Invoke(shrinked, value);
+                } else {
+                    var socket = new UDPSocket(this.socket, endPoint);
+                    this.instantiatedEndPointSockets[endPoint] = socket;
+                    callback.Invoke(shrinked, socket);
+                }
+            }, null);
+        }
+
+        public void Write(byte[] bytes, Action<int> callback) {
+            byte[] buffer = new byte[bufferSize];
+            this.socket.BeginSendTo(buffer, 0, bufferSize, SocketFlags.None, this.remoteEndPoint, asyncResult => {
+                var writtenCount = this.socket.EndSendTo(asyncResult);
+                callback.Invoke(writtenCount);
+            }, null);
         }
 
         #region Server
 
-        public void Accept(Action<IUDPSocket> callback) {
-            this.socket.Accept(socket => callback.Invoke(new UDPSocket(this.socket)));
-        }
-
         public void Bind(NetEndPoint endPoint) {
-            this.bindEndPoint = endPoint;
-        }
-
-        public void Listen() {
-            this.socket = new UDPServer();
-            this.socket.Bind(this.From(this.bindEndPoint));
+            this.socket.Bind(this.From(endPoint));
         }
 
         #endregion
-
-        public void Close() {
-            this.socket.Close();
-        }
-
-        public void Connect(NetEndPoint endPoint, Action callback) {
-            this.socket = new UDPClient();
-            this.socket.Connect(this.From(endPoint));
-            callback.Invoke();
-        }
-
-        public void Disconnect(Action callback) {
-            this.socket.Disconnect(callback);
-        }
-
-        public void Read(Action<byte[]> callback) {
-            this.socket.Read(callback);
-        }
-
-        public void Write(byte[] bytes, Action<int> callback) {
-            this.socket.Write(bytes, callback);
-        }
 
         #region Private Methods
 
-        private IPEndPoint From(NetEndPoint ep) {
-            return new IPEndPoint(IPAddress.Parse(ep.host), ep.port);
-        }
-
-        #endregion
-    }
-
-    abstract class BaseUDPSocket : IDisposable {
-        class State {
-            public byte[] buffer = new byte[bufferSize];
-            public EndPoint endPointFrom = new IPEndPoint(IPAddress.Any, 0);
-        }
-
-        private readonly Socket socket;
-        private const int bufferSize = 8 * 1024;
-
-        public EndPoint remoteEndPoint { get; private set; }
-        public readonly bool isConnected = true;
-        public bool isBound => this.socket.IsBound;
-
-        protected BaseUDPSocket() {
-            this.socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp) {
-                SendTimeout = 2000,
-                ReceiveTimeout = 2000
-            };
-            this.Configure();
-        }
-
-        protected BaseUDPSocket(BaseUDPSocket socket) {
-            if (socket.socket.SocketType != SocketType.Dgram) { throw new ArgumentException("The socket param MUST be a Dgram socket"); }
-            this.socket = socket.socket;
-            this.remoteEndPoint = socket.remoteEndPoint;
-            this.Configure();
-        }
-
-        public void Dispose() {
-            if (socket == null) { return; }
-            this.socket.Dispose();
-        }
-
-        #region Public methods
-
-        public void Bind(EndPoint endPoint) {
-            this.socket.Bind(endPoint);
-        }
-
-        public virtual void Accept(Action<BaseUDPSocket> callback) {
-            this.Read();
-        }
-
-        public virtual void Connect(EndPoint endPoint) {
-            this.remoteEndPoint = endPoint;
-        }
-
-        public virtual void Disconnect(Action callback) {
-            callback.Invoke();
-        }
-
-        public void Close() {
-            this.socket.Close();
-        }
-
-        public abstract void Read(Action<byte[]> callback);
-
-        public virtual void Write(byte[] bytes, Action<int> callback) {
-            this.socket.BeginSendTo(bytes, 0, bytes.Length, SocketFlags.None, this.remoteEndPoint, (ar) => {
-                int written = this.socket.EndSend(ar);
-                callback.Invoke(written);
-            }, this);
-        }
-
-        #endregion
-
-        #region Private methods
-
         private void Configure() {
             this.socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.ReuseAddress, true);
+        }
+
+        private IPEndPoint From(NetEndPoint ep) {
+            return new IPEndPoint(IPAddress.Parse(ep.host), ep.port);
         }
 
         private static void Copy(byte[] source, ref byte[] destination) {
@@ -157,114 +92,5 @@ namespace Networking.Sockets {
         }
 
         #endregion
-
-        #region Protected methods 
-
-        protected virtual void Read() {
-            var state = new State();
-            byte[] buffer = new byte[bufferSize];
-            this.socket.BeginReceiveFrom(state.buffer, 0, bufferSize, SocketFlags.None, ref state.endPointFrom, asyncResult => {
-                var count = this.socket.EndReceiveFrom(asyncResult, ref state.endPointFrom);
-                byte[] shrinked = new byte[count];
-                Copy(buffer, ref shrinked);
-                this.Read(shrinked, state.endPointFrom as IPEndPoint);
-            }, state);
-        }
-
-        protected abstract void Read(byte[] bytes, IPEndPoint ep);
-
-        #endregion
-    }
-
-    class UDPServer : BaseUDPSocket {
-        private readonly Dictionary<string, UDPClient> ipClientAssociation = new Dictionary<string, UDPClient>();
-        private readonly Dictionary<UDPClient, string> clientIpAssociation = new Dictionary<UDPClient, string>();
-
-        private readonly Dictionary<string, List<byte[]>> readBytesList = new Dictionary<string, List<byte[]>>();
-
-        private Action<BaseUDPSocket> acceptCallback;
-
-        public UDPServer() : base() { }
-
-        internal void Disassociate(UDPClient client) {
-            if (this.clientIpAssociation.TryGetValue(client, out string ip)) {
-                this.clientIpAssociation.Remove(client);
-                this.ipClientAssociation.Remove(ip);
-            }
-        }
-
-        public override void Accept(Action<BaseUDPSocket> callback) {
-            this.acceptCallback = callback;
-            base.Accept(callback);
-        }
-
-        public override void Read(Action<byte[]> callback) {
-            throw new NotImplementedException();
-        }
-
-        public void Read(UDPClient client, Action<byte[]> callback) {
-            var ep = client.remoteEndPoint as IPEndPoint;
-            var ip = ep.Address.ToString();
-            if (this.readBytesList.TryGetValue(ip, out List<byte[]> availableBytesList)) {
-                for (int index = 0; index < availableBytesList.Count; index++) {
-                    callback.Invoke(availableBytesList[index]);
-                }
-                availableBytesList.Clear();
-            } else {
-                callback.Invoke(Array.Empty<byte>());
-            }
-        }
-
-        protected override void Read(byte[] bytes, IPEndPoint ep) {
-            string ip = ep.Address.ToString();
-            if (!this.ipClientAssociation.ContainsKey(ip)) {
-                var client = new UDPClient(this, this);
-                client.Connect(ep);
-
-                this.ipClientAssociation[ip] = client;
-                this.clientIpAssociation[client] = ip;
-
-                this.acceptCallback.Invoke(client);
-            }
-
-            if (this.readBytesList.TryGetValue(ip, out List<byte[]> bytesList)) {
-                bytesList.Add(bytes);
-            } else {
-                this.readBytesList.Add(ip, new List<byte[]> { bytes });
-            }
-        }
-    }
-
-    class UDPClient : BaseUDPSocket {
-        private readonly UDPServer associatedServer = null;
-
-        public UDPClient() : base() { }
-
-        public UDPClient(BaseUDPSocket socket, UDPServer associatedServer) : base(socket) {
-            this.associatedServer = associatedServer;
-        }
-
-        public override void Connect(EndPoint endPoint) {
-            base.Connect(endPoint);
-            this.Bind(endPoint);
-        }
-
-        public override void Disconnect(Action callback) {
-            this.associatedServer.Disassociate(this);
-
-            base.Disconnect(callback);
-        }
-
-        public override void Read(Action<byte[]> callback) {
-            this.associatedServer.Read(this, callback);
-        }
-
-        public override void Accept(Action<BaseUDPSocket> callback) {
-            throw new NotImplementedException();
-        }
-
-        protected override void Read(byte[] bytes, IPEndPoint ep) {
-            throw new NotImplementedException();
-        }
     }
 }

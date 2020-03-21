@@ -9,7 +9,6 @@ namespace Networking.Commons.Sockets {
 
         void Bind(NetEndPoint endPoint);
 
-        void Read(Action<byte[]> callback);
         void Write(byte[] bytes, Action<int> callback);
     }
 }

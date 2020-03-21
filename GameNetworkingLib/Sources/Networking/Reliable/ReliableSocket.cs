@@ -7,7 +7,7 @@ namespace Networking {
     using Logging;
     using Commons;
     using Commons.Models;
-    using Commons.IO.Extensions;
+    using Networking.IO;
 
     public interface IReliableSocket : INetworking<ITCPSocket, ReliableNetClient> {
 
@@ -61,8 +61,7 @@ namespace Networking {
             this.AcceptNewClient();
 
             if (this.acceptedQueue.Count > 0) {
-                var accepted = this.acceptedQueue.Dequeue();
-                return new ReliableNetClient(accepted, accepted.Reader(), accepted.Writer());
+                return this.CreateNetClient(this.acceptedQueue.Dequeue());
             }
             return null;
         }
@@ -72,7 +71,7 @@ namespace Networking {
         }
 
         public void Connect(string host, int port) {
-            ReliableNetClient client = new ReliableNetClient(this.socket, this.socket.Reader(), this.socket.Writer());
+            ReliableNetClient client = this.CreateNetClient(this.socket);
             NetEndPoint ep = new NetEndPoint(host, port);
             client.Connect(ep, () => {
                 if (client.isConnected) {
@@ -104,6 +103,10 @@ namespace Networking {
             } else {
                 this.listener?.NetworkingDidDisconnect(client);
             }
+        }
+
+        private ReliableNetClient CreateNetClient(ITCPSocket socket) {
+            return new ReliableNetClient(socket, new ReliableNetworkingReader(socket), new ReliableNetworkingWriter(socket));
         }
     }
 }

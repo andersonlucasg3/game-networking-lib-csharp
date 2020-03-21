@@ -31,7 +31,7 @@ namespace Networking.Sockets {
 
         #region Server
 
-        public void Accept(Action<ITCPSocket> callback) {
+        public void Accept(Action<IUDPSocket> callback) {
             this.socket.Accept(socket => callback.Invoke(new UDPSocket(this.socket)));
         }
 
@@ -39,7 +39,7 @@ namespace Networking.Sockets {
             this.bindEndPoint = endPoint;
         }
 
-        public void Listen(int backlog) {
+        public void Listen() {
             this.socket = new UDPServer();
             this.socket.Bind(this.From(this.bindEndPoint));
         }

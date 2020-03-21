@@ -12,7 +12,7 @@ using Networking.Commons.Models;
 using Networking.Commons.Sockets;
 
 namespace GameNetworking.Commmons.Client {
-    internal class GameClientMessageRouter<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient> 
+    public class GameClientMessageRouter<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient> 
         where TPlayer : class, INetworkPlayer<TSocket, TClient, TNetClient>, new()
         where TNetworkingClient : INetworkingClient<TSocket, TClient, TNetClient>
         where TSocket : ISocket
@@ -34,10 +34,10 @@ namespace GameNetworking.Commmons.Client {
             if (container == null) { return; }
 
             switch ((MessageType)container.type) {
-                case MessageType.connectedPlayer: this.Execute(this.Make<ConnectedPlayerExecutor<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient>, ConnectedPlayerMessage>(container)); break;
-                case MessageType.ping: this.Execute(new PingRequestExecutor<TPlayer>(this.client)); break;
-                case MessageType.pingResult: this.Execute(new PingResultRequestExecutor<TPlayer>(this.client, container.Parse<PingResultRequestMessage>())); break;
-                case MessageType.disconnectedPlayer: this.Execute(new DisconnectedPlayerExecutor<TPlayer>(this.client, container.Parse<DisconnectedPlayerMessage>())); break;
+                case MessageType.connectedPlayer: this.Execute(new ConnectedPlayerExecutor<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient>(this.client, container.Parse<ConnectedPlayerMessage>())); break;
+                case MessageType.ping: this.Execute(new PingRequestExecutor<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient>(this.client)); break;
+                case MessageType.pingResult: this.Execute(new PingResultRequestExecutor<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient>(this.client, container.Parse<PingResultRequestMessage>())); break;
+                case MessageType.disconnectedPlayer: this.Execute(new DisconnectedPlayerExecutor<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient>(this.client, container.Parse<DisconnectedPlayerMessage>())); break;
                 default: this.client?.listener?.GameClientDidReceiveMessage(container); break;
             }
         }

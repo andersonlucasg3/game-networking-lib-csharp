@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
+using GameNetworking.Commmons.Client;
 using GameNetworking.Commons.Models;
 using GameNetworking.Commons.Models.Contract.Client;
 using GameNetworking.Networking.Commons;
@@ -21,7 +23,7 @@ namespace GameNetworking.Commons.Client {
         }
 
         protected NetworkPlayerCollection<TPlayer, TSocket, TClient, TNetClient> playersStorage { get; private set; }
-        protected GameClientMessageRouter<TPlayer> router { get; private set; }
+        protected GameClientMessageRouter<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient> router { get; private set; }
 
         internal TNetworkingClient networkingClient { get; private set; }
 
@@ -32,7 +34,7 @@ namespace GameNetworking.Commons.Client {
 
             this.playersStorage = new NetworkPlayerCollection<TPlayer, TSocket, TClient, TNetClient>();
 
-            this.router = new GameClientMessageRouter<TPlayer>(this, dispatcher);
+            this.router = new GameClientMessageRouter<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient>(this, dispatcher);
         }
 
         public void Send(ITypedMessage message) {

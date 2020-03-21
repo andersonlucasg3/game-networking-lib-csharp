@@ -1,7 +1,7 @@
-﻿using Networking.Models;
+﻿using Networking;
+using Networking.Models;
 using Messages.Streams;
 using Networking.Sockets;
-using Networking.Reliable;
 using GameNetworking.Networking.Commons;
 using GameNetworking.Networking.Models;
 

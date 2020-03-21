@@ -10,8 +10,7 @@ using Networking.Commons.Sockets;
 
 namespace GameNetworking.Executors.Client {
     internal class ConnectedPlayerExecutor<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient> : 
-        BaseExecutor<GameClient<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient>>,
-        IConfigurableExecutor<GameClient<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient>, ConnectedPlayerMessage>
+        BaseExecutor<GameClient<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient>>
         where TPlayer : class, INetworkPlayer<TSocket, TClient, TNetClient>, new()
         where TNetworkingClient : INetworkingClient<TSocket, TClient, TNetClient>
         where TSocket : ISocket

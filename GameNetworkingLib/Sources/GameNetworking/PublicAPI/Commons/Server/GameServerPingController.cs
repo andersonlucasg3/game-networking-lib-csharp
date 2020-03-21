@@ -28,7 +28,7 @@ namespace GameNetworking.Commons.Server {
         }
 
         public float GetPingValue(TPlayer player) {
-            return this.pingPlayers[player.playerId].PingValue;
+            return this.pingPlayers[player.playerId].pingValue;
         }
 
         internal void Update() {
@@ -36,7 +36,7 @@ namespace GameNetworking.Commons.Server {
             PingPlayer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient> pingPlayer;
             for (int i = 0; i < this.pingPlayersArray.Length; i++) {
                 pingPlayer = this.pingPlayersArray[i];
-                if (!pingPlayer.PingSent && pingPlayer.CanSendNextPing) {
+                if (!pingPlayer.pingSent && pingPlayer.canSendNextPing) {
                     pingPlayer.SendingPing();
                     this.instance.Send(new PingRequestMessage(), pingPlayer.player);
                 }
@@ -51,7 +51,7 @@ namespace GameNetworking.Commons.Server {
         }
 
         void NetworkPlayerCollection<TPlayer, TSocket, TClient, TNetClient>.IListener.PlayerStorageDidAdd(TPlayer player) {
-            this.pingPlayers[player.playerId] = new PingPlayer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>(player);
+            this.pingPlayers[player.playerId] = new PingPlayer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>(player) { pingController = this };
             this.UpdateArray();
         }
 
@@ -73,15 +73,15 @@ namespace GameNetworking.Commons.Server {
         where TSocket : ISocket
         where TClient : INetworkClient<TSocket, TNetClient>
         where TNetClient : INetClient<TSocket, TNetClient> {
-        private GameServerPingController<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient> pingController;
+        internal GameServerPingController<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient> pingController { get; set; }
 
         private float pingSentTime;
 
-        private float PingElapsedTime { get { return CurrentTime() - this.pingSentTime; } }
+        private float pingElapsedTime { get { return CurrentTime() - this.pingSentTime; } }
 
-        internal bool PingSent { get; private set; }
-        internal bool CanSendNextPing { get { return this.PingElapsedTime > (pingController?.PingInterval ?? 0.5F); } }
-        internal float PingValue { get; private set; }
+        internal bool pingSent { get; private set; }
+        internal bool canSendNextPing { get { return this.pingElapsedTime > (pingController?.PingInterval ?? 0.5F); } }
+        internal float pingValue { get; private set; }
 
         internal TPlayer player { get; }
 
@@ -90,14 +90,14 @@ namespace GameNetworking.Commons.Server {
         }
 
         internal void SendingPing() {
-            this.PingSent = true;
+            this.pingSent = true;
             this.pingSentTime = CurrentTime();
         }
 
         internal float ReceivedPong() {
-            this.PingSent = false;
-            this.PingValue = this.PingElapsedTime;
-            return this.PingValue;
+            this.pingSent = false;
+            this.pingValue = this.pingElapsedTime;
+            return this.pingValue;
         }
 
         public override bool Equals(object obj) {

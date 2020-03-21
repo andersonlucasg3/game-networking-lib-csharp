@@ -1,14 +1,14 @@
-﻿using Google.Protobuf;
+﻿using Networking;
+using Google.Protobuf;
 using Networking.Commons.Models;
 using Networking.Models;
-using Networking.Reliable;
 using Networking.Sockets;
 
 namespace MatchMaking.Connection {
     using Models;
     using Protobuf.Coders;
 
-    public sealed class ClientConnection<TClient>: IReliableSocket.IListener, INetClient<ITCPSocket>.IListener where TClient: MatchMakingClient, new() {
+    public sealed class ClientConnection<TClient>: IReliableSocket.IListener, INetClient<ITCPSocket, ReliableNetClient>.IListener where TClient: MatchMakingClient, new() {
         private readonly IReliableSocket networking;
 
         private TClient client;
@@ -55,7 +55,7 @@ namespace MatchMaking.Connection {
 
         #region INetClient<ITCPSocket>.IListener
 
-        void INetClient<ITCPSocket>.IListener.ClientDidReadBytes(INetClient<ITCPSocket> client, byte[] bytes) {
+        void INetClient<ITCPSocket, ReliableNetClient>.IListener.ClientDidReadBytes(ReliableNetClient client, byte[] bytes) {
             this.client.decoder.Add(bytes);
             MessageContainer message;
             do {
@@ -68,7 +68,7 @@ namespace MatchMaking.Connection {
 
         #region IReliableNetworking.IListener
 
-        void IReliableSocket.IListener.NetworkingDidConnect(IReliableNetClient client) {
+        void IReliableSocket.IListener.NetworkingDidConnect(ReliableNetClient client) {
             this.client = MatchMakingClient.Create<TClient>(client, new MessageDecoder(), new MessageEncoder());
             this.IsConnecting = false;
             this.listener?.ClientConnectionDidConnect();
@@ -80,7 +80,7 @@ namespace MatchMaking.Connection {
             this.listener?.ClientConnectionDidTimeout();
         }
 
-        void IReliableSocket.IListener.NetworkingDidDisconnect(IReliableNetClient client) {
+        void IReliableSocket.IListener.NetworkingDidDisconnect(ReliableNetClient client) {
             this.client = null;
             this.IsConnecting = false;
             this.listener?.ClientConnectionDidDisconnect();

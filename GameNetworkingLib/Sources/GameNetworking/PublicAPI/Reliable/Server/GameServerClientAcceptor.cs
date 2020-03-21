@@ -7,7 +7,6 @@ using Networking.Models;
 using GameNetworking.Messages.Server;
 
 namespace GameNetworking {
-
     internal class GameServerClientAcceptor<TPlayer>
         where TPlayer : NetworkPlayer<ITCPSocket, ReliableNetworkClient, ReliableNetClient>, new() {
         private readonly ReliableGameServer<TPlayer> server;

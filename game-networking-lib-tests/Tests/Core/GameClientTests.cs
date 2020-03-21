@@ -4,31 +4,41 @@ using Tests.Core.Model;
 using Messages.Models;
 using System.Collections.Generic;
 using GameNetworking.Commons;
-using Networking.Reliable;
+using Networking;
 using System;
+using GameNetworking.Networking;
+using GameNetworking.Commons.Client;
+using Networking.Sockets;
+using GameNetworking.Networking.Models;
+using Networking.Models;
+using GameNetworking.Commons.Server;
 
-using ClientPlayer = GameNetworking.Models.Client.NetworkPlayer;
-using ServerPlayer = GameNetworking.Models.Server.NetworkPlayer;
+using ClientPlayer = GameNetworking.Commons.Models.Client.NetworkPlayer<Networking.Sockets.ITCPSocket, GameNetworking.Networking.Models.ReliableNetworkClient, Networking.Models.ReliableNetClient>;
+using ServerPlayer = GameNetworking.Commons.Models.Server.NetworkPlayer<Networking.Sockets.ITCPSocket, GameNetworking.Networking.Models.ReliableNetworkClient, Networking.Models.ReliableNetClient>;
 
 namespace Tests.Core {
     public class GameServerClientTests {
         private readonly string host = "127.0.0.1";
         private readonly int port = 30000;
 
-        private IReliableSocket New() {
-            return new ReliableSocket(new SocketMock());
+        private ReliableNetworkingServer NewServer() {
+            return new ReliableNetworkingServer(new ReliableSocket(new SocketMock()));
+        }
+
+        private ReliableNetworkingClient NewClient() {
+            return new ReliableNetworkingClient(new ReliableSocket(new SocketMock()));
         }
 
         private void New(out ReliableGameServer<ServerPlayer> server, out ServerListener listener) {
             listener = new ServerListener();
-            server = new ReliableGameServer<ServerPlayer>(this.New(), new MainThreadDispatcher()) {
+            server = new ReliableGameServer<ServerPlayer>(this.NewServer(), new MainThreadDispatcher()) {
                 listener = listener
             };
         }
 
-        private void New(out GameClient<ClientPlayer> client, out ClientListener listener) {
+        private void New(out ReliableGameClient<ClientPlayer> client, out ClientListener listener) {
             listener = new ClientListener();
-            client = new GameClient<ClientPlayer>(this.New(), new MainThreadDispatcher()) {
+            client = new ReliableGameClient<ClientPlayer>(this.NewClient(), new MainThreadDispatcher()) {
                 listener = listener
             };
         }
@@ -37,16 +47,16 @@ namespace Tests.Core {
             server.Update();
         }
 
-        private void Update(GameClient<ClientPlayer> client) {
+        private void Update(ReliableGameClient<ClientPlayer> client) {
             client.Update();
         }
 
         [Test]
         public void TestConnectDisconnect() {
-            this.New(out GameClient<ClientPlayer> client, out ClientListener clientListener);
-            this.New(out GameServer<ServerPlayer> server, out ServerListener serverListener);
+            this.New(out ReliableGameClient<ClientPlayer> client, out ClientListener clientListener);
+            this.New(out ReliableGameServer<ServerPlayer> server, out ServerListener serverListener);
 
-            server.Listen(this.port);
+            server.Start(this.port);
 
             client.Connect(this.host, this.port);
 
@@ -81,10 +91,10 @@ namespace Tests.Core {
 
         [Test]
         public void TestMultiPlayerConnectDisconnect() {
-            this.New(out GameClient<ClientPlayer> client1, out ClientListener clientListener1);
-            this.New(out GameClient<ClientPlayer> client2, out ClientListener clientListener2);
-            this.New(out GameClient<ClientPlayer> client3, out ClientListener clientListener3);
-            this.New(out GameServer<ServerPlayer> server, out ServerListener serverListener);
+            this.New(out ReliableGameClient<ClientPlayer> client1, out ClientListener clientListener1);
+            this.New(out ReliableGameClient<ClientPlayer> client2, out ClientListener clientListener2);
+            this.New(out ReliableGameClient<ClientPlayer> client3, out ClientListener clientListener3);
+            this.New(out ReliableGameServer<ServerPlayer> server, out ServerListener serverListener);
 
             void UpdateAction() {
                 this.Update(server);
@@ -95,7 +105,7 @@ namespace Tests.Core {
                 this.Update(client3);
             }
 
-            server.Listen(this.port);
+            server.Start(this.port);
 
             client1.Connect(this.host, this.port);
             client2.Connect(this.host, this.port);
@@ -163,9 +173,9 @@ namespace Tests.Core {
 
         [Test]
         public void TestClientReconnect() {
-            this.New(out GameClient<ClientPlayer> client1, out ClientListener listener1_c);
-            this.New(out GameClient<ClientPlayer> client2, out _);
-            this.New(out GameServer<ServerPlayer> server, out _);
+            this.New(out ReliableGameClient<ClientPlayer> client1, out ClientListener listener1_c);
+            this.New(out ReliableGameClient<ClientPlayer> client2, out _);
+            this.New(out ReliableGameServer<ServerPlayer> server, out _);
 
             void Update() {
                 this.Update(server);
@@ -174,7 +184,7 @@ namespace Tests.Core {
                 this.Update(client2);
             }
 
-            server.Listen(this.port);
+            server.Start(this.port);
 
             client1.Connect(this.host, this.port);
             client2.Connect(this.host, this.port);
@@ -191,8 +201,7 @@ namespace Tests.Core {
             Update();
 
             Assert.IsNull(server.FindPlayer(player2.playerId));
-            ClientListener listener2_c;
-            this.New(out client2, out listener2_c);
+            this.New(out client2, out ClientListener listener2_c);
 
             client2.Connect(this.host, this.port);
 
@@ -208,9 +217,9 @@ namespace Tests.Core {
 
         [Test]
         public void TestClientPingBroadcast() {
-            this.New(out GameClient<ClientPlayer> client1, out _);
-            this.New(out GameClient<ClientPlayer> client2, out _);
-            this.New(out GameServer<ServerPlayer> server, out _);
+            this.New(out ReliableGameClient<ClientPlayer> client1, out _);
+            this.New(out ReliableGameClient<ClientPlayer> client2, out _);
+            this.New(out ReliableGameServer<ServerPlayer> server, out _);
 
             void Update() {
                 this.Update(server);
@@ -219,7 +228,7 @@ namespace Tests.Core {
                 this.Update(client2);
             }
 
-            server.Listen(this.port);
+            server.Start(this.port);
 
             client1.Connect(this.host, this.port);
             client2.Connect(this.host, this.port);
@@ -249,7 +258,7 @@ namespace Tests.Core {
         }
     }
 
-    class ClientListener : GameClient<ClientPlayer>.IListener {
+    class ClientListener : ReliableGameClient<ClientPlayer>.IListener {
         public readonly List<MessageContainer> receivedMessages = new List<MessageContainer>();
         public readonly List<ClientPlayer> disconnectedPlayers = new List<ClientPlayer>();
         public bool connectedCalled { get; private set; }
@@ -259,27 +268,27 @@ namespace Tests.Core {
 
         #region IGameClientListener
 
-        void GameClient<ClientPlayer>.IListener.GameClientDidConnect() {
+        void ReliableGameClient<ClientPlayer>.IListener.GameClientDidConnect() {
             this.connectedCalled = true;
         }
 
-        void GameClient<ClientPlayer>.IListener.GameClientConnectDidTimeout() {
+        void ReliableGameClient<ClientPlayer>.IListener.GameClientConnectDidTimeout() {
             this.connectTimeoutCalled = true;
         }
 
-        void GameClient<ClientPlayer>.IListener.GameClientDidDisconnect() {
+        void ReliableGameClient<ClientPlayer>.IListener.GameClientDidDisconnect() {
             this.disconnectCalled = true;
         }
 
-        void GameClient<ClientPlayer>.IListener.GameClientDidIdentifyLocalPlayer(ClientPlayer player) {
+        void GameClient<ReliableNetworkingClient, ClientPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient>.IListener.GameClientDidIdentifyLocalPlayer(ClientPlayer player) {
             this.localPlayer = player;
         }
 
-        void GameClient<ClientPlayer>.IListener.GameClientDidReceiveMessage(MessageContainer container) {
+        void GameClient<ReliableNetworkingClient, ClientPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient>.IListener.GameClientDidReceiveMessage(MessageContainer container) {
             this.receivedMessages.Add(container);
         }
 
-        void GameClient<ClientPlayer>.IListener.GameClientNetworkPlayerDidDisconnect(ClientPlayer player) {
+        void GameClient<ReliableNetworkingClient, ClientPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient>.IListener.GameClientNetworkPlayerDidDisconnect(ClientPlayer player) {
             this.disconnectedPlayers.Add(player);
         }
 
@@ -300,7 +309,7 @@ namespace Tests.Core {
             disconnectedPlayers.Add(player);
         }
 
-        void ReliableGameServer<ServerPlayer>.IListener.GameServerDidReceiveClientMessage(MessageContainer container, ServerPlayer player) {
+        void GameServer<ReliableNetworkingServer, ServerPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient>.IListener.GameServerDidReceiveClientMessage(MessageContainer container, ServerPlayer player) {
             Assert.NotNull(player);
         }
 

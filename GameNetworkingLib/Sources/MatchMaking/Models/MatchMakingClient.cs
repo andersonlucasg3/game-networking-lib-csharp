@@ -3,13 +3,13 @@
     using Networking.Models;
 
     public class MatchMakingClient {
-        internal IReliableNetClient client;
+        internal ReliableNetClient client;
         internal IMessageDecoder decoder;
         internal IMessageEncoder encoder;
 
         public bool IsConnected { get { return this.client.isConnected; } }
 
-        internal static MMClient Create<MMClient>(IReliableNetClient client, IMessageDecoder decoder, IMessageEncoder encoder) where MMClient: MatchMakingClient, new() {
+        internal static MMClient Create<MMClient>(ReliableNetClient client, IMessageDecoder decoder, IMessageEncoder encoder) where MMClient: MatchMakingClient, new() {
             return new MMClient {
                 client = client,
                 decoder = decoder,

@@ -3,7 +3,9 @@ using Networking.Models;
 
 namespace Networking.Sockets {
     public class UnreliableSocket : INetworking<IUDPSocket, UnreliableNetClient> {
-        public int port => throw new System.NotImplementedException();
+        // TODO: Finish this implementation
+
+        public int port => 0;
 
         public void Flush(UnreliableNetClient client) {
             throw new System.NotImplementedException();

@@ -27,11 +27,11 @@ namespace GameNetworking.Commons.Server {
         public GameServerPingController<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient> pingController { get; }
         public IListener listener { get; set; }
 
-        protected GameServer(IMainThreadDispatcher dispatcher) {
+        protected GameServer(TNetworkingServer server, IMainThreadDispatcher dispatcher) {
+            this.networkingServer = server;
+
             this.playersStorage = new NetworkPlayerCollection<TPlayer, TSocket, TClient, TNetClient>();
-
             this.router = new GameServerMessageRouter<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>(this, dispatcher);
-
             this.pingController = new GameServerPingController<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>(this, this.playersStorage);
         }
 

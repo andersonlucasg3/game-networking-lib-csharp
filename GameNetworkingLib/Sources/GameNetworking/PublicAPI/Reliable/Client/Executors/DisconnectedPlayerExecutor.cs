@@ -1,19 +1,29 @@
-﻿namespace GameNetworking.Executors.Client {
-    using Models.Client;
-    using Messages.Server;
+﻿using GameNetworking.Commons;
+using GameNetworking.Commons.Client;
+using GameNetworking.Commons.Models;
+using GameNetworking.Commons.Models.Contract.Client;
+using GameNetworking.Messages.Server;
+using GameNetworking.Networking.Commons;
+using Networking.Commons.Models;
+using Networking.Commons.Sockets;
 
-    internal struct DisconnectedPlayerExecutor<PlayerType> : IExecutor where PlayerType : NetworkPlayer, new() {
-        private readonly GameClient<PlayerType> gameClient;
+namespace GameNetworking.Executors.Client {
+    internal class DisconnectedPlayerExecutor<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient> : 
+        BaseExecutor<GameClient<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient>>
+        where TNetworkingClient : INetworkingClient<TSocket, TClient, TNetClient>
+        where TPlayer : class, INetworkPlayer<TSocket, TClient, TNetClient>, new()
+        where TSocket: ISocket
+        where TClient : INetworkClient<TSocket, TNetClient>
+        where TNetClient : INetClient<TSocket, TNetClient> {
         private readonly DisconnectedPlayerMessage message;
 
-        internal DisconnectedPlayerExecutor(GameClient<PlayerType> client, DisconnectedPlayerMessage message) {
-            this.gameClient = client;
+        internal DisconnectedPlayerExecutor(GameClient<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient> client, DisconnectedPlayerMessage message) : base(client) {
             this.message = message;
         }
 
-        public void Execute() {
-            var player = this.gameClient.RemovePlayer(this.message.playerId);
-            if (player != null) { this.gameClient.listener?.GameClientNetworkPlayerDidDisconnect(player); }
+        public override void Execute() {
+            var player = this.instance.RemovePlayer(this.message.playerId);
+            if (player != null) { this.instance.listener?.GameClientNetworkPlayerDidDisconnect(player); }
         }
     }
 }

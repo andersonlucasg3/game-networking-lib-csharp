@@ -1,5 +1,5 @@
-﻿using Networking.Sockets;
-using Networking.Reliable;
+﻿using Networking;
+using Networking.Sockets;
 
 namespace MatchMaking {
     using Connection;

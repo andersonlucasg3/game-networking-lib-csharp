@@ -1,18 +1,27 @@
-﻿namespace GameNetworking.Executors.Client {
-    using GameNetworking.Models.Client;
-    using Messages.Server;
+﻿using GameNetworking.Commons;
+using GameNetworking.Commons.Client;
+using GameNetworking.Commons.Models;
+using GameNetworking.Commons.Models.Contract.Client;
+using GameNetworking.Messages.Server;
+using GameNetworking.Networking.Commons;
+using Networking.Commons.Models;
+using Networking.Commons.Sockets;
 
-    internal struct PingResultRequestExecutor<PlayerType> : IExecutor where PlayerType : NetworkPlayer, new() {
-        private GameClient<PlayerType> client;
+namespace GameNetworking.Executors.Client {
+    internal class PingResultRequestExecutor<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient> : BaseExecutor<GameClient<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient>>
+        where TPlayer : class, INetworkPlayer<TSocket, TClient, TNetClient>, new()
+        where TNetworkingClient : INetworkingClient<TSocket, TClient, TNetClient>
+        where TSocket : ISocket
+        where TClient : INetworkClient<TSocket, TNetClient>
+        where TNetClient : INetClient<TSocket, TNetClient> {
         private readonly PingResultRequestMessage message;
 
-        public PingResultRequestExecutor(GameClient<PlayerType> client, PingResultRequestMessage message) {
-            this.client = client;
+        public PingResultRequestExecutor(GameClient<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient> client, PingResultRequestMessage message) : base(client) {
             this.message = message;
         }
 
-        void IExecutor.Execute() {
-            var player = this.client.FindPlayer(this.message.playerId);
+        public override void Execute() {
+            var player = this.instance.FindPlayer(this.message.playerId);
             player.mostRecentPingValue = this.message.pingValue;
         }
     }

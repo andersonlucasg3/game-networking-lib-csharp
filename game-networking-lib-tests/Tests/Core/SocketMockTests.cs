@@ -1,11 +1,10 @@
-﻿using Networking.IO;
-using Networking.Models;
+﻿using Networking.Commons.Models;
 using NUnit.Framework;
 using Tests.Core.Model;
 
 namespace Tests.Core {
     class SocketMockTests {
-        private NetEndPoint endPoint = new NetEndPoint("127.0.0.1", 30000);
+        private readonly NetEndPoint endPoint = new NetEndPoint("127.0.0.1", 30000);
 
         private SocketMock New() {
             return new SocketMock();

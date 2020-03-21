@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Collections.Generic;
 
-namespace Networking.Reliable {
+namespace Networking {
     using Models;
     using Sockets;
     using Logging;

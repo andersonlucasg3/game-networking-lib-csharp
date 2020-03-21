@@ -17,6 +17,9 @@ namespace GameNetworking.Networking.Commons {
         TClient client { get; }
 
         IListener listener { get; set; }
+
+        void Send(ITypedMessage message);
+        void Update();
     }
 
     public abstract class NetworkingClient<TNetworking, TSocket, TClient, TNetClient> : INetworkingClient<TSocket, TClient, TNetClient>, INetClient<TSocket, TNetClient>.IListener

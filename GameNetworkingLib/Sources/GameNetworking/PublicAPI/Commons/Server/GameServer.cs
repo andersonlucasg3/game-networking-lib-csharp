@@ -33,6 +33,8 @@ namespace GameNetworking.Commons.Server {
             this.playersStorage = new NetworkPlayerCollection<TPlayer, TSocket, TClient, TNetClient>();
             this.router = new GameServerMessageRouter<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>(this, dispatcher);
             this.pingController = new GameServerPingController<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>(this, this.playersStorage);
+
+            this.networkingServer.messagesListener = this;
         }
 
         public void Start(int port) {

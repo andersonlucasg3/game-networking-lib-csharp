@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using GameNetworking.Commmons.Client;
 using GameNetworking.Commons.Models;
-using GameNetworking.Commons.Models.Contract.Client;
+using GameNetworking.Commons.Models.Client;
 using GameNetworking.Networking.Commons;
 using Messages.Models;
 using Networking.Commons.Models;

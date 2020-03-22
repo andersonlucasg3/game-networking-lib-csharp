@@ -1,31 +1,18 @@
 ﻿using System;
 using Networking.Commons.Models;
 using Networking.Commons.Sockets;
-using GameNetworking.Commons.Models.Contract.Server;
 
 namespace GameNetworking.Commons.Models {
-    namespace Contract {
-        namespace Server {
-            public interface INetworkPlayer<TSocket, TClient, TNetClient> : IEquatable<INetworkPlayer<TSocket, TClient, TNetClient>>
-                where TSocket : ISocket
-                where TClient : INetworkClient<TSocket, TNetClient>
-                where TNetClient : INetClient<TSocket, TNetClient> {
-                TClient client { get; internal set; }
-                int playerId { get; internal set; }
-                float mostRecentPingValue { get; internal set; }
-            }
-        }
-        namespace Client {
-            public interface INetworkPlayer<TSocket, TClient, TNetClient> : Server.INetworkPlayer<TSocket, TClient, TNetClient>
-                where TSocket : ISocket
-                where TClient : INetworkClient<TSocket, TNetClient>
-                where TNetClient : INetClient<TSocket, TNetClient> {
-                bool isLocalPlayer { get; internal set; }
-            }
-        }
-    }
-
     namespace Server {
+        public interface INetworkPlayer<TSocket, TClient, TNetClient> : IEquatable<INetworkPlayer<TSocket, TClient, TNetClient>>
+                where TSocket : ISocket
+                where TClient : INetworkClient<TSocket, TNetClient>
+                where TNetClient : INetClient<TSocket, TNetClient> {
+            TClient client { get; internal set; }
+            int playerId { get; internal set; }
+            float mostRecentPingValue { get; internal set; }
+        }
+
         public class NetworkPlayer<TSocket, TClient, TNetClient> : INetworkPlayer<TSocket, TClient, TNetClient>
             where TSocket : ISocket
             where TClient : INetworkClient<TSocket, TNetClient>
@@ -62,13 +49,20 @@ namespace GameNetworking.Commons.Models {
     }
 
     namespace Client {
-        public class NetworkPlayer<TSocket, TClient, TNetClient> : Server.NetworkPlayer<TSocket, TClient, TNetClient>, Contract.Client.INetworkPlayer<TSocket, TClient, TNetClient>
+        public interface INetworkPlayer<TSocket, TClient, TNetClient> : Server.INetworkPlayer<TSocket, TClient, TNetClient>
+                where TSocket : ISocket
+                where TClient : INetworkClient<TSocket, TNetClient>
+                where TNetClient : INetClient<TSocket, TNetClient> {
+            bool isLocalPlayer { get; internal set; }
+        }
+
+        public class NetworkPlayer<TSocket, TClient, TNetClient> : Server.NetworkPlayer<TSocket, TClient, TNetClient>, INetworkPlayer<TSocket, TClient, TNetClient>
             where TSocket : ISocket
             where TClient : INetworkClient<TSocket, TNetClient>
             where TNetClient : INetClient<TSocket, TNetClient> {
-            private Contract.Client.INetworkPlayer<TSocket, TClient, TNetClient> self => this;
+            private INetworkPlayer<TSocket, TClient, TNetClient> self => this;
 
-            bool Contract.Client.INetworkPlayer<TSocket, TClient, TNetClient>.isLocalPlayer { get; set; }
+            bool INetworkPlayer<TSocket, TClient, TNetClient>.isLocalPlayer { get; set; }
 
             public bool isLocalPlayer { get => self.isLocalPlayer; }
         }

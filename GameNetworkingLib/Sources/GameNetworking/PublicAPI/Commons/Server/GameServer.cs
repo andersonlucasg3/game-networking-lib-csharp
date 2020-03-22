@@ -7,25 +7,53 @@ using Networking.Commons.Models;
 using Networking.Commons.Sockets;
 
 namespace GameNetworking.Commons.Server {
-    public abstract class GameServer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient> :
-        INetworkingServer<TSocket, TClient, TNetClient>.IMessagesListener
-        where TNetworkingServer : INetworkingServer<TSocket, TClient, TNetClient>
-        where TPlayer : NetworkPlayer<TSocket, TClient, TNetClient>, new()
+    public interface IGameServer<TPlayer, TSocket, TClient, TNetClient>
+        where TPlayer : INetworkPlayer<TSocket, TClient, TNetClient>
         where TSocket : ISocket
         where TClient : INetworkClient<TSocket, TNetClient>
         where TNetClient : INetClient<TSocket, TNetClient> {
 
         public interface IListener {
+            void GameServerPlayerDidConnect(TPlayer player);
+            void GameServerPlayerDidDisconnect(TPlayer player);
             void GameServerDidReceiveClientMessage(MessageContainer container, TPlayer player);
         }
 
+        IListener listener { get; set; }
+
+        public IGameServerPingController<TPlayer, TSocket, TClient, TNetClient> pingController { get; }
+
+        List<TPlayer> AllPlayers();
+        void Send(ITypedMessage message, TPlayer player);
+        void SendBroadcast(ITypedMessage message);
+        void SendBroadcast(ITypedMessage message, TPlayer excludePlayer);
+
+        internal void AddPlayer(TPlayer player);
+        internal void RemovePlayer(TPlayer player);
+    }
+
+    public abstract class GameServer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient, TClientAcceptor, TGameServerDerived> : IGameServer<TPlayer, TSocket, TClient, TNetClient>,
+        GameServerClientAcceptor<TGameServerDerived, TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>.IListener,
+        INetworkingServer<TSocket, TClient, TNetClient>.IListener,
+        INetworkingServer<TSocket, TClient, TNetClient>.IMessagesListener
+        where TNetworkingServer : INetworkingServer<TSocket, TClient, TNetClient>
+        where TPlayer : class, INetworkPlayer<TSocket, TClient, TNetClient>, new()
+        where TSocket : ISocket
+        where TClient : INetworkClient<TSocket, TNetClient>
+        where TNetClient : INetClient<TSocket, TNetClient>
+        where TClientAcceptor : GameServerClientAcceptor<TGameServerDerived, TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>, new()
+        where TGameServerDerived : GameServer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient, TClientAcceptor, TGameServerDerived> { 
+
         private readonly GameServerMessageRouter<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient> router;
+        private readonly TClientAcceptor clientAcceptor;
+
+        private IGameServer<TPlayer, TSocket, TClient, TNetClient> self => this;
 
         protected TNetworkingServer networkingServer { get; private set; }
         protected NetworkPlayerCollection<TPlayer, TSocket, TClient, TNetClient> playersStorage { get; private set; }
 
-        public GameServerPingController<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient> pingController { get; }
-        public IListener listener { get; set; }
+        public IGameServerPingController<TPlayer, TSocket, TClient, TNetClient> pingController { get; }
+        public IGameServer<TPlayer, TSocket, TClient, TNetClient>.IListener listener { get; set; }
 
         protected GameServer(TNetworkingServer server, IMainThreadDispatcher dispatcher) {
             this.networkingServer = server;
@@ -35,6 +63,8 @@ namespace GameNetworking.Commons.Server {
             this.pingController = new GameServerPingController<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>(this, this.playersStorage);
 
             this.networkingServer.messagesListener = this;
+
+            this.clientAcceptor = new TClientAcceptor() { listener = this };
         }
 
         public void Start(int port) {
@@ -54,12 +84,20 @@ namespace GameNetworking.Commons.Server {
             this.pingController.Update();
         }
 
-        internal void AddPlayer(TPlayer player) {
+        void IGameServer<TPlayer, TSocket, TClient, TNetClient>.AddPlayer(TPlayer player) {
             this.playersStorage.Add(player);
         }
 
-        internal void RemovePlayer(TPlayer player) {
+        internal void AddPlayer(TPlayer player) {
+            this.self.AddPlayer(player);
+        }
+
+        void IGameServer<TPlayer, TSocket, TClient, TNetClient>.RemovePlayer(TPlayer player) {
             this.playersStorage.Remove(player.playerId);
+        }
+
+        internal void RemovePlayer(TPlayer player) {
+            this.self.RemovePlayer(player);
         }
 
         public TPlayer FindPlayer(int playerId) {
@@ -93,9 +131,26 @@ namespace GameNetworking.Commons.Server {
 
         #region INetworkingServer<ITCPSocket, ReliableNetworkClient, ReliableNetClient>.IMessagesListener
 
+        void INetworkingServer<TSocket, TClient, TNetClient>.IListener.NetworkingServerDidAcceptClient(TClient client) { 
+            this.clientAcceptor.AcceptClient(client);
+        }
+
+        void INetworkingServer<TSocket, TClient, TNetClient>.IListener.NetworkingServerClientDidDisconnect(TClient client) {
+            var player = this.playersStorage.Find(client);
+            this.clientAcceptor.Disconnect(player);
+        }
+
         void INetworkingServer<TSocket, TClient, TNetClient>.IMessagesListener.NetworkingServerDidReadMessage(MessageContainer container, TClient client) {
             var player = this.playersStorage.Find(client);
             this.router.Route(container, player);
+        }
+
+        void GameServerClientAcceptor<TGameServerDerived, TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>.IListener.ClientAcceptorPlayerDidConnect(TPlayer player) {
+            this.listener?.GameServerPlayerDidConnect(player);
+        }
+
+        void GameServerClientAcceptor<TGameServerDerived, TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>.IListener.ClientAcceptorPlayerDidDisconnect(TPlayer player) {
+            this.listener?.GameServerPlayerDidDisconnect(player);
         }
 
         #endregion

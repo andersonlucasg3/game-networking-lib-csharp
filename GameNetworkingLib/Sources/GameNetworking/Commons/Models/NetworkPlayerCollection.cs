@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using GameNetworking.Commons.Models.Contract.Server;
+using GameNetworking.Commons.Models.Server;
 using Networking.Commons.Models;
 using Networking.Commons.Sockets;
 

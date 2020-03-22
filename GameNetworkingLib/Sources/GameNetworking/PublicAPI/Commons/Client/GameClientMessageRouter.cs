@@ -1,7 +1,7 @@
 ﻿using GameNetworking.Commons;
 using GameNetworking.Commons.Client;
 using GameNetworking.Commons.Models;
-using GameNetworking.Commons.Models.Contract.Client;
+using GameNetworking.Commons.Models.Client;
 using GameNetworking.Executors;
 using GameNetworking.Executors.Client;
 using GameNetworking.Messages;
@@ -11,7 +11,7 @@ using Messages.Models;
 using Networking.Commons.Models;
 using Networking.Commons.Sockets;
 
-namespace GameNetworking.Commmons.Client {
+namespace GameNetworking.Commons.Client {
     public class GameClientMessageRouter<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient> 
         where TPlayer : class, INetworkPlayer<TSocket, TClient, TNetClient>, new()
         where TNetworkingClient : INetworkingClient<TSocket, TClient, TNetClient>

@@ -1,5 +1,5 @@
 ﻿using GameNetworking.Commons;
-using GameNetworking.Commons.Models.Contract.Client;
+using GameNetworking.Commons.Models.Client;
 using GameNetworking.Commons.Client;
 using Networking.Sockets;
 using GameNetworking.Networking.Models;

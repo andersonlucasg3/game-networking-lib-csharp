@@ -1,16 +1,14 @@
-﻿using GameNetworking.Commmons.Client;
+﻿using GameNetworking.Commons.Client;
 using GameNetworking.Commons;
-using GameNetworking.Commons.Client;
 using GameNetworking.Commons.Models;
-using GameNetworking.Commons.Models.Contract.Client;
 using GameNetworking.Messages.Server;
 using GameNetworking.Networking.Commons;
 using Networking.Commons.Models;
 using Networking.Commons.Sockets;
+using GameNetworking.Commons.Models.Client;
 
 namespace GameNetworking.Executors.Client {
-    internal class ConnectedPlayerExecutor<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient> : 
-        BaseExecutor<GameClient<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient>>
+    internal class ConnectedPlayerExecutor<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient> : BaseExecutor<GameClient<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient>>
         where TPlayer : class, INetworkPlayer<TSocket, TClient, TNetClient>, new()
         where TNetworkingClient : INetworkingClient<TSocket, TClient, TNetClient>
         where TSocket : ISocket

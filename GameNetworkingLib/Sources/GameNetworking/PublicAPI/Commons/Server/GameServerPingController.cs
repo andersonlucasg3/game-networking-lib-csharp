@@ -8,9 +8,20 @@ using GameNetworking.Networking.Commons;
 using GameNetworking.Messages.Server;
 
 namespace GameNetworking.Commons.Server {
-    public class GameServerPingController<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient> :
+    public interface IGameServerPingController<TPlayer, TSocket, TClient, TNetClient>
+        where TPlayer : INetworkPlayer<TSocket, TClient, TNetClient>
+        where TSocket : ISocket
+        where TClient : INetworkClient<TSocket, TNetClient>
+        where TNetClient : INetClient<TSocket, TNetClient> {
+
+        float GetPingValue(TPlayer player);
+        float PongReceived(TPlayer player);
+        void Update();
+    }
+
+    public class GameServerPingController<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient> : IGameServerPingController<TPlayer, TSocket, TClient, TNetClient>,
         NetworkPlayerCollection<TPlayer, TSocket, TClient, TNetClient>.IListener
-        where TPlayer : NetworkPlayer<TSocket, TClient, TNetClient>, new()
+        where TPlayer : class, INetworkPlayer<TSocket, TClient, TNetClient>, new()
         where TNetworkingServer : INetworkingServer<TSocket, TClient, TNetClient>
         where TSocket : ISocket
         where TClient : INetworkClient<TSocket, TNetClient>
@@ -18,11 +29,11 @@ namespace GameNetworking.Commons.Server {
         private readonly Dictionary<int, PingPlayer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>> pingPlayers = new Dictionary<int, PingPlayer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>>();
         private PingPlayer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>[] pingPlayersArray;
 
-        private readonly GameServer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient> instance;
+        private readonly IGameServer<TPlayer, TSocket, TClient, TNetClient> instance;
 
-        public float PingInterval { get; set; }
+        public float pingInterval { get; set; }
 
-        public GameServerPingController(GameServer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient> instance, NetworkPlayerCollection<TPlayer, TSocket, TClient, TNetClient> storage) {
+        public GameServerPingController(IGameServer<TPlayer, TSocket, TClient, TNetClient> instance, NetworkPlayerCollection<TPlayer, TSocket, TClient, TNetClient> storage) {
             this.instance = instance;
             storage.listeners.Add(this);
         }
@@ -31,7 +42,7 @@ namespace GameNetworking.Commons.Server {
             return this.pingPlayers[player.playerId].pingValue;
         }
 
-        internal void Update() {
+        public void Update() {
             if (this.pingPlayersArray == null) { return; }
             PingPlayer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient> pingPlayer;
             for (int i = 0; i < this.pingPlayersArray.Length; i++) {
@@ -68,7 +79,7 @@ namespace GameNetworking.Commons.Server {
     }
 
     internal class PingPlayer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>
-        where TPlayer : NetworkPlayer<TSocket, TClient, TNetClient>, new()
+        where TPlayer : class, INetworkPlayer<TSocket, TClient, TNetClient>, new()
         where TNetworkingServer : INetworkingServer<TSocket, TClient, TNetClient>
         where TSocket : ISocket
         where TClient : INetworkClient<TSocket, TNetClient>
@@ -80,7 +91,7 @@ namespace GameNetworking.Commons.Server {
         private float pingElapsedTime { get { return CurrentTime() - this.pingSentTime; } }
 
         internal bool pingSent { get; private set; }
-        internal bool canSendNextPing { get { return this.pingElapsedTime > (pingController?.PingInterval ?? 0.5F); } }
+        internal bool canSendNextPing { get { return this.pingElapsedTime > (pingController?.pingInterval ?? 0.5F); } }
         internal float pingValue { get; private set; }
 
         internal TPlayer player { get; }

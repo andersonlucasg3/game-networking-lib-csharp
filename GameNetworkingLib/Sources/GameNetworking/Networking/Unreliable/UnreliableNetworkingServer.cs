@@ -26,6 +26,7 @@ namespace GameNetworking.Networking {
             UnreliableNetworkClient n_client = new UnreliableNetworkClient(client, new MessageStreamReader(), new MessageStreamWriter());
             this.clientsCollection.Add(client, n_client);
             this.clientsList.Add(n_client);
+            this.listener?.NetworkingServerDidAcceptClient(n_client);
             return n_client;
         }
 

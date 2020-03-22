@@ -1,7 +1,7 @@
 ﻿using Messages.Models;
 using GameNetworking.Networking.Commons;
 using Networking.Sockets;
-using GameNetworking.Commons.Models.Contract.Client;
+using GameNetworking.Commons.Models.Client;
 using GameNetworking.Networking.Models;
 using Networking.Models;
 using GameNetworking.Networking;

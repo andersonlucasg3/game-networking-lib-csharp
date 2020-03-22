@@ -12,10 +12,10 @@ namespace Networking.Commons.Models {
 
         TSocket socket { get; internal set; }
 
-        IReader reader { get; }
-        IWriter writer { get; }
-
         IListener listener { get; set; }
+
+        void Read();
+        void Write(byte[] bytes);
     }
 
     public abstract class NetClient<TSocket, TDerived> : INetClient<TSocket, TDerived>, IReader.IListener where TSocket : ISocket where TDerived : NetClient<TSocket, TDerived> {
@@ -25,18 +25,14 @@ namespace Networking.Commons.Models {
 
         protected TSocket socket { get => self.socket; private set => self.socket = value; }
 
-        public IReader reader { get; }
-        public IWriter writer { get; }
-
         public INetClient<TSocket, TDerived>.IListener listener { get; set; }
 
-        internal NetClient(TSocket socket, IReader reader, IWriter writer) {
+        internal NetClient(TSocket socket) {
             this.socket = socket;
-            this.reader = reader;
-            this.writer = writer;
-
-            this.reader.listener = this;
         }
+
+        public abstract void Read();
+        public abstract void Write(byte[] bytes);
 
         public override bool Equals(object obj) {
             if (obj is TSocket client) {

@@ -23,16 +23,18 @@ namespace Networking.Sockets {
             this.socket.Close();
         }
 
-        public void Read(UnreliableNetClient client) {
-            client.reader.Read();
+        public void Read() {
+            // TODO: what am I gone do here?
         }
 
         public void Send(UnreliableNetClient client, byte[] message) {
-            client.writer.Write(message);
+            // TODO: what am I gone do here?
         }
 
         public void Flush(UnreliableNetClient client) {
-            client.writer.Flush();
+            // TODO: what am I gone do here?
         }
+
+        void INetworking<IUDPSocket, UnreliableNetClient>.Read(UnreliableNetClient client) { }
     }
 }

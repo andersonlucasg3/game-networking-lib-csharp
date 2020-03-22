@@ -14,8 +14,8 @@ namespace GameNetworking.Networking {
         }
 
         public override void Stop() {
-            for (int i = 0; i < this.clientsStorage.Count; i++) {
-                this.Disconnect(this.clientsStorage[i]);
+            for (int i = 0; i < this.clientsList.Count; i++) {
+                this.Disconnect(this.clientsList[i]);
             }
             base.Stop();
         }
@@ -45,7 +45,8 @@ namespace GameNetworking.Networking {
             if (client != null) {
                 client.listener = this;
                 var networkClient = new ReliableNetworkClient(client, new MessageStreamReader(), new MessageStreamWriter());
-                clientsStorage.Add(networkClient);
+                this.clientsCollection.Add(client, networkClient);
+                this.clientsList.Add(networkClient);
                 this.listener?.NetworkingServerDidAcceptClient(networkClient);
             }
         }

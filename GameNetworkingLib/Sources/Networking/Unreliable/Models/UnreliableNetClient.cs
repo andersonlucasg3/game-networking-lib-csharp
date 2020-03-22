@@ -10,21 +10,25 @@ namespace Networking.Models {
         bool isCommunicable { get; }
     }
 
-    public class UnreliableNetClient : NetClient<IUDPSocket, UnreliableNetClient>, IUnreliableNetClient<IUDPSocket, UnreliableNetClient>, UnreliableNetworkingReader.IListener {
+    public class UnreliableNetClient : NetClient<IUDPSocket, UnreliableNetClient>, IUnreliableNetClient<IUDPSocket, UnreliableNetClient> {
+        private readonly UnreliableNetworkingWriter writer;
+
         public bool isCommunicable => this.socket.isCommunicable;
-        
-        public UnreliableNetClient(IUDPSocket socket) : base(socket) { }
+
+        public UnreliableNetClient(IUDPSocket socket) : base(socket) {
+            this.writer = new UnreliableNetworkingWriter(socket);
+        }
 
         public override void Read() {
-            // TODO: what am I gone do here?
+            // TODO: I think I should do nothing here...
         }
 
         public override void Write(byte[] bytes) {
-            // TODO: what am I gone do here?
+            this.writer.Write(bytes);
         }
 
-        public void ReaderDidRead(byte[] bytes, UDPSocket from) {
-            // TODO: what am I gone do here?
+        public void Flush() {
+            this.writer.Flush();
         }
     }
 }

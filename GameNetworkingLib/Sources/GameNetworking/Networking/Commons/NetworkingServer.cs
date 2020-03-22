@@ -41,7 +41,8 @@ namespace GameNetworking.Networking.Commons {
 
         private INetworkingServer<TSocket, TClient, TNetClient> self => this;
 
-        protected List<TClient> clientsStorage { get; }
+        protected List<TClient> clientsList { get; }
+        protected Dictionary<TNetClient, TClient> clientsCollection { get; }
         protected Queue<TClient> disconnectedClientsToRemove { get; }
 
         protected TNetworking networking { get; private set; }
@@ -53,7 +54,8 @@ namespace GameNetworking.Networking.Commons {
 
         public NetworkingServer(TNetworking backend) {
             this.networking = backend;
-            this.clientsStorage = new List<TClient>();
+            this.clientsList = new List<TClient>();
+            this.clientsCollection = new Dictionary<TNetClient, TClient>();
             this.disconnectedClientsToRemove = new Queue<TClient>();
         }
 
@@ -67,8 +69,8 @@ namespace GameNetworking.Networking.Commons {
 
         public virtual void Update() {
             TClient client;
-            for (int i = 0; i < this.clientsStorage.Count; i++) {
-                client = this.clientsStorage[i];
+            for (int i = 0; i < this.clientsList.Count; i++) {
+                client = this.clientsList[i];
                 this.Read(client);
                 this.Flush(client);
             }
@@ -97,13 +99,27 @@ namespace GameNetworking.Networking.Commons {
             this.networking.Flush(client.client);
         }
 
+        protected virtual void TryReadMessage(byte[] bytes, TClient client) {
+            client.reader.Add(bytes);
+
+            MessageContainer message;
+            do {
+                message = client.reader.Decode();
+                if (message != null) {
+                    this.messagesListener?.NetworkingServerDidReadMessage(message, client);
+                }
+            } while (message != null);
+        }
+
         #endregion
 
         #region Private methods
 
         private void RemoveDisconnected() {
             while (this.disconnectedClientsToRemove.Count > 0) {
-                this.clientsStorage.Remove(this.disconnectedClientsToRemove.Dequeue());
+                var removing = this.disconnectedClientsToRemove.Dequeue();
+                this.clientsList.Remove(removing);
+                this.clientsCollection.Remove(removing.client);
             }
         }
 
@@ -112,16 +128,8 @@ namespace GameNetworking.Networking.Commons {
         #region INetClient<TSocket, TClient>.IListener
 
         void INetClient<TSocket, TNetClient>.IListener.ClientDidReadBytes(TNetClient client, byte[] bytes) {
-            var n_client = clientsStorage.Find((c) => c.Equals(client));
-            n_client.reader.Add(bytes);
-
-            MessageContainer message = null;
-            do {
-                message = n_client.reader.Decode();
-                if (message != null) {
-                    this.messagesListener?.NetworkingServerDidReadMessage(message, n_client);
-                }
-            } while (message != null);
+            if (!clientsCollection.TryGetValue(client, out TClient n_client)) { return; }
+            this.TryReadMessage(bytes, n_client);
         }
 
         #endregion

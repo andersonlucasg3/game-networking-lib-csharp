@@ -1,30 +1,38 @@
-﻿using Networking.Commons;
+﻿using System.Net;
+using Networking.Commons;
+using Networking.Commons.Models;
 using Networking.Models;
 
 namespace Networking.Sockets {
     public class UnreliableSocket : INetworking<IUDPSocket, UnreliableNetClient> {
-        // TODO: Finish this implementation
+        private readonly IUDPSocket socket;
 
-        public int port => 0;
+        public int port { get; private set; }
 
-        public void Flush(UnreliableNetClient client) {
-            throw new System.NotImplementedException();
-        }
-
-        public void Read(UnreliableNetClient client) {
-            throw new System.NotImplementedException();
-        }
-
-        public void Send(UnreliableNetClient client, byte[] message) {
-            throw new System.NotImplementedException();
+        public UnreliableSocket(IUDPSocket socket) {
+            this.socket = socket;
         }
 
         public void Start(int port) {
-            throw new System.NotImplementedException();
+            this.port = port;
+            NetEndPoint ep = new NetEndPoint(IPAddress.Any.ToString(), port);
+            this.socket.Bind(ep);
         }
 
         public void Stop() {
-            throw new System.NotImplementedException();
+            this.socket.Close();
+        }
+
+        public void Read(UnreliableNetClient client) {
+            client.reader.Read();
+        }
+
+        public void Send(UnreliableNetClient client, byte[] message) {
+            client.writer.Write(message);
+        }
+
+        public void Flush(UnreliableNetClient client) {
+            client.writer.Flush();
         }
     }
 }

@@ -41,14 +41,6 @@ namespace GameNetworking.Commons.Client {
                 default: this.client?.listener?.GameClientDidReceiveMessage(container); break;
             }
         }
-
-        private IExecutor Make<TExecutor, TMessage>(MessageContainer container) 
-            where TExecutor : class, IExecutor, IConfigurableExecutor<GameClient<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient>, TMessage>, new()
-            where TMessage : class, ITypedMessage, new() {
-            var exec = new TExecutor();
-            exec.Configure(this.client, this.dispatcher, container.Parse<TMessage>());
-            return exec;
-        }
     }
 
     public interface IConfigurableExecutor<TGame, TMessage> where TMessage : ITypedMessage {

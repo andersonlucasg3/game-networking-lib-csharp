@@ -1,6 +1,7 @@
 namespace GameNetworking.Messages {
     public enum MessageType {
-        connectedPlayer = 100,
+        connect = 100,
+        connectedPlayer,
         disconnectedPlayer,
         ping,
         pong,

@@ -15,6 +15,7 @@ namespace GameNetworking.Executors.Client {
         where TSocket: ISocket
         where TClient : INetworkClient<TSocket, TNetClient>
         where TNetClient : INetClient<TSocket, TNetClient> {
+
         private readonly DisconnectedPlayerMessage message;
 
         internal DisconnectedPlayerExecutor(GameClient<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient> client, DisconnectedPlayerMessage message) : base(client) {

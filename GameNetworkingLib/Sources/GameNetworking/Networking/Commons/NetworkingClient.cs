@@ -39,7 +39,7 @@ namespace GameNetworking.Networking.Commons {
         }
 
         public void Send(ITypedMessage message) {
-            this.client?.write(message);
+            this.client?.Write(message);
         }
 
         public void Update() {

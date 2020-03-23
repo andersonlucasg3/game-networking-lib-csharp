@@ -8,6 +8,8 @@ namespace Networking.Sockets {
     using Networking.Commons.Sockets;
 
     public interface IUDPSocket : ISocket {
+        void BindToRemote(NetEndPoint endPoint);
+
         void Close();
 
         void Read(Action<byte[], UDPSocket> callback);
@@ -17,8 +19,8 @@ namespace Networking.Sockets {
         private const int bufferSize = 8 * 1024;
 
         private readonly Socket socket;
-        private readonly EndPoint remoteEndPoint;
         private readonly Dictionary<EndPoint, UDPSocket> instantiatedEndPointSockets;
+        private EndPoint remoteEndPoint;
 
         public bool isBound => this.socket.IsBound;
         public bool isCommunicable => this.socket.Connected;
@@ -39,6 +41,10 @@ namespace Networking.Sockets {
 
         public void Close() {
             this.socket.Close();
+        }
+
+        public void BindToRemote(NetEndPoint endPoint) {
+            this.remoteEndPoint = this.From(endPoint);
         }
 
         public void Read(Action<byte[], UDPSocket> callback) {

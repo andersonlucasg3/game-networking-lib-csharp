@@ -32,6 +32,10 @@ namespace Networking.Sockets {
             this.socket.Close();
         }
 
+        public void BindToRemote(NetEndPoint endPoint) {
+            this.socket.BindToRemote(endPoint);
+        }
+
         public void Read() {
             this.reader.Read();
         }

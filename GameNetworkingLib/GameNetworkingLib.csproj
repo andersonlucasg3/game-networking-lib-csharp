@@ -16,7 +16,6 @@
     <OutputPath></OutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <Folder Include="Sources\GameNetworking\PublicAPI\Unreliable\Client\" />
     <Folder Include="Sources\MatchMaking\Connection\" />
     <Folder Include="Sources\GameNetworking\Commons\Interfaces\" />
     <Folder Include="Sources\Networking\Unreliable\Models\" />

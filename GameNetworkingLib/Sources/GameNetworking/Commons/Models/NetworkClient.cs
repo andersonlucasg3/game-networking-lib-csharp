@@ -12,7 +12,7 @@ namespace GameNetworking.Commons.Models {
         IStreamReader reader { get; }
         IStreamWriter writer { get; }
 
-        void write<TMessage>(TMessage message) where TMessage : ITypedMessage;
+        void Write<TMessage>(TMessage message) where TMessage : ITypedMessage;
     }
 
     public abstract class NetworkClient<TSocket, TNetClient> : INetworkClient<TSocket, TNetClient> where TSocket : ISocket where TNetClient : INetClient<TSocket, TNetClient> {
@@ -27,7 +27,7 @@ namespace GameNetworking.Commons.Models {
             this.writer = writer;
         }
 
-        public void write<TMessage>(TMessage message) where TMessage : ITypedMessage {
+        public void Write<TMessage>(TMessage message) where TMessage : ITypedMessage {
             if (!this.client.socket.isCommunicable) { return; }
 
             this.client.Write(this.writer.Write(message));

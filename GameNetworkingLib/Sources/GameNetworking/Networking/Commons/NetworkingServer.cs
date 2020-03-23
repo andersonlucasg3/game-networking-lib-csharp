@@ -78,7 +78,7 @@ namespace GameNetworking.Networking.Commons {
         }
 
         public void Send(ITypedMessage encodable, TClient client) {
-            client.write(encodable);
+            client.Write(encodable);
         }
 
         public void SendBroadcast(ITypedMessage encodable, List<TClient> clients) {

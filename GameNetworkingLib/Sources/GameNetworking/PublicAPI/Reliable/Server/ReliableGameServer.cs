@@ -11,7 +11,7 @@ namespace GameNetworking {
     public class ReliableGameServer<TPlayer> : GameServer<ReliableNetworkingServer, TPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient, ReliableClientAcceptor<TPlayer>, ReliableGameServer<TPlayer>>
         where TPlayer : class, INetworkPlayer<ITCPSocket, ReliableNetworkClient, ReliableNetClient>, new() {
 
-        public ReliableGameServer(ReliableNetworkingServer server, IMainThreadDispatcher dispatcher) : base(server, dispatcher) {
+        public ReliableGameServer(ReliableNetworkingServer server, IMainThreadDispatcher dispatcher) : base(server, new GameServerMessageRouter<ReliableGameServer<TPlayer>, ReliableNetworkingServer, TPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient>(dispatcher)) {
             this.networkingServer.listener = this;
         }
 

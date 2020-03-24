@@ -32,5 +32,9 @@ namespace Networking.Commons.Models {
         public static bool operator !=(NetEndPoint left, NetEndPoint right) {
             return !(left == right);
         }
+
+        public override string ToString() {
+            return $"{{ ip: {this.host}, port: {this.port} }}";
+        }
     }
 }

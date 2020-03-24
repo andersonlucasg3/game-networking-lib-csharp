@@ -4,76 +4,84 @@ using Networking.Commons.Models;
 using Networking.Sockets;
 
 namespace Test.Core.Model {
+    class IdentifiableBytes {
+        public readonly int fromSocketId;
+        public readonly NetEndPoint fromEndPoint;
+        public readonly NetEndPoint toEndPoint;
+        public readonly List<byte> bytes;
+
+        public IdentifiableBytes(int id, NetEndPoint from, NetEndPoint to, List<byte> bytes) {
+            this.fromSocketId = id;
+            this.fromEndPoint = from;
+            this.toEndPoint = to;
+            this.bytes = bytes;
+        }
+    }
+
     class UnreliableSocketMock : IUDPSocket, IEquatable<UnreliableSocketMock> {
-        private static readonly Dictionary<NetEndPoint, List<byte>> sentBytes = new Dictionary<NetEndPoint, List<byte>>();
-        private static readonly Dictionary<int, IUDPSocket> socketsMapping = new Dictionary<int, IUDPSocket>();
-        private static int sharedSocketIdCounter = 0;
+        private static int sharedSocketCounter = 0;
+        private readonly static List<IdentifiableBytes> writtenBytes = new List<IdentifiableBytes>();
 
         private readonly int socketId;
-        private NetEndPoint boundTo;
-        private NetEndPoint boundToRemote;
+
+        private readonly Dictionary<NetEndPoint, UnreliableSocketMock> socketMapping = new Dictionary<NetEndPoint, UnreliableSocketMock>();
+
+        internal NetEndPoint selfEndPoint { get; private set; }
+        internal NetEndPoint talkingToEndPoint { get; private set; }
 
         public bool isCommunicable { get; private set; }
         public bool isBound { get; private set; }
 
         public UnreliableSocketMock() {
-            this.socketId = sharedSocketIdCounter;
-            sharedSocketIdCounter++;
+            this.socketId = sharedSocketCounter;
+            sharedSocketCounter++;
         }
 
-        private UnreliableSocketMock(int id) {
+        public UnreliableSocketMock(int id) {
             this.socketId = id;
         }
 
         public void Bind(NetEndPoint endPoint) {
-            this.boundTo = endPoint;
+            this.selfEndPoint = endPoint;
             this.isBound = true;
             this.isCommunicable = true;
         }
 
         public void BindToRemote(NetEndPoint endPoint) {
+            this.talkingToEndPoint = endPoint;
             this.isCommunicable = true;
-            this.boundToRemote = endPoint;
         }
 
         public void Close() {
-            this.isCommunicable = false;
             this.isBound = false;
+            this.isCommunicable = false;
         }
 
         public void Read(Action<byte[], IUDPSocket> callback) {
-            void DoTheReading(List<byte> value) {
-                var bytes = value.ToArray();
-                value.Clear();
-
-                if (socketsMapping.TryGetValue(this.socketId, out IUDPSocket socket)) {
-                    callback.Invoke(bytes, socket);
-                    return;
-                }
-
-                var newSocket = new UnreliableSocketMock(this.socketId);
-                socketsMapping[this.socketId] = newSocket;
-                callback.Invoke(bytes, newSocket);
+            var identifiable = writtenBytes.Find(id => id.toEndPoint == this.selfEndPoint);
+            if (identifiable == null) {
+                callback?.Invoke(null, null);
+                return; 
             }
-
-            if (sentBytes.TryGetValue(this.boundToRemote, out List<byte> value)) {
-                DoTheReading(value);
+            var bytes = identifiable.bytes.ToArray();
+            if (this.socketMapping.TryGetValue(identifiable.toEndPoint, out UnreliableSocketMock value)) {
+                callback?.Invoke(bytes, value);
             } else {
-                foreach (var keyValue in sentBytes) {
-                    DoTheReading(keyValue.Value);
-                }
+                var newSocket = new UnreliableSocketMock(identifiable.fromSocketId) { selfEndPoint = this.selfEndPoint };
+                newSocket.BindToRemote(identifiable.fromEndPoint);
+                this.socketMapping.Add(identifiable.toEndPoint, newSocket);
+                callback?.Invoke(bytes, newSocket);
             }
+            identifiable.bytes.Clear();
         }
 
         public void Write(byte[] bytes, Action<int> callback) {
-            if (sentBytes.TryGetValue(this.boundToRemote, out List<byte> value)) {
-                value.AddRange(bytes);
-                callback?.Invoke(bytes.Length);
-                return;
+            var identifiable = writtenBytes.Find(id => id.toEndPoint == this.talkingToEndPoint);
+            if (identifiable == null) {
+                identifiable = new IdentifiableBytes(this.socketId, this.selfEndPoint, this.talkingToEndPoint, new List<byte>());
+                writtenBytes.Add(identifiable);
             }
-            var list = new List<byte>();
-            list.AddRange(bytes);
-            sentBytes[this.boundToRemote] = list;
+            identifiable.bytes.AddRange(bytes);
             callback?.Invoke(bytes.Length);
         }
 

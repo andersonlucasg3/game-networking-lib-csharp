@@ -5,6 +5,10 @@ using Tests.Core.Model;
 
 namespace Tests.Core {
     class SocketMockTests {
+        [SetUp] public void SetUp() {
+            UnreliableSocketMock.Setup();
+        }
+
         private NetEndPoint NewEndPoint(string host) => new NetEndPoint(host, 1);
 
         private ReliableSocketMock NewReliable() => new ReliableSocketMock();
@@ -156,7 +160,7 @@ namespace Tests.Core {
         [Test] public void TestUnreliableReadWriteMulticlient() {
             UnreliableSocketMock server = this.BoundUnreliableServer(this.NewEndPoint("127.0.0.1"));
             this.AcceptedUnreliableClient(server, this.NewEndPoint("127.0.0.1"), this.NewEndPoint("192.168.0.1"), out UnreliableSocketMock connectedSocket1, out UnreliableSocketMock acceptedSocket1);
-            this.AcceptedUnreliableClient(server, this.NewEndPoint("127.0.0.1"), this.NewEndPoint("192.168.0.1"), out UnreliableSocketMock connectedSocket2, out UnreliableSocketMock acceptedSocket2);
+            this.AcceptedUnreliableClient(server, this.NewEndPoint("127.0.0.1"), this.NewEndPoint("192.168.0.2"), out UnreliableSocketMock connectedSocket2, out UnreliableSocketMock acceptedSocket2);
 
             byte[] buffer1 = { 10, 9, 8, 7, 6, 5 };
             byte[] buffer2 = { 1, 2, 3, 4, 5 };

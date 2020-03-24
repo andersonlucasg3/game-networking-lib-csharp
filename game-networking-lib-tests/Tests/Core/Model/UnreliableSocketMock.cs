@@ -24,7 +24,7 @@ namespace Test.Core.Model {
 
         private readonly int socketId;
 
-        private readonly Dictionary<NetEndPoint, UnreliableSocketMock> socketMapping = new Dictionary<NetEndPoint, UnreliableSocketMock>();
+        private readonly Dictionary<int, UnreliableSocketMock> socketMapping = new Dictionary<int, UnreliableSocketMock>();
 
         internal NetEndPoint selfEndPoint { get; private set; }
         internal NetEndPoint talkingToEndPoint { get; private set; }
@@ -39,6 +39,10 @@ namespace Test.Core.Model {
 
         public UnreliableSocketMock(int id) {
             this.socketId = id;
+        }
+
+        public static void Setup() {
+            writtenBytes.Clear();
         }
 
         public void Bind(NetEndPoint endPoint) {
@@ -58,25 +62,25 @@ namespace Test.Core.Model {
         }
 
         public void Read(Action<byte[], IUDPSocket> callback) {
-            var identifiable = writtenBytes.Find(id => id.toEndPoint == this.selfEndPoint);
+            var identifiable = writtenBytes.Find(id => id.toEndPoint == this.selfEndPoint && id.bytes.Count > 0);
             if (identifiable == null) {
                 callback?.Invoke(null, null);
                 return; 
             }
             var bytes = identifiable.bytes.ToArray();
-            if (this.socketMapping.TryGetValue(identifiable.toEndPoint, out UnreliableSocketMock value)) {
+            if (this.socketMapping.TryGetValue(identifiable.fromSocketId, out UnreliableSocketMock value)) {
                 callback?.Invoke(bytes, value);
             } else {
                 var newSocket = new UnreliableSocketMock(identifiable.fromSocketId) { selfEndPoint = this.selfEndPoint };
                 newSocket.BindToRemote(identifiable.fromEndPoint);
-                this.socketMapping.Add(identifiable.toEndPoint, newSocket);
+                this.socketMapping.Add(identifiable.fromSocketId, newSocket);
                 callback?.Invoke(bytes, newSocket);
             }
             identifiable.bytes.Clear();
         }
 
         public void Write(byte[] bytes, Action<int> callback) {
-            var identifiable = writtenBytes.Find(id => id.toEndPoint == this.talkingToEndPoint);
+            var identifiable = writtenBytes.Find(id => id.toEndPoint == this.talkingToEndPoint && id.fromEndPoint == this.selfEndPoint);
             if (identifiable == null) {
                 identifiable = new IdentifiableBytes(this.socketId, this.selfEndPoint, this.talkingToEndPoint, new List<byte>());
                 writtenBytes.Add(identifiable);

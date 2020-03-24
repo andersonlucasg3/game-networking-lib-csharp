@@ -11,8 +11,12 @@ namespace GameNetworking {
         where TPlayer : class, INetworkPlayer<IUDPSocket, UnreliableNetworkClient, UnreliableNetClient>, new() {
         public UnreliableGameClient(UnreliableNetworkingClient backend, IMainThreadDispatcher dispatcher) : base(backend, dispatcher) { }
 
-        public void Connect(string host, int port) {
+        public override void Connect(string host, int port) {
             this.networkingClient.Connect(host, port);
+        }
+
+        public override void Disconnect() {
+            // TODO: implement this... send the disconnect message
         }
     }
 }

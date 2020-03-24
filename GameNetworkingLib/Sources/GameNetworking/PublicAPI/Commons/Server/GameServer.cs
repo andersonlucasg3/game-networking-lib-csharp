@@ -23,6 +23,12 @@ namespace GameNetworking.Commons.Server {
 
         public IGameServerPingController<TPlayer, TSocket, TClient, TNetClient> pingController { get; }
 
+        void Start(int port);
+        void Stop();
+
+        void Update();
+
+        TPlayer FindPlayer(int playerId);
         List<TPlayer> AllPlayers();
         void Send(ITypedMessage message, TPlayer player);
         void SendBroadcast(ITypedMessage message);

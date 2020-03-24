@@ -9,24 +9,49 @@ using Networking.Commons.Models;
 using Networking.Commons.Sockets;
 
 namespace GameNetworking.Commons.Client {
-    public abstract class GameClient<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient>
+    public interface IGameClient<TPlayer, TSocket, TClient, TNetClient>
+        where TPlayer : class, INetworkPlayer<TSocket, TClient, TNetClient>, new()
+        where TSocket : ISocket
+        where TClient : INetworkClient<TSocket, TNetClient>
+        where TNetClient : INetClient<TSocket, TNetClient> {
+
+        public interface IListener {
+            void GameClientDidConnect();
+            void GameClientConnectDidTimeout();
+            void GameClientDidDisconnect();
+
+            void GameClientDidIdentifyLocalPlayer(TPlayer player);
+            void GameClientDidReceiveMessage(MessageContainer container);
+            void GameClientNetworkPlayerDidDisconnect(TPlayer player);
+        }
+
+        IListener listener { get; set; }
+
+        void Connect(string host, int port);
+        void Disconnect();
+
+        void Update();
+        float GetPing(int playerId);
+        void Send(ITypedMessage message);
+        TPlayer FindPlayer(int playerId);
+        TPlayer FindPlayer(Func<TPlayer, bool> predicate);
+        List<TPlayer> AllPlayers();
+    }
+
+    public abstract class GameClient<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient> : IGameClient<TPlayer, TSocket, TClient, TNetClient>
         where TNetworkingClient : INetworkingClient<TSocket, TClient, TNetClient>
         where TPlayer : class, INetworkPlayer<TSocket, TClient, TNetClient>, new()
         where TSocket : ISocket
         where TClient : INetworkClient<TSocket, TNetClient>
         where TNetClient : INetClient<TSocket, TNetClient> {
-        public interface IListener {
-            void GameClientDidIdentifyLocalPlayer(TPlayer player);
-            void GameClientDidReceiveMessage(MessageContainer container);
-            void GameClientNetworkPlayerDidDisconnect(TPlayer player);
-        }
+        
 
         protected NetworkPlayerCollection<TPlayer, TSocket, TClient, TNetClient> playersStorage { get; private set; }
         protected GameClientMessageRouter<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient> router { get; private set; }
 
         internal TNetworkingClient networkingClient { get; private set; }
 
-        public IListener listener { get; set; }
+        public IGameClient<TPlayer, TSocket, TClient, TNetClient>.IListener listener { get; set; }
 
         public GameClient(TNetworkingClient backend, IMainThreadDispatcher dispatcher) {
             this.networkingClient = backend;
@@ -35,6 +60,9 @@ namespace GameNetworking.Commons.Client {
 
             this.router = new GameClientMessageRouter<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient>(this, dispatcher);
         }
+
+        public abstract void Connect(string host, int port);
+        public abstract void Disconnect();
 
         public void Send(ITypedMessage message) {
             this.networkingClient.Send(message);

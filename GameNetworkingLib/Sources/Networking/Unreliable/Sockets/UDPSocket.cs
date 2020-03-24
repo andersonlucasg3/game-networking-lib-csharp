@@ -12,7 +12,7 @@ namespace Networking.Sockets {
 
         void Close();
 
-        void Read(Action<byte[], UDPSocket> callback);
+        void Read(Action<byte[], IUDPSocket> callback);
     }
 
     public sealed class UDPSocket : IUDPSocket, IDisposable {
@@ -47,7 +47,7 @@ namespace Networking.Sockets {
             this.remoteEndPoint = this.From(endPoint);
         }
 
-        public void Read(Action<byte[], UDPSocket> callback) {
+        public void Read(Action<byte[], IUDPSocket> callback) {
             byte[] buffer = new byte[bufferSize];
             EndPoint endPoint = new IPEndPoint(0, 0);
             this.socket.BeginReceiveFrom(buffer, 0, bufferSize, SocketFlags.None, ref endPoint, asyncResult => {

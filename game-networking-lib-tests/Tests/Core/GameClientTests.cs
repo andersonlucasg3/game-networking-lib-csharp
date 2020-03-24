@@ -22,11 +22,11 @@ namespace Tests.Core {
         private readonly int port = 30000;
 
         private ReliableNetworkingServer NewServer() {
-            return new ReliableNetworkingServer(new ReliableSocket(new SocketMock()));
+            return new ReliableNetworkingServer(new ReliableSocket(new ReliableSocketMock()));
         }
 
         private ReliableNetworkingClient NewClient() {
-            return new ReliableNetworkingClient(new ReliableSocket(new SocketMock()));
+            return new ReliableNetworkingClient(new ReliableSocket(new ReliableSocketMock()));
         }
 
         private void New(out ReliableGameServer<ServerPlayer> server, out ServerListener listener) {

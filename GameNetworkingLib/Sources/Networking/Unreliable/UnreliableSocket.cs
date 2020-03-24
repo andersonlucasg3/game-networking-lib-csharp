@@ -50,7 +50,7 @@ namespace Networking.Sockets {
 
         void INetworking<IUDPSocket, UnreliableNetClient>.Read(UnreliableNetClient client) { }
         
-        void UnreliableNetworkingReader.IListener.ReaderDidRead(byte[] bytes, UDPSocket from) {
+        void UnreliableNetworkingReader.IListener.ReaderDidRead(byte[] bytes, IUDPSocket from) {
             this.listener?.SocketDidRead(bytes, new UnreliableNetClient(from));
         }
     }

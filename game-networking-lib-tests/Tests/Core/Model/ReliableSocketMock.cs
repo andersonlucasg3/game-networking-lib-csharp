@@ -4,12 +4,12 @@ using Networking.Sockets;
 using Networking.Commons.Models;
 
 namespace Tests.Core.Model {
-    class SocketMock : ITCPSocket {
-        private static readonly Queue<SocketMock> pendingAcceptClients = new Queue<SocketMock>();
-        private static readonly List<SocketMock> connectedClients = new List<SocketMock>();
+    class ReliableSocketMock : ITCPSocket {
+        private static readonly Queue<ReliableSocketMock> pendingAcceptClients = new Queue<ReliableSocketMock>();
+        private static readonly List<ReliableSocketMock> connectedClients = new List<ReliableSocketMock>();
 
         private byte[] buffer;
-        private SocketMock serverCounterPart;
+        private ReliableSocketMock serverCounterPart;
 
         public bool isConnected { get; private set; }
         public bool isBound { get; private set; }
@@ -26,7 +26,7 @@ namespace Tests.Core.Model {
         }
 
         public void Accept(Action<ITCPSocket> acceptAction) {
-            if (pendingAcceptClients.TryDequeue(out SocketMock socket)) {
+            if (pendingAcceptClients.TryDequeue(out ReliableSocketMock socket)) {
                 connectedClients.Add(socket);
             }
             acceptAction?.Invoke(socket);
@@ -38,7 +38,7 @@ namespace Tests.Core.Model {
         }
 
         public void Connect(NetEndPoint endPoint, Action connectAction) {
-            this.serverCounterPart = new SocketMock() {
+            this.serverCounterPart = new ReliableSocketMock() {
                 isConnected = true,
                 serverCounterPart = this
             };

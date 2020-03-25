@@ -1,6 +1,7 @@
 ﻿using GameNetworking.Commons;
 using GameNetworking.Commons.Models.Server;
 using GameNetworking.Commons.Server;
+using GameNetworking.Messages.Server;
 using GameNetworking.Networking;
 using GameNetworking.Networking.Models;
 using Networking.Models;
@@ -14,7 +15,13 @@ namespace GameNetworking {
             this.networkingServer.listener = this;
         }
 
+        public void Disconnect(TPlayer player) {
+            this.Send(new UnreliableDisconnectResponseMessage(), player);
+        }
+
         internal void DisconnectRequired(TPlayer player) {
+            this.Disconnect(player);
+
             this.networkingServer.listener?.NetworkingServerClientDidDisconnect(player.client);
         }
     }

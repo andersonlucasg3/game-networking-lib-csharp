@@ -1,6 +1,5 @@
 ﻿using GameNetworking.Commons;
 using GameNetworking.Commons.Models.Server;
-using GameNetworking.Messages.Server;
 using GameNetworking.Networking.Models;
 using Networking.Models;
 using Networking.Sockets;
@@ -16,8 +15,6 @@ namespace GameNetworking.Executors.Server {
         }
 
         public override void Execute() {
-            this.instance.Send(new UnreliableDisconnectResponseMessage(), this.player);
-
             this.instance.DisconnectRequired(this.player);
         }
     }

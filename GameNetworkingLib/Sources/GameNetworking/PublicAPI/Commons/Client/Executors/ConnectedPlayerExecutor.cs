@@ -2,21 +2,19 @@
 using GameNetworking.Commons;
 using GameNetworking.Commons.Models;
 using GameNetworking.Messages.Server;
-using GameNetworking.Networking.Commons;
 using Networking.Commons.Models;
 using Networking.Commons.Sockets;
 using GameNetworking.Commons.Models.Client;
 
 namespace GameNetworking.Executors.Client {
-    internal class ConnectedPlayerExecutor<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient> : BaseExecutor<GameClient<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient>>
+    internal class ConnectedPlayerExecutor<TPlayer, TSocket, TClient, TNetClient> : BaseExecutor<IGameClient<TPlayer, TSocket, TClient, TNetClient>>
         where TPlayer : class, INetworkPlayer<TSocket, TClient, TNetClient>, new()
-        where TNetworkingClient : INetworkingClient<TSocket, TClient, TNetClient>
         where TSocket : ISocket
         where TClient : INetworkClient<TSocket, TNetClient>
         where TNetClient : INetClient<TSocket, TNetClient> {
         private readonly ConnectedPlayerMessage message;
 
-        internal ConnectedPlayerExecutor(GameClient<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient> client, ConnectedPlayerMessage message) : base(client) {
+        internal ConnectedPlayerExecutor(IGameClient<TPlayer, TSocket, TClient, TNetClient> client, ConnectedPlayerMessage message) : base(client) {
             this.message = message;
         }
 

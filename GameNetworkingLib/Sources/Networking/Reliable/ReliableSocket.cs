@@ -39,10 +39,9 @@ namespace Networking {
             this.acceptedQueue = new Queue<ITCPSocket>();
         }
 
-        public void Start(int port) {
+        public void Start(string host, int port) {
             this.port = port;
-            NetEndPoint ep = new NetEndPoint(IPAddress.Any.ToString(), port);
-            this.socket.Bind(ep);
+            this.socket.Bind(new NetEndPoint(host, port));
             this.socket.Listen(10);
         }
 

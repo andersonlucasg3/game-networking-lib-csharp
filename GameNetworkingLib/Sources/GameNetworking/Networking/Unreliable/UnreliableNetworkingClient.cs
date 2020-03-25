@@ -4,17 +4,32 @@ using GameNetworking.Networking.Models;
 using Networking.Commons.Models;
 using Networking.Models;
 using Networking.Sockets;
+using Messages.Streams;
+using Networking.Commons;
 
 namespace GameNetworking.Networking {
-    public class UnreliableNetworkingClient : NetworkingClient<UnreliableSocket, IUDPSocket, UnreliableNetworkClient, UnreliableNetClient> {
+    public class UnreliableNetworkingClient : NetworkingClient<UnreliableSocket, IUDPSocket, UnreliableNetworkClient, UnreliableNetClient>, UnreliableSocket.IListener {
+        public UnreliableNetworkingClient(UnreliableSocket backend) : base(backend) {
+            backend.listener = this;
 
-        public UnreliableNetworkingClient(UnreliableSocket backend) : base(backend) { }
+            this.client = new UnreliableNetworkClient(new UnreliableNetClient(this.networking.socket), new MessageStreamReader(), new MessageStreamWriter());
+        }
+
+        public void Start(string host, int port) {
+            this.networking.Start(host, port);
+        }
 
         public void Connect(string host, int port) {
-            this.networking.Start(port);
             this.networking.BindToRemote(new NetEndPoint(host, port));
+        }
 
-            this.Send(new UnreliableConnectMessage());
+        public override void Update() {
+            this.networking.Read();
+            base.Update();
+        }
+
+        void UnreliableSocket.IListener.SocketDidRead(byte[] bytes, UnreliableNetClient client) {
+            (this as INetClient<IUDPSocket, UnreliableNetClient>.IListener).ClientDidReadBytes(client, bytes);
         }
     }
 }

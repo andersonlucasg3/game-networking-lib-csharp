@@ -90,22 +90,22 @@ namespace Tests.Core {
             UnreliableGameServerClientTests.ServerListener, UnreliableGameServerClientTests.ClientListener
         > {
 
+        private static int ipCounter = 0;
+
         protected override UnreliableNetworkingClient NewClient() => new UnreliableNetworkingClient(new UnreliableSocket(new UnreliableSocketMock()));
         protected override UnreliableNetworkingServer NewServer() => new UnreliableNetworkingServer(new UnreliableSocket(new UnreliableSocketMock()));
 
         protected override void NewServer(out UnreliableGameServer<UnreliableServerPlayer> server, out ServerListener listener) {
             var newListener = new ServerListener();
-            server = new UnreliableGameServer<UnreliableServerPlayer>(this.NewServer(), new MainThreadDispatcher()) {
-                listener = newListener
-            };
+            server = new UnreliableGameServer<UnreliableServerPlayer>(this.NewServer(), new MainThreadDispatcher()) { listener = newListener };
             listener = newListener;
         }
 
         protected override void NewClient(out UnreliableGameClient<UnreliableClientPlayer> client, out ClientListener listener) {
             var newListener = new ClientListener();
-            client = new UnreliableGameClient<UnreliableClientPlayer>(this.NewClient(), new MainThreadDispatcher()) {
-                listener = newListener
-            };
+            client = new UnreliableGameClient<UnreliableClientPlayer>(this.NewClient(), new MainThreadDispatcher()) { listener = newListener };
+            client.Start($"192.168.0.{ipCounter}", 1);
+            ipCounter++;
             listener = newListener;
         }
 
@@ -181,9 +181,6 @@ namespace Tests.Core {
         where TServerListener : IServerListener<TServerPlayer, TSocket, TClient, TNetClient>
         where TClientListener : IClientListener<TClientPlayer, TSocket, TClient, TNetClient> {
 
-        private readonly string host = "127.0.0.1";
-        private readonly int port = 30000;
-
         [SetUp]
         public void SetUp() {
             UnreliableSocketMock.Setup();
@@ -207,9 +204,9 @@ namespace Tests.Core {
             this.NewClient(out TGameClient client, out TClientListener clientListener);
             this.NewServer(out TGameServer server, out TServerListener serverListener);
 
-            server.Start(this.port);
+            server.Start("0.0.0.0", 1);
 
-            client.Connect(this.host, this.port);
+            client.Connect("0.0.0.0", 1);
 
             this.Update(server);
             this.Update(client);
@@ -229,6 +226,7 @@ namespace Tests.Core {
 
             this.Update(client);
             this.Update(server);
+            this.Update(client);
 
             var notServerPlayer = server.FindPlayer(playerId);
 
@@ -256,11 +254,11 @@ namespace Tests.Core {
                 this.Update(client3);
             }
 
-            server.Start(this.port);
+            server.Start("0.0.0.0", 1);
 
-            client1.Connect(this.host, this.port);
-            client2.Connect(this.host, this.port);
-            client3.Connect(this.host, this.port);
+            client1.Connect("0.0.0.0", 1);
+            client2.Connect("0.0.0.0", 1);
+            client3.Connect("0.0.0.0", 1);
 
             UpdateAction();
 
@@ -335,10 +333,10 @@ namespace Tests.Core {
                 this.Update(client2);
             }
 
-            server.Start(this.port);
+            server.Start("0.0.0.0", 1);
 
-            client1.Connect(this.host, this.port);
-            client2.Connect(this.host, this.port);
+            client1.Connect("0.0.0.0", 1);
+            client2.Connect("0.0.0.0", 1);
 
             Update();
 
@@ -354,7 +352,7 @@ namespace Tests.Core {
             Assert.IsNull(server.FindPlayer(player2.playerId));
             this.NewClient(out client2, out TClientListener listener2_c);
 
-            client2.Connect(this.host, this.port);
+            client2.Connect("0.0.0.0", 1);
 
             Update();
 
@@ -379,10 +377,10 @@ namespace Tests.Core {
                 this.Update(client2);
             }
 
-            server.Start(this.port);
+            server.Start("0.0.0.0", 1);
 
-            client1.Connect(this.host, this.port);
-            client2.Connect(this.host, this.port);
+            client1.Connect("0.0.0.0", 1);
+            client2.Connect("0.0.0.0", 1);
 
             Update();
             Update();

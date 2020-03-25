@@ -7,11 +7,11 @@ using Networking.Models;
 using GameNetworking.Networking;
 
 namespace GameNetworking {
-    public class ReliableGameClient<TPlayer> : GameClient<ReliableNetworkingClient, TPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient>
+    public class ReliableGameClient<TPlayer> : GameClient<ReliableNetworkingClient, TPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient, ReliableGameClient<TPlayer>>
         where TPlayer : class, INetworkPlayer<ITCPSocket, ReliableNetworkClient, ReliableNetClient>, new() {
         private readonly GameClientConnection<TPlayer> connection;
 
-        public ReliableGameClient(ReliableNetworkingClient socket, IMainThreadDispatcher dispatcher) : base(socket, dispatcher) {
+        public ReliableGameClient(ReliableNetworkingClient socket, IMainThreadDispatcher dispatcher) : base(socket, new GameClientMessageRouter<ReliableGameClient<TPlayer>, TPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient>(dispatcher)) {
             this.connection = new GameClientConnection<TPlayer>(this);
         }
 

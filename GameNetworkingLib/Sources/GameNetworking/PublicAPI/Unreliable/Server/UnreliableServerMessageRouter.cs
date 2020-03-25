@@ -19,7 +19,8 @@ namespace GameNetworking {
             if (container == null) { return; }
 
             switch ((MessageType)container.type) {
-                case MessageType.connect: this.Execute(new UnreliableConnectExecutor<TPlayer>(this.server)); break;
+                case MessageType.connect: this.Execute(new UnreliableConnectExecutor<TPlayer>(this.server, player)); break;
+                case MessageType.disconnect: this.Execute(new UnreliableDisconnectExecutor<TPlayer>(this.server, player)); break;
                 default: base.Route(container, player); break;
             }
         }

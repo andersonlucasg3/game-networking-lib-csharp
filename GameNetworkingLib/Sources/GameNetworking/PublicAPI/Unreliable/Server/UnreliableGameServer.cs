@@ -13,5 +13,9 @@ namespace GameNetworking {
         public UnreliableGameServer(UnreliableNetworkingServer server, IMainThreadDispatcher dispatcher) : base(server, new UnreliableServerMessageRouter<TPlayer>(dispatcher)) {
             this.networkingServer.listener = this;
         }
+
+        internal void DisconnectRequired(TPlayer player) {
+            this.networkingServer.listener?.NetworkingServerClientDidDisconnect(player.client);
+        }
     }
 }

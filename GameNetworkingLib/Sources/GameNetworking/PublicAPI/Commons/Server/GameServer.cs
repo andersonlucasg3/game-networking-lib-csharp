@@ -23,7 +23,7 @@ namespace GameNetworking.Commons.Server {
 
         public IGameServerPingController<TPlayer, TSocket, TClient, TNetClient> pingController { get; }
 
-        void Start(int port);
+        void Start(string host, int port);
         void Stop();
 
         void Update();
@@ -75,8 +75,8 @@ namespace GameNetworking.Commons.Server {
             this.clientAcceptor = new TClientAcceptor() { listener = this };
         }
 
-        public void Start(int port) {
-            this.networkingServer.Start(port);
+        public void Start(string host, int port) {
+            this.networkingServer.Start(host, port);
         }
 
         public void Stop() {

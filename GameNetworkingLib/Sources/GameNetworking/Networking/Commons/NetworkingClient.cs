@@ -42,7 +42,7 @@ namespace GameNetworking.Networking.Commons {
             this.client?.Write(message);
         }
 
-        public void Update() {
+        public virtual void Update() {
             if (this.client == null || this.client.client == null) { return; }
             this.networking.Read(this.client.client);
             this.networking.Flush(this.client.client);

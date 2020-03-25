@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Collections.Generic;
+using Google.Protobuf.WellKnownTypes;
 using Networking.Commons;
 using Networking.Commons.Models;
 using Networking.IO;
@@ -10,8 +11,10 @@ namespace Networking.Sockets {
             void SocketDidRead(byte[] bytes, UnreliableNetClient client);
         }
 
-        private readonly IUDPSocket socket;
         private readonly UnreliableNetworkingReader reader;
+        private readonly Dictionary<IUDPSocket, UnreliableNetClient> socketClientCollection = new Dictionary<IUDPSocket, UnreliableNetClient>();
+
+        internal IUDPSocket socket { get; private set; }
         
         public int port { get; private set; }
 
@@ -19,13 +22,12 @@ namespace Networking.Sockets {
 
         public UnreliableSocket(IUDPSocket socket) {
             this.socket = socket;
-            this.reader = new UnreliableNetworkingReader(socket);
+            this.reader = new UnreliableNetworkingReader(socket) { listener = this };
         }
 
-        public void Start(int port) {
+        public void Start(string host, int port) {
             this.port = port;
-            NetEndPoint ep = new NetEndPoint(IPAddress.Any.ToString(), port);
-            this.socket.Bind(ep);
+            this.socket.Bind(new NetEndPoint(host, port));
         }
 
         public void Stop() {
@@ -51,7 +53,14 @@ namespace Networking.Sockets {
         void INetworking<IUDPSocket, UnreliableNetClient>.Read(UnreliableNetClient client) { }
         
         void UnreliableNetworkingReader.IListener.ReaderDidRead(byte[] bytes, IUDPSocket from) {
-            this.listener?.SocketDidRead(bytes, new UnreliableNetClient(from));
+            if (from == null) { return; }
+            if (this.socketClientCollection.TryGetValue(from, out UnreliableNetClient value)) {
+                this.listener?.SocketDidRead(bytes, value);
+            } else {
+                var client = new UnreliableNetClient(from);
+                this.socketClientCollection[from] = client;
+                this.listener?.SocketDidRead(bytes, client);
+            }
         }
     }
 }

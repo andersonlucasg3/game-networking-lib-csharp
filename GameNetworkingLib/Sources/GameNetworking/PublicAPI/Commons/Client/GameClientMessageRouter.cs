@@ -12,33 +12,37 @@ using Networking.Commons.Models;
 using Networking.Commons.Sockets;
 
 namespace GameNetworking.Commons.Client {
-    public class GameClientMessageRouter<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient> 
+    public class GameClientMessageRouter<TGame, TPlayer, TSocket, TClient, TNetClient> 
+        where TGame : IGameClient<TPlayer, TSocket, TClient, TNetClient>
         where TPlayer : class, INetworkPlayer<TSocket, TClient, TNetClient>, new()
-        where TNetworkingClient : INetworkingClient<TSocket, TClient, TNetClient>
         where TSocket : ISocket
         where TClient : INetworkClient<TSocket, TNetClient>
         where TNetClient : INetClient<TSocket, TNetClient> {
-        private readonly GameClient<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient> client;
+        
         private readonly IMainThreadDispatcher dispatcher;
+        protected TGame game { get; private set; }
 
-        internal GameClientMessageRouter(GameClient<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient> client, IMainThreadDispatcher dispatcher) {
-            this.client = client;
+        internal GameClientMessageRouter(IMainThreadDispatcher dispatcher) {
             this.dispatcher = dispatcher;
         }
 
-        private void Execute(IExecutor executor) {
+        internal void Configure(TGame game) {
+            this.game = game;
+        }
+
+        protected void Execute(IExecutor executor) {
             dispatcher.Enqueue(executor.Execute);
         }
 
-        internal void Route(MessageContainer container) {
+        internal virtual void Route(MessageContainer container) {
             if (container == null) { return; }
 
             switch ((MessageType)container.type) {
-                case MessageType.connectedPlayer: this.Execute(new ConnectedPlayerExecutor<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient>(this.client, container.Parse<ConnectedPlayerMessage>())); break;
-                case MessageType.ping: this.Execute(new PingRequestExecutor<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient>(this.client)); break;
-                case MessageType.pingResult: this.Execute(new PingResultRequestExecutor<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient>(this.client, container.Parse<PingResultRequestMessage>())); break;
-                case MessageType.disconnectedPlayer: this.Execute(new DisconnectedPlayerExecutor<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient>(this.client, container.Parse<DisconnectedPlayerMessage>())); break;
-                default: this.client?.listener?.GameClientDidReceiveMessage(container); break;
+                case MessageType.connectedPlayer: this.Execute(new ConnectedPlayerExecutor<TPlayer, TSocket, TClient, TNetClient>(this.game, container.Parse<ConnectedPlayerMessage>())); break;
+                case MessageType.ping: this.Execute(new PingRequestExecutor<TPlayer, TSocket, TClient, TNetClient>(this.game)); break;
+                case MessageType.pingResult: this.Execute(new PingResultRequestExecutor<TPlayer, TSocket, TClient, TNetClient>(this.game, container.Parse<PingResultRequestMessage>())); break;
+                case MessageType.disconnectedPlayer: this.Execute(new DisconnectedPlayerExecutor<TPlayer, TSocket, TClient, TNetClient>(this.game, container.Parse<DisconnectedPlayerMessage>())); break;
+                default: this.game?.listener?.GameClientDidReceiveMessage(container); break;
             }
         }
     }

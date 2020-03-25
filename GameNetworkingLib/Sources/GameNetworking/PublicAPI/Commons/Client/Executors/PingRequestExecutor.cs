@@ -1,3 +1,4 @@
+using GameNetworking.Commons;
 using GameNetworking.Commons.Client;
 using GameNetworking.Commons.Models;
 using GameNetworking.Commons.Models.Client;
@@ -7,20 +8,16 @@ using Networking.Commons.Models;
 using Networking.Commons.Sockets;
 
 namespace GameNetworking.Executors.Client {
-    internal class PingRequestExecutor<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient> : IExecutor 
+    internal class PingRequestExecutor<TPlayer, TSocket, TClient, TNetClient> : BaseExecutor<IGameClient<TPlayer, TSocket, TClient, TNetClient>> 
         where TPlayer : class, INetworkPlayer<TSocket, TClient, TNetClient>, new()
-        where TNetworkingClient : INetworkingClient<TSocket, TClient, TNetClient>
         where TSocket : ISocket
         where TClient : INetworkClient<TSocket, TNetClient>
         where TNetClient : INetClient<TSocket, TNetClient> {
-        private GameClient<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient> client;
 
-        public PingRequestExecutor(GameClient<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient> client) {
-            this.client = client;
-        }
+        public PingRequestExecutor(IGameClient<TPlayer, TSocket, TClient, TNetClient> client) : base(client) { }
 
-        public void Execute() {
-            this.client.Send(new PongRequestMessage());
+        public override void Execute() {
+            this.instance.Send(new PongRequestMessage());
         }
     }
 }

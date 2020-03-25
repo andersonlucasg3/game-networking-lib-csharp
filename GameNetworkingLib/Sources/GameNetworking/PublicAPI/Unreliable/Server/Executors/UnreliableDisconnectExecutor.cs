@@ -6,17 +6,19 @@ using Networking.Models;
 using Networking.Sockets;
 
 namespace GameNetworking.Executors.Server {
-    public class UnreliableConnectExecutor<TPlayer> : BaseExecutor<UnreliableGameServer<TPlayer>>
+    public class UnreliableDisconnectExecutor<TPlayer> : BaseExecutor<UnreliableGameServer<TPlayer>>
         where TPlayer : class, INetworkPlayer<IUDPSocket, UnreliableNetworkClient, UnreliableNetClient>, new() {
 
         private readonly TPlayer player;
 
-        public UnreliableConnectExecutor(UnreliableGameServer<TPlayer> instance, TPlayer player) : base(instance) {
+        public UnreliableDisconnectExecutor(UnreliableGameServer<TPlayer> instance, TPlayer player) : base(instance) {
             this.player = player;
         }
 
         public override void Execute() {
-            this.instance.Send(new UnreliableConnectResponseMessage(), this.player);
+            this.instance.Send(new UnreliableDisconnectResponseMessage(), this.player);
+
+            this.instance.DisconnectRequired(this.player);
         }
     }
 }

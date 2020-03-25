@@ -24,7 +24,7 @@ namespace GameNetworking.Networking.Commons {
         internal IListener listener { get; set; }
         IMessagesListener messagesListener { get; set; }
 
-        void Start(int port);
+        void Start(string host, int port);
         void Stop();
 
         void Update();
@@ -59,8 +59,8 @@ namespace GameNetworking.Networking.Commons {
             this.disconnectedClientsToRemove = new Queue<TClient>();
         }
 
-        public virtual void Start(int port) {
-            this.networking.Start(port);
+        public virtual void Start(string host, int port) {
+            this.networking.Start(host, port);
         }
 
         public virtual void Stop() {

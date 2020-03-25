@@ -5,7 +5,7 @@
     public interface INetworking<TSocket, TClient> where TSocket : ISocket where TClient : INetClient<TSocket, TClient> {
         int port { get; }
 
-        void Start(int port);
+        void Start(string host, int port);
         void Stop();
 
         void Read(TClient client);

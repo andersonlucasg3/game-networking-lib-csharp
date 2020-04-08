@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using Networking.Commons.Models;
+using Networking.Commons.Sockets;
+using System.Threading.Tasks;
 
 namespace Networking.Sockets {
-    using Commons.Models;
-    using Networking.Commons.Sockets;
-
     public interface IUDPSocket : ISocket {
         void BindToRemote(NetEndPoint endPoint);
 
@@ -32,6 +32,7 @@ namespace Networking.Sockets {
             this.socket = socket;
             this.remoteEndPoint = remoteEndPoint;
             this.instantiatedEndPointSockets = new Dictionary<EndPoint, UDPSocket>();
+            this.isCommunicable = true;
             this.Configure();
         }
 

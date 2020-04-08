@@ -23,7 +23,7 @@ namespace Networking.Sockets {
         private EndPoint remoteEndPoint;
 
         public bool isBound => this.socket.IsBound;
-        public bool isCommunicable => this.socket.Connected;
+        public bool isCommunicable { get; private set; }
 
         public UDPSocket() : this(new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp), null) { }
 
@@ -45,11 +45,12 @@ namespace Networking.Sockets {
 
         public void BindToRemote(NetEndPoint endPoint) {
             this.remoteEndPoint = this.From(endPoint);
+            this.isCommunicable = true;
         }
 
         public void Read(Action<byte[], IUDPSocket> callback) {
             byte[] buffer = new byte[bufferSize];
-            EndPoint endPoint = new IPEndPoint(0, 0);
+            EndPoint endPoint = new IPEndPoint(IPAddress.Any, 0);
             this.socket.BeginReceiveFrom(buffer, 0, bufferSize, SocketFlags.None, ref endPoint, asyncResult => {
                 var count = this.socket.EndReceiveFrom(asyncResult, ref endPoint);
                 byte[] shrinked = new byte[count];
@@ -66,8 +67,7 @@ namespace Networking.Sockets {
         }
 
         public void Write(byte[] bytes, Action<int> callback) {
-            byte[] buffer = new byte[bufferSize];
-            this.socket.BeginSendTo(buffer, 0, bufferSize, SocketFlags.None, this.remoteEndPoint, asyncResult => {
+            this.socket.BeginSendTo(bytes, 0, bytes.Length, SocketFlags.None, this.remoteEndPoint, asyncResult => {
                 var writtenCount = this.socket.EndSendTo(asyncResult);
                 callback.Invoke(writtenCount);
             }, null);
@@ -81,6 +81,7 @@ namespace Networking.Sockets {
 
         public void Bind(NetEndPoint endPoint) {
             this.socket.Bind(this.From(endPoint));
+            this.isCommunicable = true;
         }
 
         #endregion

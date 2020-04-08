@@ -2,6 +2,7 @@
 using GameNetworking.Commons.Models;
 using GameNetworking.Commons.Models.Server;
 using GameNetworking.Networking.Commons;
+using Logging;
 using Messages.Models;
 using Networking.Commons.Models;
 using Networking.Commons.Sockets;
@@ -135,6 +136,7 @@ namespace GameNetworking.Commons.Server {
 
         public void Send(ITypedMessage message, TPlayer player) {
             this.networkingServer.Send(message, player.client);
+            Logger.Log($"Sending {message} to ClientInfo-{player.client.client.socket.ToString()}");
         }
 
         #region INetworkingServer<ITCPSocket, ReliableNetworkClient, ReliableNetClient>.IMessagesListener

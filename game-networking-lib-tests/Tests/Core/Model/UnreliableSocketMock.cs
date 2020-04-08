@@ -92,5 +92,9 @@ namespace Test.Core.Model {
         bool IEquatable<UnreliableSocketMock>.Equals(UnreliableSocketMock other) {
             return this.socketId == other.socketId;
         }
+
+        public override string ToString() {
+            return $"{{EndPoint-{this.talkingToEndPoint}}}";
+        }
     }
 }

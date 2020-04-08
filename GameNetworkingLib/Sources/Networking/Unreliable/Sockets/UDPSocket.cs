@@ -73,6 +73,10 @@ namespace Networking.Sockets {
             }, null);
         }
 
+        public override string ToString() {
+            return $"{{EndPoint-{this.remoteEndPoint}}}";
+        }
+
         #region Server
 
         public void Bind(NetEndPoint endPoint) {

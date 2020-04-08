@@ -104,7 +104,7 @@ namespace Tests.Core {
         protected override void NewClient(out UnreliableGameClient<UnreliableClientPlayer> client, out ClientListener listener) {
             var newListener = new ClientListener();
             client = new UnreliableGameClient<UnreliableClientPlayer>(this.NewClient(), new MainThreadDispatcher()) { listener = newListener };
-            client.Start($"192.168.0.{ipCounter}", 1);
+            client.Start($"192.168.0.{ipCounter}", 5);
             ipCounter++;
             listener = newListener;
         }

@@ -45,6 +45,7 @@ namespace Networking.Sockets {
 
         public void Bind(NetEndPoint endPoint) {
             this.client = new UdpClient(this.From(endPoint)) { DontFragment = true };
+            this.Configure();
             this.isCommunicable = true;
         }
 

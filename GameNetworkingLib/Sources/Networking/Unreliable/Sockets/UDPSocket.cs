@@ -15,32 +15,37 @@ namespace Networking.Sockets {
     }
 
     public sealed class UDPSocket : IUDPSocket, IDisposable {
-        private const int bufferSize = 8 * 1024;
-
-        private readonly Socket socket;
         private readonly Dictionary<EndPoint, UDPSocket> instantiatedEndPointSockets;
-        private EndPoint remoteEndPoint;
+        private UdpClient client;
+        private IPEndPoint remoteEndPoint;
 
-        public bool isBound => this.socket.IsBound;
+        public bool isBound => this.client.Client.IsBound;
         public bool isCommunicable { get; private set; }
 
-        public UDPSocket() : this(new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp), null) { }
-
-        private UDPSocket(Socket socket, EndPoint remoteEndPoint) {
-            if (socket.SocketType != SocketType.Dgram) { throw new ArgumentException("The socket param MUST be a Dgram socket"); }
-            this.socket = socket;
-            this.remoteEndPoint = remoteEndPoint;
+        public UDPSocket() {
             this.instantiatedEndPointSockets = new Dictionary<EndPoint, UDPSocket>();
+        }
+
+        private UDPSocket(UdpClient client, IPEndPoint remoteEndPoint) : this() {
+            this.client = client;
+            this.client.AllowNatTraversal(true);
+
+            this.remoteEndPoint = remoteEndPoint;
             this.isCommunicable = true;
             this.Configure();
         }
 
         public void Dispose() {
-            this.socket.Dispose();
+            this.client.Dispose();
         }
 
         public void Close() {
-            this.socket.Close();
+            this.client.Close();
+        }
+
+        public void Bind(NetEndPoint endPoint) {
+            this.client = new UdpClient(this.From(endPoint)) { DontFragment = true };
+            this.isCommunicable = true;
         }
 
         public void BindToRemote(NetEndPoint endPoint) {
@@ -49,26 +54,23 @@ namespace Networking.Sockets {
         }
 
         public void Read(Action<byte[], IUDPSocket> callback) {
-            byte[] buffer = new byte[bufferSize];
-            EndPoint endPoint = new IPEndPoint(IPAddress.Any, 0);
-            this.socket.BeginReceiveFrom(buffer, 0, bufferSize, SocketFlags.None, ref endPoint, asyncResult => {
-                var count = this.socket.EndReceiveFrom(asyncResult, ref endPoint);
-                byte[] shrinked = new byte[count];
-                Copy(buffer, ref shrinked);
-
+            this.client.BeginReceive(ar => {
+                IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, 0);
+                var receivedBytes = this.client.EndReceive(ar, ref endPoint);
+                
                 if (this.instantiatedEndPointSockets.TryGetValue(endPoint, out UDPSocket value)) {
-                    callback.Invoke(shrinked, value);
+                    callback.Invoke(receivedBytes, value);
                 } else {
-                    var socket = new UDPSocket(this.socket, endPoint);
+                    var socket = new UDPSocket(this.client, endPoint);
                     this.instantiatedEndPointSockets[endPoint] = socket;
-                    callback.Invoke(shrinked, socket);
+                    callback.Invoke(receivedBytes, socket);
                 }
             }, null);
         }
 
         public void Write(byte[] bytes, Action<int> callback) {
-            this.socket.BeginSendTo(bytes, 0, bytes.Length, SocketFlags.None, this.remoteEndPoint, asyncResult => {
-                var writtenCount = this.socket.EndSendTo(asyncResult);
+            this.client.BeginSend(bytes, bytes.Length, this.remoteEndPoint, ar => {
+                var writtenCount = this.client.EndSend(ar);
                 callback.Invoke(writtenCount);
             }, null);
         }
@@ -77,29 +79,14 @@ namespace Networking.Sockets {
             return $"{{EndPoint-{this.remoteEndPoint}}}";
         }
 
-        #region Server
-
-        public void Bind(NetEndPoint endPoint) {
-            this.socket.Bind(this.From(endPoint));
-            this.isCommunicable = true;
-        }
-
-        #endregion
-
         #region Private Methods
 
         private void Configure() {
-            this.socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.ReuseAddress, true);
+            this.client.Client.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.ReuseAddress, true);
         }
 
         private IPEndPoint From(NetEndPoint ep) {
             return new IPEndPoint(IPAddress.Parse(ep.host), ep.port);
-        }
-
-        private static void Copy(byte[] source, ref byte[] destination) {
-            for (var i = 0; i < destination.Length; i++) {
-                destination[i] = source[i];
-            }
         }
 
         #endregion

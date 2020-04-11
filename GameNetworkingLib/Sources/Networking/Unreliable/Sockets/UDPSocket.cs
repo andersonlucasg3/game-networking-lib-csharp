@@ -85,7 +85,7 @@ namespace Networking.Sockets {
         #region Private Methods
 
         private void Configure() {
-            this.client.Client.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.ReuseAddress, true);
+            this.client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
         }
 
         private IPEndPoint From(NetEndPoint ep) {

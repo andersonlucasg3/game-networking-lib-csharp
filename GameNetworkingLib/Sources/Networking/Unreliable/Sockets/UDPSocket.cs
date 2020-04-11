@@ -28,7 +28,6 @@ namespace Networking.Sockets {
 
         private UDPSocket(UdpClient client, IPEndPoint remoteEndPoint) : this() {
             this.client = client;
-            this.client.AllowNatTraversal(true);
 
             this.remoteEndPoint = remoteEndPoint;
             this.isCommunicable = true;
@@ -44,7 +43,9 @@ namespace Networking.Sockets {
 
         public void Bind(NetEndPoint endPoint) {
             var ipep = this.From(endPoint);
-            this.client = new UdpClient(ipep);
+            this.client = new UdpClient() { DontFragment = true, ExclusiveAddressUse = false };
+            this.client.Client.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.ReuseAddress, true);
+            this.client.Client.Bind(ipep);
             this.isCommunicable = true;
         }
 

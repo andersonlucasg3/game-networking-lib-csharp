@@ -32,7 +32,6 @@ namespace Networking.Sockets {
 
             this.remoteEndPoint = remoteEndPoint;
             this.isCommunicable = true;
-            this.Configure();
         }
 
         public void Dispose() {
@@ -46,7 +45,6 @@ namespace Networking.Sockets {
         public void Bind(NetEndPoint endPoint) {
             var ipep = this.From(endPoint);
             this.client = new UdpClient() { DontFragment = true, ExclusiveAddressUse = false };
-            this.Configure();
             this.client.Client.Bind(ipep);
             this.isCommunicable = true;
         }
@@ -83,10 +81,6 @@ namespace Networking.Sockets {
         }
 
         #region Private Methods
-
-        private void Configure() {
-            this.client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-        }
 
         private IPEndPoint From(NetEndPoint ep) {
             return new IPEndPoint(IPAddress.Parse(ep.host), ep.port);

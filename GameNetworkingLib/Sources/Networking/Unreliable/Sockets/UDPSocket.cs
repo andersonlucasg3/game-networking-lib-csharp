@@ -44,8 +44,7 @@ namespace Networking.Sockets {
 
         public void Bind(NetEndPoint endPoint) {
             var ipep = this.From(endPoint);
-            this.client = new UdpClient() { DontFragment = true, ExclusiveAddressUse = false };
-            this.client.Client.Bind(ipep);
+            this.client = new UdpClient(ipep) { DontFragment = true };
             this.isCommunicable = true;
         }
 

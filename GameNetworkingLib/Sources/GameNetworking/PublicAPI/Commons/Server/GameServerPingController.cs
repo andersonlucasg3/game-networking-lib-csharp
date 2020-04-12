@@ -86,9 +86,9 @@ namespace GameNetworking.Commons.Server {
         where TNetClient : INetClient<TSocket, TNetClient> {
         internal GameServerPingController<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient> pingController { get; set; }
 
-        private float pingSentTime;
+        private double pingSentTime;
 
-        private float pingElapsedTime { get { return CurrentTime() - this.pingSentTime; } }
+        private double pingElapsedTime { get { return CurrentTime() - this.pingSentTime; } }
 
         internal bool pingSent { get; private set; }
         internal bool canSendNextPing { get { return this.pingElapsedTime > (pingController?.pingInterval ?? 0.5F); } }
@@ -107,7 +107,7 @@ namespace GameNetworking.Commons.Server {
 
         internal float ReceivedPong() {
             this.pingSent = false;
-            this.pingValue = this.pingElapsedTime;
+            this.pingValue = (float)this.pingElapsedTime;
             return this.pingValue;
         }
 
@@ -118,8 +118,8 @@ namespace GameNetworking.Commons.Server {
             return Equals(this, obj);
         }
 
-        private static float CurrentTime() {
-            return (float)TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds;
+        private static double CurrentTime() {
+            return TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds;
         }
 
         public override int GetHashCode() {

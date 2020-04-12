@@ -24,7 +24,6 @@ namespace Networking.Sockets {
         private readonly IPEndPoint remoteEndPoint;
 
         private readonly Dictionary<EndPoint, UDPSocket> instantiatedEndPointSockets;
-        private readonly ArrayPool<byte> bufferPool = ArrayPool<byte>.Create(bufferSize, 10);
 
         public bool isBound => this.socket.IsBound;
         public bool isCommunicable { get; private set; }
@@ -63,7 +62,7 @@ namespace Networking.Sockets {
         }
 
         public void Read(Action<byte[], IUDPSocket> callback) {
-            var buffer = this.bufferPool.Rent(bufferSize);
+            var buffer = new byte[bufferSize];
             EndPoint endPoint = new IPEndPoint(IPAddress.Any, 0);
             this.socket.BeginReceiveFrom(buffer, 0, bufferSize, SocketFlags.None, ref endPoint, ar => {
                 var readBytes = this.socket.EndReceiveFrom(ar, ref endPoint);

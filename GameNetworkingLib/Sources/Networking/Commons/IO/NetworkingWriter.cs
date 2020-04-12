@@ -12,7 +12,7 @@ namespace Networking.Commons.IO {
         where TSocket : ISocket {
         private readonly TSocket socket;
 
-        private List<byte> buffer;
+        private readonly List<byte> buffer;
         private bool isSending;
 
         internal NetworkingWriter(TSocket socket) {

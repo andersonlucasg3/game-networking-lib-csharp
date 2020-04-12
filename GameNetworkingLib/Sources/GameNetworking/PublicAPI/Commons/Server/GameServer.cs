@@ -136,7 +136,7 @@ namespace GameNetworking.Commons.Server {
 
         public void Send(ITypedMessage message, TPlayer player) {
             this.networkingServer.Send(message, player.client);
-            Logger.Log($"Sending {message} to ClientInfo-{player.client.client.socket.ToString()}");
+            Logger.Log($"Sending {message} to ClientInfo-{player.client.client.socket}");
         }
 
         #region INetworkingServer<ITCPSocket, ReliableNetworkClient, ReliableNetClient>.IMessagesListener

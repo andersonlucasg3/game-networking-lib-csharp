@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
-using System.Net;
+using System.Threading;
 using GameNetworking;
 using GameNetworking.Networking;
 using GameNetworking.Networking.Models;
+using Logging;
 using Messages.Models;
 using Networking.Models;
 using Networking.Sockets;
@@ -40,6 +41,8 @@ namespace Tests.Core {
 
         [Test]
         public void TestRealSocketConnection() {
+            Logger.IsLoggingEnabled = true;
+
             var mainThreadDispatcher = new MainThreadDispatcher();
 
             ServerListener serverListener = new ServerListener();
@@ -67,6 +70,26 @@ namespace Tests.Core {
 
             Assert.AreEqual(1, serverListener.connectedPlayers.Count);
             Assert.IsTrue(clientListener.connectedCalled);
+
+            void ValidateProcessTiming() {
+                Update();
+                Update();
+
+                var pingValue = server.pingController.GetPingValue(client.FindPlayer(p => p.isLocalPlayer));
+                Logger.Log($"Current ping value: {pingValue}");
+                Assert.Less(pingValue, 1);
+            }
+
+            var sleepMillis = 10;
+            var loopCount = 1000;
+            Logger.Log($"Will take {sleepMillis * loopCount / 1000} seconds to finish.");
+            for (int index = 0; index < loopCount; index++) {
+                Thread.Sleep(sleepMillis);
+
+                ValidateProcessTiming();
+
+                Logger.Log($"Current at index: {index}");
+            }
         }
 
         public class ClientListener : IClientListener<UnreliableClientPlayer, IUDPSocket, UnreliableNetworkClient, UnreliableNetClient> {

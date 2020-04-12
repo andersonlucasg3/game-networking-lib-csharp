@@ -18,7 +18,8 @@ namespace Logging {
                 fileName = filePath.Substring(realIndex, filePath.Length - realIndex - 3); // 3 for .cs
             }
 
-            Console.WriteLine($"[{fileName}.{memberName}() : {lineNumber}] {message}");
+            var messageString = $"[{fileName}.{memberName}() : {lineNumber}] {message}";
+            Console.WriteLine(messageString);
 
             externalLoggers.ForEach(each => each.Invoke($"[GameNetworking] {message}"));
         }

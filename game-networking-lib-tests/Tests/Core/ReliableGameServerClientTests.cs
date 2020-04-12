@@ -1,21 +1,22 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 using GameNetworking;
 using GameNetworking.Commons.Client;
 using GameNetworking.Commons.Server;
 using GameNetworking.Networking;
 using GameNetworking.Networking.Models;
+using Logging;
 using Messages.Models;
 using Networking;
 using Networking.Models;
 using Networking.Sockets;
 using NUnit.Framework;
-using Tests.Core;
 using Tests.Core.Model;
 
 using ReliableClientPlayer = GameNetworking.Commons.Models.Client.NetworkPlayer<Networking.Sockets.ITCPSocket, GameNetworking.Networking.Models.ReliableNetworkClient, Networking.Models.ReliableNetClient>;
 using ReliableServerPlayer = GameNetworking.Commons.Models.Server.NetworkPlayer<Networking.Sockets.ITCPSocket, GameNetworking.Networking.Models.ReliableNetworkClient, Networking.Models.ReliableNetClient>;
 
-namespace Test.Core {
+namespace Tests.Core {
     public class ReliableGameServerClientTests : GameServerClientTests<
                 ReliableNetworkingServer, ReliableNetworkingClient, ReliableGameServer<ReliableServerPlayer>, ReliableGameClient<ReliableClientPlayer>,
                 ReliableServerPlayer, ReliableClientPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient, ReliableClientAcceptor<ReliableServerPlayer>,
@@ -39,6 +40,57 @@ namespace Test.Core {
                 listener = newListener
             };
             listener = newListener;
+        }
+
+        [Test]
+        public void TestRealSocketConnection() {
+            Logger.IsLoggingEnabled = true;
+
+            var mainThreadDispatcher = new MainThreadDispatcher();
+
+            ServerListener serverListener = new ServerListener();
+            ClientListener clientListener = new ClientListener();
+
+            var server = new ReliableGameServer<ReliableServerPlayer>(new ReliableNetworkingServer(new ReliableSocket(new TCPNonBlockingSocket())), mainThreadDispatcher) { listener = serverListener };
+            var client = new ReliableGameClient<ReliableClientPlayer>(new ReliableNetworkingClient(new ReliableSocket(new TCPNonBlockingSocket())), mainThreadDispatcher) { listener = clientListener };
+
+            void Update() {
+                this.Update(server);
+                this.Update(server);
+                this.Update(client);
+                this.Update(client);
+            }
+
+            var localIP = "127.0.0.1";
+
+            server.Start(localIP, 64000);
+            client.Connect(localIP, 64000);
+
+            Update();
+            Update();
+
+            Assert.AreEqual(1, serverListener.connectedPlayers.Count);
+            Assert.IsTrue(clientListener.connectedCalled);
+
+            void ValidateProcessTiming() {
+                Update();
+                Update();
+
+                var pingValue = server.pingController.GetPingValue(client.FindPlayer(p => p.isLocalPlayer));
+                Logger.Log($"Current ping value: {pingValue}");
+                Assert.Less(pingValue, 1);
+            }
+
+            var sleepMillis = 10;
+            var loopCount = 1000;
+            Logger.Log($"Will take {sleepMillis * loopCount / 1000} seconds to finish.");
+            for (int index = 0; index < loopCount; index++) {
+                Thread.Sleep(sleepMillis);
+
+                ValidateProcessTiming();
+
+                Logger.Log($"Current at index: {index}");
+            }
         }
 
         public class ClientListener : IClientListener<ReliableClientPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient> {

@@ -108,7 +108,7 @@ namespace Networking.Sockets {
         public void Read(Action<byte[]> readAction) {
             var bufferSize = 1024;
             byte[] buffer = new byte[bufferSize];
-            this.socket.BeginReceive(buffer, 0, bufferSize, SocketFlags.Partial, (ar) => {
+            this.socket.BeginReceive(buffer, 0, bufferSize, SocketFlags.None, (ar) => {
                 var count = this.socket.EndReceive(ar);
 
                 byte[] shrinked = new byte[count];
@@ -119,7 +119,7 @@ namespace Networking.Sockets {
         }
 
         public void Write(byte[] bytes, Action<int> writeAction) {
-            this.socket.BeginSend(bytes, 0, bytes.Length, SocketFlags.Partial, (ar) => {
+            this.socket.BeginSend(bytes, 0, bytes.Length, SocketFlags.None, (ar) => {
                 int written = this.socket.EndSend(ar);
                 writeAction?.Invoke(written);
             }, this);

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using Networking.Commons.Models;
 using Networking.Sockets;
 
@@ -65,7 +67,7 @@ namespace Test.Core.Model {
             var identifiable = writtenBytes.Find(id => id.toEndPoint == this.selfEndPoint && id.bytes.Count > 0);
             if (identifiable == null) {
                 callback?.Invoke(null, null);
-                return; 
+                return;
             }
             var bytes = identifiable.bytes.ToArray();
             if (this.socketMapping.TryGetValue(identifiable.fromSocketId, out UnreliableSocketMock value)) {
@@ -91,6 +93,10 @@ namespace Test.Core.Model {
 
         bool IEquatable<UnreliableSocketMock>.Equals(UnreliableSocketMock other) {
             return this.socketId == other.socketId;
+        }
+
+        public bool Equals(IPEndPoint other) {
+            return this.talkingToEndPoint.Equals(other);
         }
 
         public override string ToString() {

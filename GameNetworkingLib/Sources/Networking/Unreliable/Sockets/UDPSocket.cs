@@ -8,7 +8,7 @@ using Networking.Commons.Models;
 using Networking.Commons.Sockets;
 
 namespace Networking.Sockets {
-    public interface IUDPSocket : ISocket {
+    public interface IUDPSocket : ISocket, IEquatable<IPEndPoint> {
         void BindToRemote(NetEndPoint endPoint);
 
         void Close();
@@ -99,6 +99,14 @@ namespace Networking.Sockets {
         public override string ToString() {
             return $"{{EndPoint-{this.remoteEndPoint}}}";
         }
+
+        #region Equatable Methods
+
+        public bool Equals(IPEndPoint endPoint) {
+            return this.remoteEndPoint.Equals(endPoint);
+        }
+
+        #endregion
 
         #region Private Methods
 

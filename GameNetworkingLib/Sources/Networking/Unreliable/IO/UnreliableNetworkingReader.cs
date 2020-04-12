@@ -13,14 +13,13 @@ namespace Networking.IO {
 
         public UnreliableNetworkingReader(IUDPSocket socket) : base(socket) { }
 
-        protected override void Receive() { 
+        protected override void Receive() {
             if (this.isReceiving) { return; }
             this.isReceiving = true;
 
             this.socket.Read((bytes, fromSocket) => {
-                this.listener?.ReaderDidRead(bytes, fromSocket);
-
                 this.isReceiving = false;
+                this.listener?.ReaderDidRead(bytes, fromSocket);
             });
         }
     }

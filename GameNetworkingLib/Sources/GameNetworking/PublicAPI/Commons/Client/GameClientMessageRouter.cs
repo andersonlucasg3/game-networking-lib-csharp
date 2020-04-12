@@ -7,18 +7,19 @@ using GameNetworking.Executors.Client;
 using GameNetworking.Messages;
 using GameNetworking.Messages.Server;
 using GameNetworking.Networking.Commons;
+using Logging;
 using Messages.Models;
 using Networking.Commons.Models;
 using Networking.Commons.Sockets;
 
 namespace GameNetworking.Commons.Client {
-    public class GameClientMessageRouter<TGame, TPlayer, TSocket, TClient, TNetClient> 
+    public class GameClientMessageRouter<TGame, TPlayer, TSocket, TClient, TNetClient>
         where TGame : IGameClient<TPlayer, TSocket, TClient, TNetClient>
         where TPlayer : class, INetworkPlayer<TSocket, TClient, TNetClient>, new()
         where TSocket : ISocket
         where TClient : INetworkClient<TSocket, TNetClient>
         where TNetClient : INetClient<TSocket, TNetClient> {
-        
+
         private readonly IMainThreadDispatcher dispatcher;
         protected TGame game { get; private set; }
 
@@ -31,6 +32,7 @@ namespace GameNetworking.Commons.Client {
         }
 
         protected void Execute(IExecutor executor) {
+            Logger.Log($"Enqueuing executor {executor}");
             dispatcher.Enqueue(executor.Execute);
         }
 

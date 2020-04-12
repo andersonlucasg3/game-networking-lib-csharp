@@ -1,10 +1,8 @@
 ﻿using System;
 using System.IO;
-using System.Text;
-using System.Collections.Generic;
 
 namespace Messages.Coders {
-    internal sealed class Encoder : IEncoder {
+    internal sealed class Encoder : IEncoder, IDisposable {
         internal BinaryWriter writer;
 
         internal Encoder() {
@@ -15,7 +13,7 @@ namespace Messages.Coders {
             this.writer = new BinaryWriter(stream);
         }
 
-        ~Encoder() {
+        public void Dispose() {
             this.writer.Dispose();
         }
 
@@ -72,18 +70,22 @@ namespace Messages.Coders {
             if (hasValue) {
                 Encoder encoder = new Encoder(this.writer.BaseStream);
                 value.Encode(encoder);
+                encoder.Dispose();
             }
         }
     }
 
     namespace Binary {
         public sealed class Encoder {
-            public byte[] Encode(IEncodable value) {
+            private Encoder() { }
+
+            public static byte[] Encode(IEncodable value) {
                 Coders.Encoder encoder = new Coders.Encoder();
 
                 value.Encode(encoder);
 
                 MemoryStream memoryStream = (MemoryStream)encoder.writer.BaseStream;
+                encoder.Dispose();
                 return memoryStream.ToArray();
             }
         }

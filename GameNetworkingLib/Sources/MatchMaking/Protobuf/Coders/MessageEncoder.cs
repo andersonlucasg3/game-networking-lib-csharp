@@ -8,9 +8,8 @@ namespace MatchMaking.Protobuf.Coders {
     using Messages.Coders;
 
     public sealed class MessageEncoder: IMessageEncoder {
-        public byte[] Encode<Message>(Message message) where Message: IMessage {
-            var package = new MessagePackage();
-            package.Message = Any.Pack(message, CoderHelper.typePrefix);
+        public byte[] Encode<TMessage>(TMessage message) where TMessage: IMessage {
+            var package = new MessagePackage { message = Any.Pack(message, CoderHelper.typePrefix) };
             List<byte> buffer;
             using (var stream = new MemoryStream()) {
                 package.WriteTo(stream);

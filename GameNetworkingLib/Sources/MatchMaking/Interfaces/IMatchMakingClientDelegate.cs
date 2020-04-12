@@ -2,12 +2,12 @@
 namespace MatchMaking {
     using Models;
 
-    public interface IMatchMakingClientDelegate<MMClient> where MMClient: Client, new() {
-        void MatchMakingClientDidConnect(MatchMakingClient<MMClient> matchMaking);
-        void MatchMakingClientConnectDidTimeout(MatchMakingClient<MMClient> matchMaking);
-        void MatchMakingClientDidDisconnect(MatchMakingClient<MMClient> matchMaking);
+    public interface IMatchMakingClientDelegate<TClient> where TClient: MatchMakingClient, new() {
+        void MatchMakingClientDidConnect(MatchMakingClient<TClient> matchMaking);
+        void MatchMakingClientConnectDidTimeout(MatchMakingClient<TClient> matchMaking);
+        void MatchMakingClientDidDisconnect(MatchMakingClient<TClient> matchMaking);
 
-        void MatchMakingClientDidRequestConnectToGameServer(MatchMakingClient<MMClient> matchMaking, ConnectGameInstanceResponse message);
-        void MatchMakingClientDidReceiveUnknownMessage(MatchMakingClient<MMClient> matchMaking, MessageContainer message);
+        void MatchMakingClientDidRequestConnectToGameServer(MatchMakingClient<TClient> matchMaking, ConnectGameInstanceResponse message);
+        void MatchMakingClientDidReceiveUnknownMessage(MatchMakingClient<TClient> matchMaking, MessageContainer message);
     }
 }

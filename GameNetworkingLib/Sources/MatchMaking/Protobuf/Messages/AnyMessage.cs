@@ -73,7 +73,7 @@ public sealed partial class MessagePackage : pb::IMessage<MessagePackage> {
   public const int MessageFieldNumber = 1;
   private global::Google.Protobuf.WellKnownTypes.Any message_;
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-  public global::Google.Protobuf.WellKnownTypes.Any Message {
+  public global::Google.Protobuf.WellKnownTypes.Any message {
     get { return message_; }
     set {
       message_ = value;
@@ -93,14 +93,14 @@ public sealed partial class MessagePackage : pb::IMessage<MessagePackage> {
     if (ReferenceEquals(other, this)) {
       return true;
     }
-    if (!object.Equals(Message, other.Message)) return false;
+    if (!object.Equals(message, other.message)) return false;
     return Equals(_unknownFields, other._unknownFields);
   }
 
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   public override int GetHashCode() {
     int hash = 1;
-    if (message_ != null) hash ^= Message.GetHashCode();
+    if (message_ != null) hash ^= message.GetHashCode();
     if (_unknownFields != null) {
       hash ^= _unknownFields.GetHashCode();
     }
@@ -116,7 +116,7 @@ public sealed partial class MessagePackage : pb::IMessage<MessagePackage> {
   public void WriteTo(pb::CodedOutputStream output) {
     if (message_ != null) {
       output.WriteRawTag(10);
-      output.WriteMessage(Message);
+      output.WriteMessage(message);
     }
     if (_unknownFields != null) {
       _unknownFields.WriteTo(output);
@@ -127,7 +127,7 @@ public sealed partial class MessagePackage : pb::IMessage<MessagePackage> {
   public int CalculateSize() {
     int size = 0;
     if (message_ != null) {
-      size += 1 + pb::CodedOutputStream.ComputeMessageSize(Message);
+      size += 1 + pb::CodedOutputStream.ComputeMessageSize(message);
     }
     if (_unknownFields != null) {
       size += _unknownFields.CalculateSize();
@@ -142,9 +142,9 @@ public sealed partial class MessagePackage : pb::IMessage<MessagePackage> {
     }
     if (other.message_ != null) {
       if (message_ == null) {
-        Message = new global::Google.Protobuf.WellKnownTypes.Any();
+        message = new global::Google.Protobuf.WellKnownTypes.Any();
       }
-      Message.MergeFrom(other.Message);
+      message.MergeFrom(other.message);
     }
     _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
   }
@@ -159,9 +159,9 @@ public sealed partial class MessagePackage : pb::IMessage<MessagePackage> {
           break;
         case 10: {
           if (message_ == null) {
-            Message = new global::Google.Protobuf.WellKnownTypes.Any();
+            message = new global::Google.Protobuf.WellKnownTypes.Any();
           }
-          input.ReadMessage(Message);
+          input.ReadMessage(message);
           break;
         }
       }

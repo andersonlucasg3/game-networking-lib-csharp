@@ -1,20 +1,20 @@
 ﻿namespace Messages.Coders {
     public interface IDecoder {
-        int Int();
-        short Short();
-        long Long();
-        uint UInt();
-        ushort UShort();
-        ulong ULong();
+        int GetInt();
+        short GetShort();
+        long GetLong();
+        uint GetUInt();
+        ushort GetUShort();
+        ulong GetULong();
 
-        float Float();
-        double Double();
+        float GetFloat();
+        double GetDouble();
 
-        string String();
-        byte[] Bytes();
+        string GetString();
+        byte[] GetBytes();
 
-        bool Bool();
+        bool GetBool();
 
-        T Object<T>() where T : class, IDecodable, new();
+        TDecodable GetObject<TDecodable>() where TDecodable : class, IDecodable, new();
     }
 }

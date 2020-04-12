@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Messages.Models {
     using Coders;
@@ -7,26 +6,26 @@ namespace Messages.Models {
     public sealed class MessageContainer {
         private readonly byte[] messageBytes;
 
-        public int Type {
+        public int type {
             get; private set;
         }
 
         public MessageContainer(byte[] messageBytes) {
             this.messageBytes = messageBytes;
-            this.Type = CoderHelper.ReadHeader(messageBytes);
+            this.type = CoderHelper.ReadHeader(messageBytes);
         }
 
         public bool Is(int type) {
-            return type == this.Type;
+            return type == this.type;
         }
 
-        public Message Parse<Message>() where Message : class, IDecodable, new() {
+        public TMessage Parse<TMessage>() where TMessage : class, IDecodable, new() {
             var headerSize = sizeof(int);
             var count = this.messageBytes.Length - headerSize;
             byte[] message = new byte[count];
             Array.Copy(this.messageBytes, headerSize, message, 0, count);
 
-            return new Coders.Binary.Decoder().Decode<Message>(message);
+            return Coders.Binary.Decoder.Decode<TMessage>(message);
         }
     }
 }

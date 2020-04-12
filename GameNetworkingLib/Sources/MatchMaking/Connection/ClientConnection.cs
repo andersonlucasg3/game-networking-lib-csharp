@@ -1,24 +1,25 @@
-﻿using System;
-using Networking;
+﻿using Networking;
 using Google.Protobuf;
+using Networking.Commons.Models;
+using Networking.Models;
+using Networking.Sockets;
 
 namespace MatchMaking.Connection {
     using Models;
-    using Networking.Models;
     using Protobuf.Coders;
 
-    public sealed class ClientConnection<MMClient>: INetworkingListener, INetClientReadListener where MMClient: Client, new() {
-        private readonly INetworking networking;
+    public sealed class ClientConnection<TClient>: IReliableSocket.IListener, INetClient<ITCPSocket, ReliableNetClient>.IListener where TClient: MatchMakingClient, new() {
+        private readonly IReliableSocket networking;
 
-        private MMClient client;
+        private TClient client;
         
         public bool IsConnecting { get; private set; }
 
         public bool IsConnected { get { return this.client?.IsConnected ?? false; } }
 
-        public IClientConnectionDelegate<MMClient> listener { get; set; }
+        public IClientConnectionDelegate<TClient> listener { get; set; }
 
-        public ClientConnection(INetworking networking) {
+        public ClientConnection(IReliableSocket networking) {
             this.networking = networking;
         }
 
@@ -33,7 +34,7 @@ namespace MatchMaking.Connection {
             }
         }
 
-        public void Send<Message>(Message message) where Message: IMessage {
+        public void Send<TMessage>(TMessage message) where TMessage: IMessage {
             byte[] bytes = this.client?.encoder?.Encode(message);
             if (bytes != null) {
                 this.networking.Send(this.client.client, bytes);
@@ -52,11 +53,11 @@ namespace MatchMaking.Connection {
             }
         }
 
-        #region INetClientReadDelegate
+        #region INetClient<ITCPSocket>.IListener
 
-        void INetClientReadListener.ClientDidReadBytes(NetClient client, byte[] bytes) {
+        void INetClient<ITCPSocket, ReliableNetClient>.IListener.ClientDidReadBytes(ReliableNetClient client, byte[] bytes) {
             this.client.decoder.Add(bytes);
-            MessageContainer message = null;
+            MessageContainer message;
             do {
                 message = this.client.decoder.Decode();
                 this.listener?.ClientDidReadMessage(message);
@@ -65,21 +66,21 @@ namespace MatchMaking.Connection {
 
         #endregion
 
-        #region INetworkingDelegate
+        #region IReliableNetworking.IListener
 
-        void INetworkingListener.NetworkingDidConnect(INetClient client) {
-            this.client = Client.Create<MMClient>(client, new MessageDecoder(), new MessageEncoder());
+        void IReliableSocket.IListener.NetworkingDidConnect(ReliableNetClient client) {
+            this.client = MatchMakingClient.Create<TClient>(client, new MessageDecoder(), new MessageEncoder());
             this.IsConnecting = false;
             this.listener?.ClientConnectionDidConnect();
         }
 
-        void INetworkingListener.NetworkingConnectDidTimeout() {
+        void IReliableSocket.IListener.NetworkingConnectDidTimeout() {
             this.client = null;
             this.IsConnecting = false;
             this.listener?.ClientConnectionDidTimeout();
         }
 
-        void INetworkingListener.NetworkingDidDisconnect(INetClient client) {
+        void IReliableSocket.IListener.NetworkingDidDisconnect(ReliableNetClient client) {
             this.client = null;
             this.IsConnecting = false;
             this.listener?.ClientConnectionDidDisconnect();

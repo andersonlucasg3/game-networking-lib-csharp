@@ -1,72 +1,115 @@
-﻿using Networking.IO;
-using Networking.Models;
+﻿using Networking.Commons.Models;
 using NUnit.Framework;
+using Test.Core.Model;
 using Tests.Core.Model;
 
 namespace Tests.Core {
     class SocketMockTests {
-        private NetEndPoint endPoint = new NetEndPoint("127.0.0.1", 30000);
-
-        private SocketMock New() {
-            return new SocketMock {
-                noDelay = true,
-                blocking = false
-            };
+        [SetUp] public void SetUp() {
+            UnreliableSocketMock.Setup();
         }
 
-        private SocketMock ListeningServer() {
-            SocketMock server = this.New();
+        private NetEndPoint NewEndPoint(string host) => new NetEndPoint(host, 1);
 
-            server.Bind(this.endPoint);
+        private ReliableSocketMock NewReliable() => new ReliableSocketMock();
+
+        private UnreliableSocketMock NewUnreliable() => new UnreliableSocketMock();
+
+        private ReliableSocketMock ListeningReliableServer(NetEndPoint endPoint) {
+            ReliableSocketMock server = this.NewReliable();
+
+            server.Bind(endPoint);
             server.Listen(10);
 
             return server;
         }
 
-        private void AcceptedClient(SocketMock server, out SocketMock connected, out SocketMock accepted) {
-            connected = this.New();
-            connected.Connect(this.endPoint, null);
+        private UnreliableSocketMock BoundUnreliableServer(NetEndPoint endPoint) {
+            UnreliableSocketMock server = this.NewUnreliable();
 
-            SocketMock acceptedClient = null;
-            server.Accept((sock) => acceptedClient = sock as SocketMock);
+            server.Bind(endPoint);
+
+            return server;
+        }
+
+        private void AcceptedReliableClient(ReliableSocketMock server, NetEndPoint connectingEndPoint, out ReliableSocketMock connected, out ReliableSocketMock accepted) {
+            connected = this.NewReliable();
+            connected.Connect(connectingEndPoint, null);
+
+            ReliableSocketMock acceptedClient = null;
+            server.Accept((sock) => acceptedClient = sock as ReliableSocketMock);
+            accepted = acceptedClient;
+        }
+
+        private void AcceptedUnreliableClient(UnreliableSocketMock server, NetEndPoint remoteEndPoint, NetEndPoint bindEndPoint, out UnreliableSocketMock connected, out UnreliableSocketMock accepted) {
+            connected = this.NewUnreliable();
+            connected.Bind(bindEndPoint);
+            connected.BindToRemote(remoteEndPoint);
+            connected.Write(new byte[1] { 0 }, null);
+
+            UnreliableSocketMock acceptedClient = null;
+            server.Read((bytes, socket) => acceptedClient = socket as UnreliableSocketMock);
             accepted = acceptedClient;
         }
 
         [Test]
-        public void TestSockServer() {
-            SocketMock socket = this.ListeningServer();
+        public void TestReliableSockServer() {
+            ReliableSocketMock socket = this.ListeningReliableServer(this.NewEndPoint("127.0.0.1"));
 
-            Assert.IsFalse(socket.blocking);
-            Assert.IsTrue(socket.noDelay);
             Assert.IsTrue(socket.isBound);
         }
 
         [Test]
-        public void TestSockClient() {
-            SocketMock socket = this.New();
+        public void TestUnreliableSockServer() {
+            UnreliableSocketMock socket = this.BoundUnreliableServer(this.NewEndPoint("127.0.0.1"));
 
-            socket.Connect(this.endPoint, null);
+            Assert.IsTrue(socket.isBound);
+        }
+
+        [Test]
+        public void TestReliableSockClient() {
+            ReliableSocketMock socket = this.NewReliable();
+
+            socket.Connect(this.NewEndPoint("127.0.0.1"), null);
 
             Assert.IsTrue(socket.isConnected);
         }
 
         [Test]
-        public void TestServerAcceptClient() {
-            SocketMock server = this.ListeningServer();
+        public void TestUnreliableSockClient() {
+            UnreliableSocketMock socket = this.NewUnreliable();
 
-            this.AcceptedClient(server, out SocketMock connectedSocket, out SocketMock acceptedSocket);
+            socket.Bind(this.NewEndPoint("192.168.0.1"));
+            socket.BindToRemote(this.NewEndPoint("127.0.0.1"));
 
-            Assert.IsNotNull(acceptedSocket);
-            Assert.IsTrue(acceptedSocket.noDelay);
-            Assert.IsFalse(acceptedSocket.blocking);
-            Assert.IsTrue(connectedSocket.isConnected);
+            Assert.IsTrue(socket.isCommunicable);
         }
 
         [Test]
-        public void TestReadWrite() {
-            SocketMock server = this.ListeningServer();
+        public void TestReliableServerAcceptClient() {
+            ReliableSocketMock server = this.ListeningReliableServer(this.NewEndPoint("127.0.0.1"));
 
-            this.AcceptedClient(server, out SocketMock connectedSocket, out SocketMock acceptedSocket);
+            this.AcceptedReliableClient(server, this.NewEndPoint("127.0.0.1"), out ReliableSocketMock connectedSocket, out ReliableSocketMock acceptedSocket);
+
+            Assert.IsNotNull(acceptedSocket);
+            Assert.IsTrue(connectedSocket.isConnected);
+        }
+
+        [Test] public void TestUnreliableServerAcceptClient() {
+            UnreliableSocketMock server = this.BoundUnreliableServer(this.NewEndPoint("127.0.0.1"));
+
+            this.AcceptedUnreliableClient(server, this.NewEndPoint("127.0.0.1"), this.NewEndPoint("192.168.0.1"), out UnreliableSocketMock connectedSocket, out UnreliableSocketMock acceptedSocket);
+
+            Assert.IsNotNull(acceptedSocket);
+            Assert.IsTrue(connectedSocket.isCommunicable);
+            Assert.AreEqual(connectedSocket, acceptedSocket);
+        }
+
+        [Test]
+        public void TestReliableReadWrite() {
+            ReliableSocketMock server = this.ListeningReliableServer(this.NewEndPoint("127.0.0.1"));
+
+            this.AcceptedReliableClient(server, this.NewEndPoint("127.0.0.1"), out ReliableSocketMock connectedSocket, out ReliableSocketMock acceptedSocket);
 
             byte[] buffer = { 1, 2, 3, 4, 5 };
             connectedSocket.Write(buffer, null);
@@ -77,11 +120,26 @@ namespace Tests.Core {
             Assert.AreEqual(readBytes, buffer);
         }
 
+        [Test] public void TestUnreliableReadWrite() {
+            UnreliableSocketMock server = this.BoundUnreliableServer(this.NewEndPoint("127.0.0.1"));
+
+            this.AcceptedUnreliableClient(server, this.NewEndPoint("127.0.0.1"), this.NewEndPoint("192.168.0.1"), out UnreliableSocketMock connectedSocket, out UnreliableSocketMock acceptedSocket);
+
+            byte[] buffer = { 1, 2, 3, 4, 5 };
+            connectedSocket.Write(buffer, null);
+
+            byte[] readBytes = null;
+            acceptedSocket.Read((bytes, _) => readBytes = bytes);
+
+            Assert.AreEqual(buffer, readBytes);
+            Assert.AreEqual(connectedSocket, acceptedSocket);
+        }
+
         [Test]
-        public void TestReadWriteMulticlient() {
-            SocketMock server = this.ListeningServer();
-            this.AcceptedClient(server, out SocketMock connectedSocket1, out SocketMock acceptedSocket1);
-            this.AcceptedClient(server, out SocketMock connectedSocket2, out SocketMock acceptedSocket2);
+        public void TestReliableReadWriteMulticlient() {
+            ReliableSocketMock server = this.ListeningReliableServer(this.NewEndPoint("127.0.0.1"));
+            this.AcceptedReliableClient(server, this.NewEndPoint("127.0.0.1"), out ReliableSocketMock connectedSocket1, out ReliableSocketMock acceptedSocket1);
+            this.AcceptedReliableClient(server, this.NewEndPoint("127.0.0.1"), out ReliableSocketMock connectedSocket2, out ReliableSocketMock acceptedSocket2);
 
             byte[] buffer1 = { 10, 9, 8, 7, 6, 5 };
             byte[] buffer2 = { 1, 2, 3, 4, 5 };
@@ -99,11 +157,33 @@ namespace Tests.Core {
             Assert.AreNotEqual(readBytes2, readBytes1);
         }
 
-        [Test]
-        public void TestDisconnect() {
-            SocketMock server = this.ListeningServer();
+        [Test] public void TestUnreliableReadWriteMulticlient() {
+            UnreliableSocketMock server = this.BoundUnreliableServer(this.NewEndPoint("127.0.0.1"));
+            this.AcceptedUnreliableClient(server, this.NewEndPoint("127.0.0.1"), this.NewEndPoint("192.168.0.1"), out UnreliableSocketMock connectedSocket1, out UnreliableSocketMock acceptedSocket1);
+            this.AcceptedUnreliableClient(server, this.NewEndPoint("127.0.0.1"), this.NewEndPoint("192.168.0.2"), out UnreliableSocketMock connectedSocket2, out UnreliableSocketMock acceptedSocket2);
 
-            this.AcceptedClient(server, out SocketMock connectedSocket, out SocketMock acceptedSocket);
+            byte[] buffer1 = { 10, 9, 8, 7, 6, 5 };
+            byte[] buffer2 = { 1, 2, 3, 4, 5 };
+
+            connectedSocket1.Write(buffer1, null);
+            connectedSocket2.Write(buffer2, null);
+
+            byte[] readBytes1 = null;
+            byte[] readBytes2 = null;
+            acceptedSocket1.Read((buffer, _) => readBytes1 = buffer);
+            acceptedSocket2.Read((buffer, _) => readBytes2 = buffer);
+
+            Assert.AreEqual(buffer1, readBytes1);
+            Assert.AreEqual(buffer2, readBytes2);
+            Assert.AreEqual(connectedSocket1, acceptedSocket1);
+            Assert.AreEqual(connectedSocket2, acceptedSocket2);
+        }
+
+        [Test]
+        public void TestReliableDisconnect() {
+            ReliableSocketMock server = this.ListeningReliableServer(this.NewEndPoint("127.0.0.1"));
+
+            this.AcceptedReliableClient(server, this.NewEndPoint("127.0.0.1"), out ReliableSocketMock connectedSocket, out ReliableSocketMock acceptedSocket);
 
             Assert.IsTrue(connectedSocket.isConnected);
             Assert.IsTrue(acceptedSocket.isConnected);

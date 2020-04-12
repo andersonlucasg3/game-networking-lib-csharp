@@ -5,12 +5,11 @@ namespace Messages.Streams {
     using Models;
 
     public class MessageStreamWriter: IStreamWriter {
-        public byte[] Write<Message>(Message message) where Message : ITypedMessage {
+        public byte[] Write<TMessage>(TMessage message) where TMessage : ITypedMessage {
             var buffer = new List<byte>();
             CoderHelper.WriteHeader(message.type, ref buffer);
 
-            var encoder = new Coders.Binary.Encoder();
-            buffer.AddRange(encoder.Encode(message));
+            buffer.AddRange(Coders.Binary.Encoder.Encode(message));
 
             CoderHelper.InsertDelimiter(ref buffer);
 

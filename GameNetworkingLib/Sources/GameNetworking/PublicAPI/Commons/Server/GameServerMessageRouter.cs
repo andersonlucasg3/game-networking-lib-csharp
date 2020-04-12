@@ -7,6 +7,7 @@ using GameNetworking.Networking.Commons;
 using GameNetworking.Commons.Models.Server;
 using GameNetworking.Messages;
 using GameNetworking.Executors;
+using Logging;
 
 namespace GameNetworking.Commons.Server {
     public class GameServerMessageRouter<TGame, TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>
@@ -29,6 +30,7 @@ namespace GameNetworking.Commons.Server {
         }
 
         protected void Execute(IExecutor executor) {
+            Logger.Log($"Enqueuing executor {executor}");
             dispatcher.Enqueue(executor.Execute);
         }
 

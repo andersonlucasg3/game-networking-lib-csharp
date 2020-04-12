@@ -43,7 +43,7 @@ namespace Networking.Sockets {
 
         public void Bind(NetEndPoint endPoint) {
             var ipep = this.From(endPoint);
-            this.client = new UdpClient() { DontFragment = true, ExclusiveAddressUse = false };
+            this.client = new UdpClient() { ExclusiveAddressUse = false };
             this.client.Client.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.ReuseAddress, true);
             this.client.Client.Bind(ipep);
             this.isCommunicable = true;

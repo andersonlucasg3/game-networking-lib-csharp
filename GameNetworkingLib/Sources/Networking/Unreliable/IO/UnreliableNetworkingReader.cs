@@ -15,7 +15,6 @@ namespace Networking.IO {
 
         protected override void Receive() { 
             if (this.isReceiving) { return; }
-
             this.isReceiving = true;
 
             this.socket.Read((bytes, fromSocket) => {

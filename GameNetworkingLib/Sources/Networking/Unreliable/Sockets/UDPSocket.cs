@@ -59,13 +59,11 @@ namespace Networking.Sockets {
                 IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, 0);
                 var receivedBytes = this.client.EndReceive(ar, ref endPoint);
                 
-                if (this.instantiatedEndPointSockets.TryGetValue(endPoint, out UDPSocket value)) {
-                    callback.Invoke(receivedBytes, value);
-                } else {
-                    var socket = new UDPSocket(this.client, endPoint);
+                if (!this.instantiatedEndPointSockets.TryGetValue(endPoint, out UDPSocket socket)) {
+                    socket = new UDPSocket(this.client, endPoint);
                     this.instantiatedEndPointSockets[endPoint] = socket;
-                    callback.Invoke(receivedBytes, socket);
                 }
+                callback.Invoke(receivedBytes, socket);
             }, null);
         }
 

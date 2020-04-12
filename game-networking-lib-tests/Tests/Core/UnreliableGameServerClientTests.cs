@@ -77,7 +77,7 @@ namespace Tests.Core {
 
                 var pingValue = server.pingController.GetPingValue(client.FindPlayer(p => p.isLocalPlayer));
                 Logger.Log($"Current ping value: {pingValue}");
-                Assert.Less(pingValue, 1);
+                Assert.Less(pingValue, .3F);
             }
 
             var sleepMillis = 10;

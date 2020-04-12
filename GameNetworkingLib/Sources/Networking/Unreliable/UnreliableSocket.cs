@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Google.Protobuf.WellKnownTypes;
 using Networking.Commons;
 using Networking.Commons.Models;
 using Networking.IO;
@@ -54,13 +53,12 @@ namespace Networking.Sockets {
         
         void UnreliableNetworkingReader.IListener.ReaderDidRead(byte[] bytes, IUDPSocket from) {
             if (from == null) { return; }
-            if (this.socketClientCollection.TryGetValue(from, out UnreliableNetClient value)) {
-                this.listener?.SocketDidRead(bytes, value);
-            } else {
-                var client = new UnreliableNetClient(from);
+
+            if (!this.socketClientCollection.TryGetValue(from, out UnreliableNetClient client)) {
+                client = new UnreliableNetClient(from);
                 this.socketClientCollection[from] = client;
-                this.listener?.SocketDidRead(bytes, client);
             }
+            this.listener?.SocketDidRead(bytes, client);
         }
     }
 }

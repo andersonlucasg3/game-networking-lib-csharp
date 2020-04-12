@@ -41,6 +41,7 @@ namespace Networking.Commons.IO {
         }
 
         private void ShrinkBuffer(int written) {
+            if (this.buffer.Count == 0) { return; }
             this.buffer.RemoveRange(0, written);
         }
     }

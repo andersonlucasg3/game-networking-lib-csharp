@@ -277,6 +277,7 @@ namespace Tests.Core {
     }
 
     class MainThreadDispatcher : IMainThreadDispatcher {
+        [MTAThread]
         public void Enqueue(Action action) {
             action.Invoke();
         }

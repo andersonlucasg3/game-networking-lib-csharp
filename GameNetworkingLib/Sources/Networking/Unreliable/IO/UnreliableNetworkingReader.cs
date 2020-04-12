@@ -1,4 +1,7 @@
-﻿using Networking.Commons.IO;
+﻿using System;
+using System.Linq.Expressions;
+using Logging;
+using Networking.Commons.IO;
 using Networking.Sockets;
 
 namespace Networking.IO {
@@ -18,8 +21,8 @@ namespace Networking.IO {
             this.isReceiving = true;
 
             this.socket.Read((bytes, fromSocket) => {
-                this.isReceiving = false;
                 this.listener?.ReaderDidRead(bytes, fromSocket);
+                this.isReceiving = false;
             });
         }
     }

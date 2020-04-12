@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
-using System.Runtime.CompilerServices;
 using GameNetworking;
 using GameNetworking.Commons;
 using GameNetworking.Networking;

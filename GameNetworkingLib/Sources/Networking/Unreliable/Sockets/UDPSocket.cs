@@ -21,7 +21,7 @@ namespace Networking.Sockets {
 
         private Socket socket;
         private IPEndPoint boundEndPoint;
-        private IPEndPoint remoteEndPoint;
+        private readonly IPEndPoint remoteEndPoint;
 
         private readonly Dictionary<EndPoint, UDPSocket> instantiatedEndPointSockets;
         private readonly ArrayPool<byte> bufferPool = ArrayPool<byte>.Create(bufferSize, 10);
@@ -72,7 +72,10 @@ namespace Networking.Sockets {
                     socket = new UDPSocket(this.socket, endPoint as IPEndPoint);
                     this.instantiatedEndPointSockets[endPoint] = socket;
                 }
-                callback.Invoke(buffer, socket);
+                byte[] shrinkedBuffer = new byte[readBytes];
+                Array.Copy(buffer, shrinkedBuffer, readBytes);
+
+                callback.Invoke(shrinkedBuffer, socket);
             }, null);
         }
 

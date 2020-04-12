@@ -91,7 +91,6 @@ namespace Networking.Sockets {
                     callback.Invoke(writtenCount);
                 }, null);
             } else {
-                Logger.Log($"Sending data to {this.remoteEndPoint}");
                 this.socket.BeginSendTo(bytes, 0, bytes.Length, SocketFlags.None, this.remoteEndPoint, ar => {
                     var writtenCount = this.socket.EndSendTo(ar);
                     callback.Invoke(writtenCount);

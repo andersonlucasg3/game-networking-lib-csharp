@@ -67,28 +67,9 @@ namespace Tests.Core {
             client.Connect("127.0.0.1", 64000);
 
             Update();
-            Update();
 
             Assert.AreEqual(1, serverListener.connectedPlayers.Count);
             Assert.IsTrue(clientListener.connectedCalled);
-
-            void ValidateProcessTiming() {
-                Update();
-                Update();
-
-                var pingValue = server.pingController.GetPingValue(client.FindPlayer(p => p.isLocalPlayer));
-                Logger.Log($"Current ping value: {pingValue}");
-                Assert.Less(pingValue, .3F);
-            }
-
-            var sleepMillis = 10;
-            var loopCount = 1000;
-            Logger.Log($"Will take {sleepMillis * loopCount / 1000} seconds to finish.");
-            for (int index = 0; index < loopCount; index++) {
-                Thread.Sleep(sleepMillis);
-
-                ValidateProcessTiming();
-            }
         }
 
         public class ClientListener : IClientListener<UnreliableClientPlayer, IUDPSocket, UnreliableNetworkClient, UnreliableNetClient> {

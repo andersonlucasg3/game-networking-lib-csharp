@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Net;
 using System.Threading;
 using GameNetworking;
 using GameNetworking.Networking;
@@ -58,12 +59,12 @@ namespace Tests.Core {
                 this.Update(client);
             }
 
-            var localIP = "127.0.0.1";
+            var localIP = IPAddress.Any.ToString();
 
             server.Start(localIP, 64000);
 
             client.Start(localIP, 63000);
-            client.Connect(localIP, 64000);
+            client.Connect("127.0.0.1", 64000);
 
             Update();
             Update();

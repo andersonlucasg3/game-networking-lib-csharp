@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using GameNetworking;
 using GameNetworking.Commons;
 using GameNetworking.Networking;
@@ -12,7 +13,7 @@ namespace TestClientApp {
         static void Main(string[] args) {
             UnreliableGameClient<UnreliablePlayer> client = new UnreliableGameClient<UnreliablePlayer>(new UnreliableNetworkingClient(new UnreliableSocket(new UDPSocket())), new Program());
 
-            client.Start("127.0.0.1", 63000);
+            client.Start(IPAddress.Any.ToString(), 63000);
             client.Connect(args[0], 64000);
 
             while (true) {

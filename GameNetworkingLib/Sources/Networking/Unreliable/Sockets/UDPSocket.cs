@@ -57,8 +57,8 @@ namespace Networking.Sockets {
         }
 
         public void BindToRemote(NetEndPoint endPoint) {
-            this.remoteEndPoint = this.From(endPoint);
-            this.socket.Connect(endPoint.host, endPoint.port);
+            Logger.Log($"Connected to {endPoint}");
+            this.socket.Connect(this.From(endPoint));
             this.isCommunicable = true;
         }
 
@@ -82,11 +82,18 @@ namespace Networking.Sockets {
                 return;
             }
 
-            Logger.Log($"Sending data to {this.remoteEndPoint}");
-            this.socket.BeginSendTo(bytes, 0, bytes.Length, SocketFlags.None, this.remoteEndPoint, ar => {
-                var writtenCount = this.socket.EndSendTo(ar);
-                callback.Invoke(writtenCount);
-            }, null);
+            if (this.remoteEndPoint == null) {
+                this.socket.BeginSend(bytes, 0, bytes.Length, SocketFlags.None, ar => {
+                    var writtenCount = this.socket.EndSend(ar);
+                    callback.Invoke(writtenCount);
+                }, null);
+            } else {
+                Logger.Log($"Sending data to {this.remoteEndPoint}");
+                this.socket.BeginSendTo(bytes, 0, bytes.Length, SocketFlags.None, this.remoteEndPoint, ar => {
+                    var writtenCount = this.socket.EndSendTo(ar);
+                    callback.Invoke(writtenCount);
+                }, null);
+            }
         }
 
         public override string ToString() {

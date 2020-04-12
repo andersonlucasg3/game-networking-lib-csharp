@@ -7,6 +7,7 @@ using GameNetworking.Networking.Commons;
 using Messages.Models;
 using Networking.Commons.Models;
 using Networking.Commons.Sockets;
+using Logging;
 
 namespace GameNetworking.Commons.Client {
     public interface IGameClient<TPlayer, TSocket, TClient, TNetClient>
@@ -71,6 +72,7 @@ namespace GameNetworking.Commons.Client {
         public abstract void Disconnect();
 
         public void Send(ITypedMessage message) {
+            Logger.Log($"Sending {message} to server");
             this.networkingClient.Send(message);
         }
 

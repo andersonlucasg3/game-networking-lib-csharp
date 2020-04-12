@@ -87,8 +87,6 @@ namespace Tests.Core {
                 Thread.Sleep(sleepMillis);
 
                 ValidateProcessTiming();
-
-                Logger.Log($"Current at index: {index}");
             }
         }
 

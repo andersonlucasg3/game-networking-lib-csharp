@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using Logging;
 using Networking.Commons.Models;
 using Networking.Commons.Sockets;
 
@@ -15,61 +17,74 @@ namespace Networking.Sockets {
     }
 
     public sealed class UDPSocket : IUDPSocket, IDisposable {
-        private readonly Dictionary<EndPoint, UDPSocket> instantiatedEndPointSockets;
-        private UdpClient client;
+        private const int bufferSize = 1024;
+
+        private Socket socket;
+        private IPEndPoint boundEndPoint;
         private IPEndPoint remoteEndPoint;
 
-        public bool isBound => this.client.Client.IsBound;
+        private readonly Dictionary<EndPoint, UDPSocket> instantiatedEndPointSockets;
+        private readonly ArrayPool<byte> bufferPool = ArrayPool<byte>.Create(bufferSize, 10);
+
+        public bool isBound => this.socket.IsBound;
         public bool isCommunicable { get; private set; }
 
         public UDPSocket() {
             this.instantiatedEndPointSockets = new Dictionary<EndPoint, UDPSocket>();
         }
 
-        private UDPSocket(UdpClient client, IPEndPoint remoteEndPoint) : this() {
-            this.client = client;
+        private UDPSocket(Socket socket, IPEndPoint remoteEndPoint) : this() {
+            this.socket = socket;
 
             this.remoteEndPoint = remoteEndPoint;
             this.isCommunicable = true;
         }
 
         public void Dispose() {
-            this.client.Dispose();
+            this.socket.Dispose();
         }
 
         public void Close() {
-            this.client.Close();
+            this.socket.Close();
         }
 
         public void Bind(NetEndPoint endPoint) {
-            var ipep = this.From(endPoint);
-            this.client = new UdpClient() { ExclusiveAddressUse = false };
-            this.client.Client.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.ReuseAddress, true);
-            this.client.Client.Bind(ipep);
+            this.boundEndPoint = this.From(endPoint);
+            this.socket = new Socket(this.boundEndPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
+            this.socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.ReuseAddress, true);
+            this.socket.Bind(this.boundEndPoint);
             this.isCommunicable = true;
         }
 
         public void BindToRemote(NetEndPoint endPoint) {
             this.remoteEndPoint = this.From(endPoint);
+            this.socket.Connect(endPoint.host, endPoint.port);
             this.isCommunicable = true;
         }
 
         public void Read(Action<byte[], IUDPSocket> callback) {
-            this.client.BeginReceive(ar => {
-                IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, 0);
-                var receivedBytes = this.client.EndReceive(ar, ref endPoint);
-                
+            var buffer = this.bufferPool.Rent(bufferSize);
+            EndPoint endPoint = new IPEndPoint(IPAddress.Any, 0);
+            this.socket.BeginReceiveFrom(buffer, 0, bufferSize, SocketFlags.None, ref endPoint, ar => {
+                var readBytes = this.socket.EndReceiveFrom(ar, ref endPoint);
+
                 if (!this.instantiatedEndPointSockets.TryGetValue(endPoint, out UDPSocket socket)) {
-                    socket = new UDPSocket(this.client, endPoint);
+                    socket = new UDPSocket(this.socket, endPoint as IPEndPoint);
                     this.instantiatedEndPointSockets[endPoint] = socket;
                 }
-                callback.Invoke(receivedBytes, socket);
+                callback.Invoke(buffer, socket);
             }, null);
         }
 
         public void Write(byte[] bytes, Action<int> callback) {
-            this.client.BeginSend(bytes, bytes.Length, this.remoteEndPoint, ar => {
-                var writtenCount = this.client.EndSend(ar);
+            if (bytes.Length == 0) {
+                callback.Invoke(0);
+                return;
+            }
+
+            Logger.Log($"Sending data to {this.remoteEndPoint}");
+            this.socket.BeginSendTo(bytes, 0, bytes.Length, SocketFlags.None, this.remoteEndPoint, ar => {
+                var writtenCount = this.socket.EndSendTo(ar);
                 callback.Invoke(writtenCount);
             }, null);
         }

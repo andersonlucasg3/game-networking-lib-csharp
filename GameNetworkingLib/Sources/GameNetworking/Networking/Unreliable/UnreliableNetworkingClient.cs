@@ -1,11 +1,9 @@
-﻿using GameNetworking.Messages.Client;
-using GameNetworking.Networking.Commons;
+﻿using GameNetworking.Networking.Commons;
 using GameNetworking.Networking.Models;
 using Networking.Commons.Models;
 using Networking.Models;
 using Networking.Sockets;
 using Messages.Streams;
-using Networking.Commons;
 
 namespace GameNetworking.Networking {
     public class UnreliableNetworkingClient : NetworkingClient<UnreliableSocket, IUDPSocket, UnreliableNetworkClient, UnreliableNetClient>, UnreliableSocket.IListener {
@@ -25,7 +23,7 @@ namespace GameNetworking.Networking {
 
         public override void Update() {
             this.networking.Read();
-            base.Update();
+            this.networking.Flush(this.client.client);
         }
 
         void UnreliableSocket.IListener.SocketDidRead(byte[] bytes, UnreliableNetClient client) {

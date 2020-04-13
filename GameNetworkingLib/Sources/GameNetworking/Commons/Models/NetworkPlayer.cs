@@ -30,7 +30,9 @@ namespace GameNetworking.Commons.Models {
             public float mostRecentPingValue { get => self.mostRecentPingValue; internal set => self.mostRecentPingValue = value; }
             public double lastReceivedPingRequest { get => self.lastReceivedPingRequest; internal set => self.lastReceivedPingRequest = value; }
 
-            public NetworkPlayer() { }
+            public NetworkPlayer() {
+                this.lastReceivedPingRequest = TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds;
+            }
 
             public override bool Equals(object obj) {
                 if (obj is NetworkPlayer<TSocket, TClient, TNetClient> player) {

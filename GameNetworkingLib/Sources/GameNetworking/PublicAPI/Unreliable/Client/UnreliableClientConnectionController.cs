@@ -42,6 +42,8 @@ namespace GameNetworking {
         }
 
         public void Update() {
+            if (!this.isConnecting) { return; }
+
             if (this.elapsedTime >= this.secondsBetweenRetries) {
                 if (this.retryCount >= this.maximumNumberOfRetries) {
                     this.isConnecting = false;

@@ -79,7 +79,7 @@ namespace Tests.Core {
             var sender = new MessageSender();
 
             var timeOutCalled = false;
-            var conn = new UnreliableClientConnectionController(sender, () => timeOutCalled = true);
+            var conn = new UnreliableClientConnectionController(sender, () => timeOutCalled = true) { secondsBetweenRetries = .1f };
 
             conn.Connect();
 
@@ -106,6 +106,21 @@ namespace Tests.Core {
             Update();
 
             Assert.IsTrue(timeOutCalled);
+
+            timeOutCalled = false;
+
+            conn.Connect();
+
+            conn.Update();
+
+            conn.ReceivedConnected();
+
+            conn.Update();
+            conn.Update();
+            conn.Update();
+            conn.Update();
+
+            Assert.IsFalse(timeOutCalled);
         }
 
         public class ClientListener : IClientListener<UnreliableClientPlayer, IUDPSocket, UnreliableNetworkClient, UnreliableNetClient> {

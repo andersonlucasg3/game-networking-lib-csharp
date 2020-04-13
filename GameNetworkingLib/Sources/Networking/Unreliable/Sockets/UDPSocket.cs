@@ -10,6 +10,7 @@ using Networking.Commons.Sockets;
 namespace Networking.Sockets {
     public interface IUDPSocket : ISocket, IEquatable<IPEndPoint> {
         void BindToRemote(NetEndPoint endPoint);
+        void Unbind();
 
         void Close();
 
@@ -19,6 +20,7 @@ namespace Networking.Sockets {
     public sealed class UDPSocket : IUDPSocket, IDisposable {
         private const int bufferSize = 1024;
 
+        private UDPSocket parent;
         private Socket socket;
         private IPEndPoint boundEndPoint;
         private IPEndPoint remoteEndPoint;
@@ -32,19 +34,22 @@ namespace Networking.Sockets {
             this.instantiatedEndPointSockets = new Dictionary<EndPoint, UDPSocket>();
         }
 
-        private UDPSocket(Socket socket, IPEndPoint remoteEndPoint) : this() {
-            this.socket = socket;
+        private UDPSocket(UDPSocket parent, IPEndPoint remoteEndPoint) : this() {
+            this.parent = parent;
+            this.socket = parent.socket;
 
             this.remoteEndPoint = remoteEndPoint;
             this.isCommunicable = true;
         }
 
         public void Dispose() {
+            this.CleanUpSocket();
             this.socket.Dispose();
             this.socket = null;
         }
 
         public void Close() {
+            this.CleanUpSocket();
             this.socket.Close();
             this.socket = null;
         }
@@ -63,7 +68,13 @@ namespace Networking.Sockets {
             this.isCommunicable = true;
         }
 
+        public void Unbind() {
+            this.CleanUpSocket();
+        }
+
         public void Read(Action<byte[], IUDPSocket> callback) {
+            if (this.socket == null) { return; }
+
             var buffer = new byte[bufferSize];
             EndPoint endPoint = new IPEndPoint(IPAddress.Any, 0);
             this.socket.BeginReceiveFrom(buffer, 0, bufferSize, SocketFlags.None, ref endPoint, ar => {
@@ -71,7 +82,7 @@ namespace Networking.Sockets {
                 var readBytes = this.socket.EndReceiveFrom(ar, ref endPoint);
 
                 if (!this.instantiatedEndPointSockets.TryGetValue(endPoint, out UDPSocket socket)) {
-                    socket = new UDPSocket(this.socket, endPoint as IPEndPoint);
+                    socket = new UDPSocket(this, endPoint as IPEndPoint);
                     this.instantiatedEndPointSockets[endPoint] = socket;
                 }
                 byte[] shrinkedBuffer = new byte[readBytes];
@@ -82,6 +93,8 @@ namespace Networking.Sockets {
         }
 
         public void Write(byte[] bytes, Action<int> callback) {
+            if (this.socket == null) { return; }
+
             if (bytes.Length == 0) {
                 callback.Invoke(0);
                 return;
@@ -109,6 +122,12 @@ namespace Networking.Sockets {
 
         private IPEndPoint From(NetEndPoint ep) {
             return new IPEndPoint(IPAddress.Parse(ep.host), ep.port);
+        }
+
+        private void CleanUpSocket() {
+            if (this.parent != null) {
+                this.parent.instantiatedEndPointSockets.Remove(this.remoteEndPoint);
+            }
         }
 
         #endregion

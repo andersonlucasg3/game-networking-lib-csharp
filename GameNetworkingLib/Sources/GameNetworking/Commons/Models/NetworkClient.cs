@@ -13,6 +13,8 @@ namespace GameNetworking.Commons.Models {
         IStreamWriter writer { get; }
 
         void Write<TMessage>(TMessage message) where TMessage : ITypedMessage;
+
+        void Close();
     }
 
     public abstract class NetworkClient<TSocket, TNetClient> : INetworkClient<TSocket, TNetClient> where TSocket : ISocket where TNetClient : INetClient<TSocket, TNetClient> {
@@ -25,6 +27,10 @@ namespace GameNetworking.Commons.Models {
             this.client = client;
             this.reader = reader;
             this.writer = writer;
+        }
+
+        public void Close() {
+            this.client.Close();
         }
 
         public void Write<TMessage>(TMessage message) where TMessage : ITypedMessage {
@@ -49,7 +55,7 @@ namespace GameNetworking.Commons.Models {
         }
 
         public override int GetHashCode() {
-            return base.GetHashCode();
+            return HashCode.Combine(client);
         }
     }
 }

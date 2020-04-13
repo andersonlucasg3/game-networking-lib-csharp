@@ -14,6 +14,8 @@ namespace Networking.Commons.Models {
 
         IListener listener { get; set; }
 
+        void Close();
+
         void Read();
         void Write(byte[] bytes);
     }
@@ -30,6 +32,8 @@ namespace Networking.Commons.Models {
         internal NetClient(TSocket socket) {
             this.socket = socket;
         }
+
+        public abstract void Close();
 
         public abstract void Read();
         public abstract void Write(byte[] bytes);

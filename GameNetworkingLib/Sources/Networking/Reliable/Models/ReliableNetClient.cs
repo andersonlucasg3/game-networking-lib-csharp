@@ -38,6 +38,10 @@ namespace Networking.Models {
             this.socket.Disconnect(disconnectAction);
         }
 
+        public override void Close() {
+            this.socket.Close();
+        }
+
         public override void Read() {
             this.reader.Receive();
         }

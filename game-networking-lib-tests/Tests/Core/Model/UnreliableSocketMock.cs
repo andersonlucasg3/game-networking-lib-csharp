@@ -58,6 +58,10 @@ namespace Test.Core.Model {
             this.isCommunicable = true;
         }
 
+        public void Unbind() {
+            // TODO: does not yet...
+        }
+
         public void Close() {
             this.isBound = false;
             this.isCommunicable = false;

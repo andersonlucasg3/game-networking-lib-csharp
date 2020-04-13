@@ -19,6 +19,10 @@ namespace Networking.Models {
             this.writer = new UnreliableNetworkingWriter(socket);
         }
 
+        public override void Close() {
+            this.socket.Unbind();
+        }
+
         public override void Read() {
             // TODO: I think I should do nothing here...
         }

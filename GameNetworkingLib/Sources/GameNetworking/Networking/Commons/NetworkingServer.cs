@@ -122,6 +122,7 @@ namespace GameNetworking.Networking.Commons {
                 var removing = this.disconnectedClientsToRemove.Dequeue();
                 this.clientsList.Remove(removing);
                 this.clientsCollection.Remove(removing.client);
+                removing.Close();
             }
         }
 

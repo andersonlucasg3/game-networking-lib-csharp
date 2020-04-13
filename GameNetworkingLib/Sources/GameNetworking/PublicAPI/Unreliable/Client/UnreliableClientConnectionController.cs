@@ -1,4 +1,5 @@
 ﻿using System;
+using GameNetworking.Commons;
 using GameNetworking.Commons.Client;
 using GameNetworking.Commons.Models;
 using GameNetworking.Commons.Models.Client;
@@ -18,7 +19,7 @@ namespace GameNetworking {
         private int retryCount = 0;
         private double startTime = -1F;
 
-        private double elapsedTime => this.Now() - this.startTime;
+        private double elapsedTime => TimeUtils.CurrentTime() - this.startTime;
 
         public float secondsBetweenRetries { get; set; } = 3F;
         public int maximumNumberOfRetries { get; set; } = 3;
@@ -32,7 +33,7 @@ namespace GameNetworking {
             if (this.isConnecting) { return; }
             this.isConnecting = true;
             this.retryCount = 0;
-            this.startTime = this.Now();
+            this.startTime = TimeUtils.CurrentTime();
 
             this.Send();
         }
@@ -52,7 +53,7 @@ namespace GameNetworking {
                 }
 
                 this.retryCount++;
-                this.startTime = this.Now();
+                this.startTime = TimeUtils.CurrentTime();
                 this.Send();
             }
         }
@@ -65,10 +66,6 @@ namespace GameNetworking {
 
         private void Send() {
             this.client.Send(new UnreliableConnectMessage());
-        }
-
-        private double Now() {
-            return TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds;
         }
 
         #endregion

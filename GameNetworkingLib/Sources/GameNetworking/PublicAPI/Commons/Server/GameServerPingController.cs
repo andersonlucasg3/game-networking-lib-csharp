@@ -56,6 +56,9 @@ namespace GameNetworking.Commons.Server {
 
         public float PongReceived(TPlayer player) {
             if (player == null) { return 0F; }
+
+            player.lastReceivedPongRequest = TimeUtils.CurrentTime();
+
             if (this.pingPlayers.TryGetValue(player.playerId, out PingPlayer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient> pingPlayer)) {
                 var pingValue = pingPlayer.ReceivedPong();
                 player.mostRecentPingValue = pingValue;
@@ -122,7 +125,7 @@ namespace GameNetworking.Commons.Server {
         }
 
         private static double CurrentTime() {
-            return TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds;
+            return TimeUtils.CurrentTime();
         }
 
         public override int GetHashCode() {

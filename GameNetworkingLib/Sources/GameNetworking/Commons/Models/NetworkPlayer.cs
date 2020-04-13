@@ -11,7 +11,7 @@ namespace GameNetworking.Commons.Models {
             TClient client { get; internal set; }
             int playerId { get; internal set; }
             float mostRecentPingValue { get; internal set; }
-            double lastReceivedPingRequest { get; internal set; }
+            double lastReceivedPongRequest { get; internal set; }
         }
 
         public class NetworkPlayer<TSocket, TClient, TNetClient> : INetworkPlayer<TSocket, TClient, TNetClient>
@@ -23,16 +23,14 @@ namespace GameNetworking.Commons.Models {
             TClient INetworkPlayer<TSocket, TClient, TNetClient>.client { get; set; }
             int INetworkPlayer<TSocket, TClient, TNetClient>.playerId { get; set; }
             float INetworkPlayer<TSocket, TClient, TNetClient>.mostRecentPingValue { get; set; }
-            double INetworkPlayer<TSocket, TClient, TNetClient>.lastReceivedPingRequest { get; set; }
-
+            double INetworkPlayer<TSocket, TClient, TNetClient>.lastReceivedPongRequest { get; set; }
+        
             public TClient client { get => self.client; internal set => self.client = value; }
             public int playerId { get => self.playerId; internal set => self.playerId = value; }
             public float mostRecentPingValue { get => self.mostRecentPingValue; internal set => self.mostRecentPingValue = value; }
-            public double lastReceivedPingRequest { get => self.lastReceivedPingRequest; internal set => self.lastReceivedPingRequest = value; }
+            public double lastReceivedPongRequest { get => self.lastReceivedPongRequest; internal set => self.lastReceivedPongRequest = value; }
 
-            public NetworkPlayer() {
-                this.lastReceivedPingRequest = TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds;
-            }
+            public NetworkPlayer() { this.lastReceivedPongRequest = TimeUtils.CurrentTime(); }
 
             public override bool Equals(object obj) {
                 if (obj is NetworkPlayer<TSocket, TClient, TNetClient> player) {
@@ -48,7 +46,7 @@ namespace GameNetworking.Commons.Models {
             }
 
             public override int GetHashCode() {
-                return base.GetHashCode();
+                return HashCode.Combine(this.client, this.playerId);
             }
         }
     }
@@ -58,6 +56,8 @@ namespace GameNetworking.Commons.Models {
                 where TSocket : ISocket
                 where TClient : INetworkClient<TSocket, TNetClient>
                 where TNetClient : INetClient<TSocket, TNetClient> {
+            double lastReceivedPingRequest { get; internal set; }
+
             bool isLocalPlayer { get; internal set; }
         }
 
@@ -67,9 +67,15 @@ namespace GameNetworking.Commons.Models {
             where TNetClient : INetClient<TSocket, TNetClient> {
             private INetworkPlayer<TSocket, TClient, TNetClient> self => this;
 
+            double INetworkPlayer<TSocket, TClient, TNetClient>.lastReceivedPingRequest { get => this.lastReceivedPongRequest; set => this.lastReceivedPongRequest = value; }
+
             bool INetworkPlayer<TSocket, TClient, TNetClient>.isLocalPlayer { get; set; }
 
+            public double lastReceivedPingRequest { get => self.lastReceivedPingRequest; internal set => self.lastReceivedPingRequest = value; }
+
             public bool isLocalPlayer { get => self.isLocalPlayer; }
+
+            public NetworkPlayer() : base() { }
         }
     }
 }

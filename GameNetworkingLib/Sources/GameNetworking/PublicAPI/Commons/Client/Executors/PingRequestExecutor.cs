@@ -18,7 +18,7 @@ namespace GameNetworking.Executors.Client {
 
         public override void Execute() {
             if (this.instance.localPlayer != null) {
-                this.instance.localPlayer.lastReceivedPingRequest = TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds;
+                this.instance.localPlayer.lastReceivedPingRequest = TimeUtils.CurrentTime();
             }
 
             this.instance.Send(new PongRequestMessage());

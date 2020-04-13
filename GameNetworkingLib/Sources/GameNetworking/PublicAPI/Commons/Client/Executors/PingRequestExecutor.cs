@@ -1,9 +1,9 @@
+using System;
 using GameNetworking.Commons;
 using GameNetworking.Commons.Client;
 using GameNetworking.Commons.Models;
 using GameNetworking.Commons.Models.Client;
 using GameNetworking.Messages.Client;
-using GameNetworking.Networking.Commons;
 using Networking.Commons.Models;
 using Networking.Commons.Sockets;
 
@@ -17,6 +17,8 @@ namespace GameNetworking.Executors.Client {
         public PingRequestExecutor(IGameClient<TPlayer, TSocket, TClient, TNetClient> client) : base(client) { }
 
         public override void Execute() {
+            this.instance.localPlayer.lastReceivedPingRequest = TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds;
+
             this.instance.Send(new PongRequestMessage());
         }
     }

@@ -45,12 +45,12 @@ namespace GameNetworking {
 
         internal void DidConnect() {
             this.clientConnectionController.Stop();
-            this.networkingClient.Close();
             this.listener?.GameClientDidConnect();
         }
 
         internal override void DidDisconnect() {
             this.playersStorage.Clear();
+            this.networkingClient.Close();
             this.listener?.GameClientDidDisconnect();
         }
 

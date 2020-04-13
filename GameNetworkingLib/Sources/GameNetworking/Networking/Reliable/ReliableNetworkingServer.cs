@@ -9,7 +9,7 @@ namespace GameNetworking.Networking {
     public class ReliableNetworkingServer : NetworkingServer<ReliableSocket, ITCPSocket, ReliableNetworkClient, ReliableNetClient> {
         public ReliableNetworkingServer(ReliableSocket backend) : base(backend) { }
 
-        public void Disconnect(ReliableNetworkClient client) {
+        public override void Disconnect(ReliableNetworkClient client) {
             this.networking.Disconnect(client.client);
         }
 

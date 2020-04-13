@@ -39,7 +39,7 @@ namespace Networking.Models {
         }
 
         public override void Read() {
-            this.reader.Read();
+            this.reader.Receive();
         }
 
         public override void Write(byte[] bytes) {

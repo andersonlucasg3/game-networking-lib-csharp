@@ -21,11 +21,15 @@ namespace GameNetworking.Networking.Commons {
             void NetworkingServerDidReadMessage(MessageContainer container, TClient client);
         }
 
+        IReadOnlyList<TClient> clients { get; }
+
         internal IListener listener { get; set; }
         IMessagesListener messagesListener { get; set; }
 
         void Start(string host, int port);
         void Stop();
+
+        void Disconnect(TClient client);
 
         void Update();
 
@@ -52,6 +56,8 @@ namespace GameNetworking.Networking.Commons {
 
         public INetworkingServer<TSocket, TClient, TNetClient>.IMessagesListener messagesListener { get; set; }
 
+        public IReadOnlyList<TClient> clients => this.clientsList;
+
         public NetworkingServer(TNetworking backend) {
             this.networking = backend;
             this.clientsList = new List<TClient>();
@@ -65,6 +71,10 @@ namespace GameNetworking.Networking.Commons {
 
         public virtual void Stop() {
             this.networking.Stop();
+        }
+
+        public virtual void Disconnect(TClient client) {
+            this.disconnectedClientsToRemove.Enqueue(client);
         }
 
         public virtual void Update() {
@@ -102,25 +112,22 @@ namespace GameNetworking.Networking.Commons {
             client.reader.Add(bytes);
 
             MessageContainer message;
-            do {
-                message = client.reader.Decode();
-                if (message != null) {
-                    this.messagesListener?.NetworkingServerDidReadMessage(message, client);
-                }
-            } while (message != null);
+            while ((message = client.reader.Decode()) != null) { 
+                this.messagesListener?.NetworkingServerDidReadMessage(message, client);
+            }
         }
 
-        #endregion
-
-        #region Private methods
-
-        private void RemoveDisconnected() {
+        protected void RemoveDisconnected() {
             while (this.disconnectedClientsToRemove.Count > 0) {
                 var removing = this.disconnectedClientsToRemove.Dequeue();
                 this.clientsList.Remove(removing);
                 this.clientsCollection.Remove(removing.client);
             }
         }
+
+        #endregion
+
+        #region Private methods
 
         #endregion
 

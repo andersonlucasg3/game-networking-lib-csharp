@@ -89,7 +89,7 @@ namespace Networking {
         }
 
         public void Read(ReliableNetClient client) {
-            client.reader.Read();
+            client.reader.Receive();
         }
 
         public void Send(ReliableNetClient client, byte[] message) {

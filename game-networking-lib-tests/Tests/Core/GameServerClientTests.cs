@@ -60,6 +60,7 @@ namespace Tests.Core {
         protected abstract TNetworkingServer NewServer();
         protected abstract TNetworkingClient NewClient();
         protected abstract void NewServer(out TGameServer server, out TServerListener listener);
+        protected abstract void NewServer(out TGameServer server, out TServerListener listener, out TNetworkingServer networkingServer);
         protected abstract void NewClient(out TGameClient client, out TClientListener listener);
 
         protected void Update(TGameServer server) {
@@ -282,7 +283,7 @@ namespace Tests.Core {
         [Test]
         public void TestConnectionTimeOutClient() {
             this.NewClient(out TGameClient client1, out TClientListener clientListener);
-            this.NewServer(out TGameServer server, out TServerListener serverListener);
+            this.NewServer(out TGameServer server, out TServerListener serverListener, out TNetworkingServer networkingServer);
 
             client1.timeOutDelay = 1F;
             server.timeOutDelay = 1F;
@@ -295,6 +296,7 @@ namespace Tests.Core {
             client1.Update();
 
             var localPlayer = client1.localPlayer;
+            var serverPlayer = server.FindPlayer(localPlayer.playerId);
 
             Thread.Sleep((int)(client1.timeOutDelay * 1000));
 
@@ -305,6 +307,10 @@ namespace Tests.Core {
             server.Update();
 
             Assert.AreEqual(localPlayer.playerId, serverListener.disconnectedPlayers.First().playerId);
+
+            server.Update();
+
+            Assert.IsFalse(networkingServer.clients.Contains(serverPlayer.client));
         }
     }
 

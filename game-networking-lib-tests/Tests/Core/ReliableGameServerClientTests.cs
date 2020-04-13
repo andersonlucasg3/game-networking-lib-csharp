@@ -27,18 +27,19 @@ namespace Tests.Core {
         protected override ReliableNetworkingServer NewServer() => new ReliableNetworkingServer(new ReliableSocket(new ReliableSocketMock()));
 
         protected override void NewServer(out ReliableGameServer<ReliableServerPlayer> server, out ServerListener listener) {
+            this.NewServer(out server, out listener, out _);
+        }
+
+        protected override void NewServer(out ReliableGameServer<ReliableServerPlayer> server, out ServerListener listener, out ReliableNetworkingServer networkingServer) {
             var newListener = new ServerListener();
-            server = new ReliableGameServer<ReliableServerPlayer>(this.NewServer(), new MainThreadDispatcher()) {
-                listener = newListener
-            };
+            networkingServer = this.NewServer();
+            server = new ReliableGameServer<ReliableServerPlayer>(networkingServer, new MainThreadDispatcher()) { listener = newListener };
             listener = newListener;
         }
 
         protected override void NewClient(out ReliableGameClient<ReliableClientPlayer> client, out ClientListener listener) {
             var newListener = new ClientListener();
-            client = new ReliableGameClient<ReliableClientPlayer>(this.NewClient(), new MainThreadDispatcher()) {
-                listener = newListener
-            };
+            client = new ReliableGameClient<ReliableClientPlayer>(this.NewClient(), new MainThreadDispatcher()) { listener = newListener };
             listener = newListener;
         }
 

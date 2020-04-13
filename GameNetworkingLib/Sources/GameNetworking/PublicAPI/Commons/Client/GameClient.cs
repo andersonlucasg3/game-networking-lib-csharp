@@ -10,7 +10,11 @@ using Networking.Commons.Sockets;
 using Logging;
 
 namespace GameNetworking.Commons.Client {
-    public interface IGameClient<TPlayer, TSocket, TClient, TNetClient>
+    public interface IGameClientMessageSender {
+        void Send(ITypedMessage message);
+    }
+
+    public interface IGameClient<TPlayer, TSocket, TClient, TNetClient> : IGameClientMessageSender
         where TPlayer : class, INetworkPlayer<TSocket, TClient, TNetClient>, new()
         where TSocket : ISocket
         where TClient : INetworkClient<TSocket, TNetClient>
@@ -33,7 +37,7 @@ namespace GameNetworking.Commons.Client {
 
         void Update();
         float GetPing(int playerId);
-        void Send(ITypedMessage message);
+        
         TPlayer FindPlayer(int playerId);
         TPlayer FindPlayer(Func<TPlayer, bool> predicate);
         List<TPlayer> AllPlayers();

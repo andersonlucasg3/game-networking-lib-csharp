@@ -2,6 +2,8 @@
 using System.Net;
 using System.Threading;
 using GameNetworking;
+using GameNetworking.Commons.Client;
+using GameNetworking.Messages;
 using GameNetworking.Networking;
 using GameNetworking.Networking.Models;
 using Logging;
@@ -72,6 +74,40 @@ namespace Tests.Core {
             Assert.IsTrue(clientListener.connectedCalled);
         }
 
+        [Test]
+        public void TestClientConnectionController() {
+            var sender = new MessageSender();
+
+            var timeOutCalled = false;
+            var conn = new UnreliableClientConnectionController(sender, () => timeOutCalled = true);
+
+            conn.Connect();
+
+            Assert.AreEqual(MessageType.connect, (MessageType)sender.sentMessage.type);
+
+            sender.sentMessage = null;
+
+            var sleepTime = (int)(conn.secondsBetweenRetries * 1000);
+
+            void Update() {
+                Thread.Sleep(sleepTime);
+
+                conn.Update();
+
+                if (!timeOutCalled) {
+                    Assert.AreEqual(MessageType.connect, (MessageType)sender.sentMessage.type);
+                    sender.sentMessage = null;
+                }
+            }
+
+            Update();
+            Update();
+            Update();
+            Update();
+
+            Assert.IsTrue(timeOutCalled);
+        }
+
         public class ClientListener : IClientListener<UnreliableClientPlayer, IUDPSocket, UnreliableNetworkClient, UnreliableNetClient> {
             public List<MessageContainer> receivedMessages { get; } = new List<MessageContainer>();
             public List<UnreliableClientPlayer> disconnectedPlayers { get; } = new List<UnreliableClientPlayer>();
@@ -103,6 +139,14 @@ namespace Tests.Core {
             public void GameServerDidReceiveClientMessage(MessageContainer container, UnreliableServerPlayer player) => Assert.NotNull(player);
 
             #endregion
+        }
+
+        public class MessageSender : IGameClientMessageSender {
+            public ITypedMessage sentMessage = null;
+
+            public void Send(ITypedMessage message) {
+                this.sentMessage = message;
+            }
         }
     }
 }

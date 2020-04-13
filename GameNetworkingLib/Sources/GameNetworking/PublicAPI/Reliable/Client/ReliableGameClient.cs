@@ -23,6 +23,6 @@ namespace GameNetworking {
             this.connection.Disconnect();
         }
 
-        internal override void DidDisconnect() { /* Maybe do nothing... */ }
+        internal override void DidDisconnect() { this.playersStorage.Clear(); }
     }
 }

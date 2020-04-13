@@ -31,10 +31,12 @@ namespace GameNetworking {
         }
 
         void ReliableNetworkingClient.IListener.NetworkingClientConnectDidTimeout() {
+            this.client?.DidDisconnect();
             this.client?.listener?.GameClientConnectDidTimeout();
         }
 
         void ReliableNetworkingClient.IListener.NetworkingClientDidDisconnect() {
+            this.client?.DidDisconnect();
             this.client?.listener?.GameClientDidDisconnect();
         }
 

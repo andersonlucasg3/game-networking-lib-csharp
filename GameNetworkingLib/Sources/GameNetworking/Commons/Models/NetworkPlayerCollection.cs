@@ -64,6 +64,17 @@ namespace GameNetworking.Commons.Models {
             return player;
         }
 
+        public void Clear() {
+            for (int index_p = 0; index_p < this.players.Count; index_p++) {
+                for (int index_l = 0; index_l < this.listeners.Count; index_l++) {
+                    this.listeners[index_l].PlayerStorageDidRemove(players[index_p]);
+                }
+            }
+
+            this.playersDict.Clear();
+            this.UpdateList();
+        }
+
         public TPlayer Find(TClient client) {
             return this.players.Find(each => each.Equals(client));
         }

@@ -189,7 +189,7 @@ namespace Tests.Core {
 
             Assert.AreEqual(1, client1.AllPlayers().FindAll(p => p.isLocalPlayer).Count);
             Assert.AreEqual(1, client2.AllPlayers().FindAll(p => p.isLocalPlayer).Count);
-            Assert.AreEqual(1, client3.AllPlayers().FindAll(p => p.isLocalPlayer).Count);
+            Assert.AreEqual(0, client3.AllPlayers().FindAll(p => p.isLocalPlayer).Count);
         }
 
         [Test]

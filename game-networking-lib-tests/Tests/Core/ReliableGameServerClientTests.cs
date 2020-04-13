@@ -43,37 +43,6 @@ namespace Tests.Core {
             listener = newListener;
         }
 
-        [Test]
-        public void TestRealSocketConnection() {
-            Logger.IsLoggingEnabled = true;
-
-            var mainThreadDispatcher = new MainThreadDispatcher();
-
-            ServerListener serverListener = new ServerListener();
-            ClientListener clientListener = new ClientListener();
-
-            var server = new ReliableGameServer<ReliableServerPlayer>(new ReliableNetworkingServer(new ReliableSocket(new TCPNonBlockingSocket())), mainThreadDispatcher) { listener = serverListener };
-            var client = new ReliableGameClient<ReliableClientPlayer>(new ReliableNetworkingClient(new ReliableSocket(new TCPNonBlockingSocket())), mainThreadDispatcher) { listener = clientListener };
-
-            void Update() {
-                this.Update(server);
-                this.Update(server);
-                this.Update(client);
-                this.Update(client);
-            }
-
-            var localIP = "127.0.0.1";
-
-            server.Start(localIP, 64000);
-            client.Connect(localIP, 64000);
-
-            Update();
-            Update();
-
-            Assert.AreEqual(1, serverListener.connectedPlayers.Count);
-            Assert.IsTrue(clientListener.connectedCalled);
-        }
-
         public class ClientListener : IClientListener<ReliableClientPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient> {
             public List<MessageContainer> receivedMessages { get; } = new List<MessageContainer>();
             public List<ReliableClientPlayer> disconnectedPlayers { get; } = new List<ReliableClientPlayer>();

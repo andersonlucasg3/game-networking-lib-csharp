@@ -84,6 +84,8 @@ namespace Networking.Sockets {
                 return;
             }
 
+            if (!this.socket.Connected) { return; }
+
             if (this.remoteEndPoint == null) {
                 this.socket.BeginSend(bytes, 0, bytes.Length, SocketFlags.None, ar => {
                     var writtenCount = this.socket.EndSend(ar);

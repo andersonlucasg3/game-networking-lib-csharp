@@ -12,8 +12,13 @@ using Messages.Models;
 namespace GameNetworking {
     public class UnreliableGameClient<TPlayer> : GameClient<UnreliableNetworkingClient, TPlayer, IUDPSocket, UnreliableNetworkClient, UnreliableNetClient, UnreliableGameClient<TPlayer>>, INetworkingClient<IUDPSocket, UnreliableNetworkClient, UnreliableNetClient>.IListener
         where TPlayer : class, INetworkPlayer<IUDPSocket, UnreliableNetworkClient, UnreliableNetClient>, new() {
+
+        internal readonly UnreliableClientConnectionController clientConnectionController;
+
         public UnreliableGameClient(UnreliableNetworkingClient backend, IMainThreadDispatcher dispatcher) : base(backend, new UnreliableClientMessageRouter<TPlayer>(dispatcher)) {
             this.networkingClient.listener = this;
+
+            this.clientConnectionController = new UnreliableClientConnectionController(this, this.ConnectionDidTimeOut);
         }
 
         public void Start(string host, int port) {
@@ -23,14 +28,23 @@ namespace GameNetworking {
         public override void Connect(string host, int port) {
             this.networkingClient.Connect(host, port);
 
-            this.Send(new UnreliableConnectMessage());
+            this.clientConnectionController.Connect();
         }
 
         public override void Disconnect() {
             this.Send(new UnreliableDisconnectMessage());
+            this.Send(new UnreliableDisconnectMessage());
+            this.Send(new UnreliableDisconnectMessage());
+        }
+
+        public override void Update() {
+            base.Update();
+
+            this.clientConnectionController.Update();
         }
 
         internal void DidConnect() {
+            this.clientConnectionController.ReceivedConnected();
             this.listener?.GameClientDidConnect();
         }
 
@@ -41,5 +55,13 @@ namespace GameNetworking {
         void INetworkingClient<IUDPSocket, UnreliableNetworkClient, UnreliableNetClient>.IListener.NetworkingClientDidReadMessage(MessageContainer container) {
             this.GameClientConnectionDidReceiveMessage(container);
         }
+
+        #region Private Methods
+
+        private void ConnectionDidTimeOut() {
+            this.listener?.GameClientConnectDidTimeout();
+        }
+
+        #endregion
     }
 }

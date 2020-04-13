@@ -122,7 +122,7 @@ namespace GameNetworking.Commons.Server {
         }
 
         private static double CurrentTime() {
-            return TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds;
+            return TimeUtils.CurrentTime();
         }
 
         public override int GetHashCode() {

@@ -91,7 +91,7 @@ namespace GameNetworking.Commons.Client {
 
             if (this.localPlayer == null) { return; }
 
-            var now = TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds;
+            var now = TimeUtils.CurrentTime();
             var elapsedTime = now - this.localPlayer.lastReceivedPingRequest;
             if (elapsedTime >= this.timeOutDelay) {
                 this.Disconnect();

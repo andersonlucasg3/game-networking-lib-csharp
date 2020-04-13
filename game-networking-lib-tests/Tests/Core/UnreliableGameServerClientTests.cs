@@ -1,12 +1,10 @@
 ﻿using System.Collections.Generic;
-using System.Net;
 using System.Threading;
 using GameNetworking;
 using GameNetworking.Commons.Client;
 using GameNetworking.Messages;
 using GameNetworking.Networking;
 using GameNetworking.Networking.Models;
-using Logging;
 using Messages.Models;
 using Networking.Models;
 using Networking.Sockets;
@@ -86,7 +84,7 @@ namespace Tests.Core {
 
             conn.Update();
 
-            conn.ReceivedConnected();
+            conn.Stop();
 
             conn.Update();
             conn.Update();

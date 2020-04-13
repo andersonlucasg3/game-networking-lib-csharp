@@ -46,7 +46,7 @@ namespace GameNetworking {
         }
 
         internal void DidConnect() {
-            this.clientConnectionController.ReceivedConnected();
+            this.clientConnectionController.Stop();
             this.listener?.GameClientDidConnect();
         }
 
@@ -61,6 +61,8 @@ namespace GameNetworking {
         #region Private Methods
 
         private void ConnectionDidTimeOut() {
+            this.networkingClient.Close();
+
             this.listener?.GameClientConnectDidTimeout();
         }
 

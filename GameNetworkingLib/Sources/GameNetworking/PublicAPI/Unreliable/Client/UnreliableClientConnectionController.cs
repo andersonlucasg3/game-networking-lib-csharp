@@ -38,7 +38,7 @@ namespace GameNetworking {
             this.Send();
         }
 
-        public void ReceivedConnected() {
+        public void Stop() {
             this.isConnecting = false;
         }
 
@@ -47,7 +47,7 @@ namespace GameNetworking {
 
             if (this.elapsedTime >= this.secondsBetweenRetries) {
                 if (this.retryCount >= this.maximumNumberOfRetries) {
-                    this.isConnecting = false;
+                    this.Stop();
                     this.DispatchTimeOut();
                     return;
                 }

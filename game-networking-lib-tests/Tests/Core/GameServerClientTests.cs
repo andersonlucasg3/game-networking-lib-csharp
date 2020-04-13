@@ -315,8 +315,8 @@ namespace Tests.Core {
 
         [Test]
         public void TestOneClientDisconnectAndReconnect() {
-            this.NewClient(out TGameClient client1, out TClientListener clientListener);
-            this.NewServer(out TGameServer server, out TServerListener serverListener);
+            this.NewClient(out TGameClient client1, out TClientListener _);
+            this.NewServer(out TGameServer server, out TServerListener _);
 
             client1.timeOutDelay = 1F;
             server.timeOutDelay = 1F;
@@ -331,6 +331,8 @@ namespace Tests.Core {
 
             server.Update();
             client1.Update();
+
+            this.NewClient(out client1, out TClientListener clientListener);
 
             client1.Connect("0.0.0.0", 1);
 

@@ -17,10 +17,12 @@ namespace Networking.Sockets {
         void Read(Action<byte[], IUDPSocket> callback);
     }
 
-    public sealed class UDPSocket : IUDPSocket, IDisposable {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1001:Types that own disposable fields should be disposable", Justification = "<Pending>")]
+    public sealed class UDPSocket : IUDPSocket {
         private const int bufferSize = 1024;
-
-        private UDPSocket parent;
+        private const int SIO_UDP_CONNRESET = -1744830452;
+        
+        private readonly UDPSocket parent;
         private Socket socket;
         private IPEndPoint boundEndPoint;
         private IPEndPoint remoteEndPoint;
@@ -42,14 +44,10 @@ namespace Networking.Sockets {
             this.isCommunicable = true;
         }
 
-        public void Dispose() {
-            this.CleanUpSocket();
-            this.socket.Dispose();
-            this.socket = null;
-        }
-
         public void Close() {
             this.CleanUpSocket();
+
+            if (this.socket == null) { return; }
             this.socket.Close();
             this.socket = null;
         }
@@ -58,6 +56,7 @@ namespace Networking.Sockets {
             this.boundEndPoint = this.From(endPoint);
             this.socket = new Socket(this.boundEndPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
             this.socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            this.socket.IOControl((IOControlCode)SIO_UDP_CONNRESET, new byte[] { 0, 0, 0, 0 }, null);
             this.socket.Bind(this.boundEndPoint);
             this.isCommunicable = true;
         }
@@ -74,21 +73,31 @@ namespace Networking.Sockets {
 
         public void Read(Action<byte[], IUDPSocket> callback) {
             if (this.socket == null) { return; }
+            if (this.socket.Available == 0) { return; }
 
             var buffer = new byte[bufferSize];
             EndPoint endPoint = new IPEndPoint(IPAddress.Any, 0);
             this.socket.BeginReceiveFrom(buffer, 0, bufferSize, SocketFlags.None, ref endPoint, ar => {
                 if (this.socket == null) { return; }
-                var readBytes = this.socket.EndReceiveFrom(ar, ref endPoint);
 
-                if (!this.instantiatedEndPointSockets.TryGetValue(endPoint, out UDPSocket socket)) {
-                    socket = new UDPSocket(this, endPoint as IPEndPoint);
-                    this.instantiatedEndPointSockets[endPoint] = socket;
+                try {
+                    var readBytes = this.socket.EndReceiveFrom(ar, ref endPoint);
+
+                    if (!this.instantiatedEndPointSockets.TryGetValue(endPoint, out UDPSocket socket)) {
+                        socket = new UDPSocket(this, endPoint as IPEndPoint);
+                        this.instantiatedEndPointSockets[endPoint] = socket;
+                    }
+
+                    byte[] shrinkedBuffer = new byte[readBytes];
+                    Array.Copy(buffer, shrinkedBuffer, readBytes);
+
+                    callback.Invoke(shrinkedBuffer, socket);
+#pragma warning disable CA1031 // Do not catch general exception types
+                } catch (Exception ex) {
+#pragma warning restore CA1031 // Do not catch general exception types
+                    Logger.Log($"Expected exception {ex}");
+                    callback.Invoke(null, null);
                 }
-                byte[] shrinkedBuffer = new byte[readBytes];
-                Array.Copy(buffer, shrinkedBuffer, readBytes);
-
-                callback.Invoke(shrinkedBuffer, socket);
             }, null);
         }
 
@@ -101,8 +110,15 @@ namespace Networking.Sockets {
             }
 
             this.socket.BeginSendTo(bytes, 0, bytes.Length, SocketFlags.None, this.remoteEndPoint, ar => {
-                var writtenCount = this.socket.EndSendTo(ar);
-                callback.Invoke(writtenCount);
+                try {
+                    var writtenCount = this.socket.EndSendTo(ar);
+                    callback.Invoke(writtenCount);
+#pragma warning disable CA1031 // Do not catch general exception types
+                } catch (Exception ex) {
+#pragma warning restore CA1031 // Do not catch general exception types
+                    Logger.Log(ex.ToString());
+                    callback.Invoke(0);
+                }
             }, null);
         }
 
@@ -125,9 +141,8 @@ namespace Networking.Sockets {
         }
 
         private void CleanUpSocket() {
-            if (this.parent != null) {
-                this.parent.instantiatedEndPointSockets.Remove(this.remoteEndPoint);
-            }
+            if (this.parent == null) { return; }
+            this.parent.instantiatedEndPointSockets.Remove(this.remoteEndPoint);
         }
 
         #endregion

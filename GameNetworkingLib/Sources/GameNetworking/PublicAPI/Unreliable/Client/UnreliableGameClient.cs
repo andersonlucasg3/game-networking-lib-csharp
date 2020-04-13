@@ -51,6 +51,7 @@ namespace GameNetworking {
         }
 
         internal override void DidDisconnect() {
+            if (this.localPlayer != null) { this.RemovePlayer(this.localPlayer.playerId); }
             this.listener?.GameClientDidDisconnect();
         }
 

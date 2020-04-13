@@ -10,14 +10,19 @@ using UnreliablePlayer = GameNetworking.Commons.Models.Client.NetworkPlayer<Netw
 
 namespace TestClientApp {
     class Program : IMainThreadDispatcher {
+        private static double currentTime => TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds;
+        private static double lastConnectTime = 0;
+
         private readonly List<Action> actions = new List<Action>();
 
-        static void Main(string[] args) {
+        static void Main(string[] _) {
             var program = new Program();
             UnreliableGameClient<UnreliablePlayer> client = new UnreliableGameClient<UnreliablePlayer>(new UnreliableNetworkingClient(new UnreliableSocket(new UDPSocket())), program);
 
-            client.Start("127.0.0.1", 63000);
+            client.Start(IPAddress.Any.ToString(), 63000);
             client.Connect("127.0.0.1", 64000);
+
+            lastConnectTime = currentTime;
 
             while (true) {
                 var copyActions = new List<Action>(program.actions);
@@ -25,6 +30,17 @@ namespace TestClientApp {
                 copyActions.ForEach(each => each.Invoke());
 
                 client.Update();
+
+                if (currentTime - lastConnectTime > 10) {
+                    lastConnectTime = currentTime;
+
+                    client.Disconnect();
+
+                    client.Update();
+
+                    client.Start(IPAddress.Any.ToString(), 63000);
+                    client.Connect("127.0.0.1", 64000);
+                }
             }
         }
 

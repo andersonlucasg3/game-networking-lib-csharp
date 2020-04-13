@@ -7,19 +7,13 @@ namespace Networking.IO {
             void ReaderDidRead(byte[] bytes, IUDPSocket from);
         }
 
-        private bool isReceiving = false;
-
         public new IListener listener { get; set; }
 
         public UnreliableNetworkingReader(IUDPSocket socket) : base(socket) { }
 
         public override void Receive() {
-            if (this.isReceiving) { return; }
-            this.isReceiving = true;
-
             this.socket.Read((bytes, fromSocket) => {
                 this.listener?.ReaderDidRead(bytes, fromSocket);
-                this.isReceiving = false;
             });
         }
     }

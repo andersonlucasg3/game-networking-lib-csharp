@@ -105,6 +105,7 @@ namespace GameNetworking.Networking.Commons {
         }
 
         protected virtual void Flush(TClient client) {
+            if (client == null || client.client == null) { return; }
             this.networking.Flush(client.client);
         }
 

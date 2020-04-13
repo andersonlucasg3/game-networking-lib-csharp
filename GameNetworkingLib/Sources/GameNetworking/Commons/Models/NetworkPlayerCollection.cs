@@ -8,7 +8,7 @@ namespace GameNetworking.Commons.Models {
     using System.Collections;
 
     public class NetworkPlayerCollection<TPlayer, TSocket, TClient, TNetClient> : IEnumerable<TPlayer> 
-        where TPlayer : INetworkPlayer<TSocket, TClient, TNetClient>, new()
+        where TPlayer : class, INetworkPlayer<TSocket, TClient, TNetClient>, new()
         where TSocket : ISocket
         where TClient : INetworkClient<TSocket, TNetClient>
         where TNetClient : INetClient<TSocket, TNetClient>
@@ -43,9 +43,7 @@ namespace GameNetworking.Commons.Models {
         public void Add(TPlayer player) {
             if (player == null) { return; }
 
-            if (this.playersDict.ContainsKey(player.playerId)) {
-                throw new OperationCanceledException($"Player id {player.playerId} already present.");
-            } else {
+            if (!this.playersDict.ContainsKey(player.playerId)) {
                 this.playersDict[player.playerId] = player;
                 this.UpdateList();
                 for (int i = 0; i < this.listeners.Count; i++) {
@@ -55,6 +53,8 @@ namespace GameNetworking.Commons.Models {
         }
 
         public TPlayer Remove(int playerId) {
+            if (!this.playersDict.ContainsKey(playerId)) { return null; }
+
             var player = this.playersDict[playerId];
             this.playersDict.Remove(playerId);
             this.UpdateList();

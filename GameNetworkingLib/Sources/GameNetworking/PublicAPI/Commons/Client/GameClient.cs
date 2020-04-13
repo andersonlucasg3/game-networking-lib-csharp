@@ -80,6 +80,7 @@ namespace GameNetworking.Commons.Client {
 
         public abstract void Connect(string host, int port);
         public abstract void Disconnect();
+        internal abstract void DidDisconnect();
 
         public void Send(ITypedMessage message) {
             this.networkingClient.Send(message);
@@ -129,6 +130,7 @@ namespace GameNetworking.Commons.Client {
         }
 
         TPlayer IGameClient<TPlayer, TSocket, TClient, TNetClient>.RemovePlayer(int playerId) {
+            if (this.localPlayer != null && this.localPlayer.playerId == playerId) { this.localPlayer = null; }
             return this.playersStorage.Remove(playerId);
         }
 
@@ -139,7 +141,5 @@ namespace GameNetworking.Commons.Client {
         internal void GameClientConnectionDidReceiveMessage(MessageContainer container) {
             this.router.Route(container);
         }
-
-        internal abstract void DidDisconnect();
     }
 }

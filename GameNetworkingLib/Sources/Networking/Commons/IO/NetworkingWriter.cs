@@ -13,21 +13,17 @@ namespace Networking.Commons.IO {
         private readonly TSocket socket;
 
         private readonly List<byte> buffer;
-        private bool isSending;
-
+        
         internal NetworkingWriter(TSocket socket) {
             this.socket = socket;
             this.buffer = new List<byte>();
         }
 
         private void Write() {
-            if (this.isSending) { return; }
-
-            this.isSending = true;
+            if (this.buffer.Count == 0) { return; }
 
             this.socket.Write(this.buffer.ToArray(), (written) => {
                 if (written > 0) { this.ShrinkBuffer(written); }
-                this.isSending = false;
             });
         }
 

@@ -76,6 +76,7 @@ namespace GameNetworking.Networking.Commons {
         public virtual void Disconnect(TClient client) {
             this.disconnectedClientsToRemove.Enqueue(client);
         }
+
         public virtual void Update() {
             for (int i = 0; i < this.clientsList.Count; i++) {
                 TClient client = this.clientsList[i];
@@ -111,12 +112,9 @@ namespace GameNetworking.Networking.Commons {
             client.reader.Add(bytes);
 
             MessageContainer message;
-            do {
-                message = client.reader.Decode();
-                if (message != null) {
-                    this.messagesListener?.NetworkingServerDidReadMessage(message, client);
-                }
-            } while (message != null);
+            while ((message = client.reader.Decode()) != null) { 
+                this.messagesListener?.NetworkingServerDidReadMessage(message, client);
+            }
         }
 
         protected void RemoveDisconnected() {

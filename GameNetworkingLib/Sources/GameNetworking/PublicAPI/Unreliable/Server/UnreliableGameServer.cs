@@ -20,6 +20,8 @@ namespace GameNetworking {
         }
 
         internal void DisconnectRequired(TPlayer player) {
+            if (player == null || player.client == null) { return; }
+
             this.Disconnect(player);
 
             this.networkingServer.listener?.NetworkingServerClientDidDisconnect(player.client);

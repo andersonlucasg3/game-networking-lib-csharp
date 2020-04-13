@@ -35,8 +35,6 @@ namespace GameNetworking {
             this.Send(new UnreliableDisconnectMessage());
             this.Send(new UnreliableDisconnectMessage());
             this.Send(new UnreliableDisconnectMessage());
-
-            this.networkingClient.Close();
         }
 
         public override void Update() {
@@ -47,6 +45,7 @@ namespace GameNetworking {
 
         internal void DidConnect() {
             this.clientConnectionController.Stop();
+            this.networkingClient.Close();
             this.listener?.GameClientDidConnect();
         }
 
@@ -63,7 +62,6 @@ namespace GameNetworking {
 
         private void ConnectionDidTimeOut() {
             this.networkingClient.Close();
-
             this.listener?.GameClientConnectDidTimeout();
         }
 

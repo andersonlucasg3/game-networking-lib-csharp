@@ -80,7 +80,7 @@ namespace GameNetworking.Commons.Client {
             this.networkingClient.Send(message);
         }
 
-        public void Update() {
+        public virtual void Update() {
             this.networkingClient.Update();
         }
 

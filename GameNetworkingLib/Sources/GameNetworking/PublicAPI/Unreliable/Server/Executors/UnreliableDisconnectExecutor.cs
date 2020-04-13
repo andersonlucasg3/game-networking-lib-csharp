@@ -15,6 +15,8 @@ namespace GameNetworking.Executors.Server {
         }
 
         public override void Execute() {
+            if (this.player == null) { return; }
+
             this.instance.DisconnectRequired(this.player);
         }
     }

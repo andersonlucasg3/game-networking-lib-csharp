@@ -161,6 +161,7 @@ namespace GameNetworking.Commons.Server {
 
         void INetworkingServer<TSocket, TClient, TNetClient>.IListener.NetworkingServerClientDidDisconnect(TClient client) {
             var player = this.playersStorage.Find(client);
+            if (player == null) { return; }
             this.clientAcceptor.Disconnect(player);
         }
 

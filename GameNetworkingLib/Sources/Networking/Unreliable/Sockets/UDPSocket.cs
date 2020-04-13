@@ -80,24 +80,17 @@ namespace Networking.Sockets {
             this.socket.BeginReceiveFrom(buffer, 0, bufferSize, SocketFlags.None, ref endPoint, ar => {
                 if (this.socket == null) { return; }
 
-                try {
-                    var readBytes = this.socket.EndReceiveFrom(ar, ref endPoint);
+                var readBytes = this.socket.EndReceiveFrom(ar, ref endPoint);
 
-                    if (!this.instantiatedEndPointSockets.TryGetValue(endPoint, out UDPSocket socket)) {
-                        socket = new UDPSocket(this, endPoint as IPEndPoint);
-                        this.instantiatedEndPointSockets[endPoint] = socket;
-                    }
-
-                    byte[] shrinkedBuffer = new byte[readBytes];
-                    Array.Copy(buffer, shrinkedBuffer, readBytes);
-
-                    callback.Invoke(shrinkedBuffer, socket);
-#pragma warning disable CA1031 // Do not catch general exception types
-                } catch (Exception ex) {
-#pragma warning restore CA1031 // Do not catch general exception types
-                    Logger.Log($"Expected exception {ex}");
-                    callback.Invoke(null, null);
+                if (!this.instantiatedEndPointSockets.TryGetValue(endPoint, out UDPSocket socket)) {
+                    socket = new UDPSocket(this, endPoint as IPEndPoint);
+                    this.instantiatedEndPointSockets[endPoint] = socket;
                 }
+
+                byte[] shrinkedBuffer = new byte[readBytes];
+                Array.Copy(buffer, shrinkedBuffer, readBytes);
+
+                callback.Invoke(shrinkedBuffer, socket);
             }, null);
         }
 
@@ -110,15 +103,8 @@ namespace Networking.Sockets {
             }
 
             this.socket.BeginSendTo(bytes, 0, bytes.Length, SocketFlags.None, this.remoteEndPoint, ar => {
-                try {
-                    var writtenCount = this.socket.EndSendTo(ar);
-                    callback.Invoke(writtenCount);
-#pragma warning disable CA1031 // Do not catch general exception types
-                } catch (Exception ex) {
-#pragma warning restore CA1031 // Do not catch general exception types
-                    Logger.Log(ex.ToString());
-                    callback.Invoke(0);
-                }
+                var writtenCount = this.socket.EndSendTo(ar);
+                callback.Invoke(writtenCount);
             }, null);
         }
 

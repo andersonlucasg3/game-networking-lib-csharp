@@ -11,8 +11,9 @@ namespace Networking.Commons.IO {
     public abstract class NetworkingWriter<TSocket> : IWriter 
         where TSocket : ISocket {
         private readonly TSocket socket;
-
         private readonly List<byte> buffer;
+
+        private bool isSending = false;
         
         internal NetworkingWriter(TSocket socket) {
             this.socket = socket;
@@ -21,9 +22,12 @@ namespace Networking.Commons.IO {
 
         private void Write() {
             if (this.buffer.Count == 0) { return; }
+            if (this.isSending) { return; }
+            this.isSending = true;
 
             this.socket.Write(this.buffer.ToArray(), (written) => {
                 if (written > 0) { this.ShrinkBuffer(written); }
+                this.isSending = false;
             });
         }
 

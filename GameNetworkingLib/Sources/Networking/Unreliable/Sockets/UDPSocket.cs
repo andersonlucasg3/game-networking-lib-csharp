@@ -21,7 +21,7 @@ namespace Networking.Sockets {
 
         private Socket socket;
         private IPEndPoint boundEndPoint;
-        private readonly IPEndPoint remoteEndPoint;
+        private IPEndPoint remoteEndPoint;
 
         private readonly Dictionary<EndPoint, UDPSocket> instantiatedEndPointSockets;
 
@@ -41,23 +41,25 @@ namespace Networking.Sockets {
 
         public void Dispose() {
             this.socket.Dispose();
+            this.socket = null;
         }
 
         public void Close() {
             this.socket.Close();
+            this.socket = null;
         }
 
         public void Bind(NetEndPoint endPoint) {
             this.boundEndPoint = this.From(endPoint);
             this.socket = new Socket(this.boundEndPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
-            this.socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.ReuseAddress, true);
+            this.socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             this.socket.Bind(this.boundEndPoint);
             this.isCommunicable = true;
         }
 
         public void BindToRemote(NetEndPoint endPoint) {
             Logger.Log($"Connected to {endPoint}");
-            this.socket.Connect(this.From(endPoint));
+            this.remoteEndPoint = this.From(endPoint);
             this.isCommunicable = true;
         }
 
@@ -65,6 +67,7 @@ namespace Networking.Sockets {
             var buffer = new byte[bufferSize];
             EndPoint endPoint = new IPEndPoint(IPAddress.Any, 0);
             this.socket.BeginReceiveFrom(buffer, 0, bufferSize, SocketFlags.None, ref endPoint, ar => {
+                if (this.socket == null) { return; }
                 var readBytes = this.socket.EndReceiveFrom(ar, ref endPoint);
 
                 if (!this.instantiatedEndPointSockets.TryGetValue(endPoint, out UDPSocket socket)) {
@@ -84,19 +87,10 @@ namespace Networking.Sockets {
                 return;
             }
 
-            if (!this.socket.Connected) { return; }
-
-            if (this.remoteEndPoint == null) {
-                this.socket.BeginSend(bytes, 0, bytes.Length, SocketFlags.None, ar => {
-                    var writtenCount = this.socket.EndSend(ar);
-                    callback.Invoke(writtenCount);
-                }, null);
-            } else {
-                this.socket.BeginSendTo(bytes, 0, bytes.Length, SocketFlags.None, this.remoteEndPoint, ar => {
-                    var writtenCount = this.socket.EndSendTo(ar);
-                    callback.Invoke(writtenCount);
-                }, null);
-            }
+            this.socket.BeginSendTo(bytes, 0, bytes.Length, SocketFlags.None, this.remoteEndPoint, ar => {
+                var writtenCount = this.socket.EndSendTo(ar);
+                callback.Invoke(writtenCount);
+            }, null);
         }
 
         public override string ToString() {

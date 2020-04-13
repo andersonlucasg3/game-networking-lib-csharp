@@ -16,8 +16,8 @@ namespace TestClientApp {
             var program = new Program();
             UnreliableGameClient<UnreliablePlayer> client = new UnreliableGameClient<UnreliablePlayer>(new UnreliableNetworkingClient(new UnreliableSocket(new UDPSocket())), program);
 
-            client.Start(IPAddress.Any.ToString(), 63000);
-            client.Connect(args[0], 64000);
+            client.Start("127.0.0.1", 63000);
+            client.Connect("127.0.0.1", 64000);
 
             while (true) {
                 var copyActions = new List<Action>(program.actions);

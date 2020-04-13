@@ -312,6 +312,33 @@ namespace Tests.Core {
 
             Assert.IsFalse(networkingServer.clients.Contains(serverPlayer.client));
         }
+
+        [Test]
+        public void TestOneClientDisconnectAndReconnect() {
+            this.NewClient(out TGameClient client1, out TClientListener clientListener);
+            this.NewServer(out TGameServer server, out TServerListener serverListener);
+
+            client1.timeOutDelay = 1F;
+            server.timeOutDelay = 1F;
+
+            server.Start("0.0.0.0", 1);
+            client1.Connect("0.0.0.0", 1);
+
+            server.Update();
+            client1.Update();
+
+            client1.Disconnect();
+
+            server.Update();
+            client1.Update();
+
+            client1.Connect("0.0.0.0", 1);
+
+            server.Update();
+            client1.Update();
+
+            Assert.IsTrue(clientListener.localPlayer.playerId == 2);
+        }
     }
 
     class MainThreadDispatcher : IMainThreadDispatcher {

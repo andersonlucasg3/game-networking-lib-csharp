@@ -20,6 +20,8 @@ namespace GameNetworking.Networking.Commons {
 
         void Send(ITypedMessage message);
         void Update();
+
+        void Close();
     }
 
     public abstract class NetworkingClient<TNetworking, TSocket, TClient, TNetClient> : INetworkingClient<TSocket, TClient, TNetClient>, INetClient<TSocket, TNetClient>.IListener
@@ -46,6 +48,10 @@ namespace GameNetworking.Networking.Commons {
             if (this.client == null || this.client.client == null) { return; }
             this.networking.Read(this.client.client);
             this.networking.Flush(this.client.client);
+        }
+
+        public void Close() {
+            this.networking.Stop();
         }
 
         #region INetClient<TSocket, TNetClient>.IListener

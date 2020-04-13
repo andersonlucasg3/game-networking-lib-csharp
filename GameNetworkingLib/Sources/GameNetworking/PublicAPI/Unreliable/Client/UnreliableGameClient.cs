@@ -8,7 +8,6 @@ using Networking.Models;
 using Networking.Sockets;
 using GameNetworking.Networking.Commons;
 using Messages.Models;
-using System;
 
 namespace GameNetworking {
     public class UnreliableGameClient<TPlayer> : GameClient<UnreliableNetworkingClient, TPlayer, IUDPSocket, UnreliableNetworkClient, UnreliableNetClient, UnreliableGameClient<TPlayer>>, INetworkingClient<IUDPSocket, UnreliableNetworkClient, UnreliableNetClient>.IListener
@@ -36,6 +35,8 @@ namespace GameNetworking {
             this.Send(new UnreliableDisconnectMessage());
             this.Send(new UnreliableDisconnectMessage());
             this.Send(new UnreliableDisconnectMessage());
+
+            this.networkingClient.Close();
         }
 
         public override void Update() {

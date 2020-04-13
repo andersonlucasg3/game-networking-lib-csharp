@@ -8,7 +8,7 @@ namespace Networking.Commons.IO {
 
         IListener listener { get; set; }
 
-        void Read();
+        void Receive();
     }
 
     public abstract class NetworkingReader<TSocket> : IReader
@@ -21,10 +21,6 @@ namespace Networking.Commons.IO {
             this.socket = socket;
         }
 
-        protected abstract void Receive();
-        
-        public void Read() {
-            this.Receive();
-        }
+        public abstract void Receive();
     }
 }

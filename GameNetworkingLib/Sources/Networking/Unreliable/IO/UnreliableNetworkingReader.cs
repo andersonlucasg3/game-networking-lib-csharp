@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq.Expressions;
-using Logging;
-using Networking.Commons.IO;
+﻿using Networking.Commons.IO;
 using Networking.Sockets;
 
 namespace Networking.IO {
@@ -16,7 +13,7 @@ namespace Networking.IO {
 
         public UnreliableNetworkingReader(IUDPSocket socket) : base(socket) { }
 
-        protected override void Receive() {
+        public override void Receive() {
             if (this.isReceiving) { return; }
             this.isReceiving = true;
 

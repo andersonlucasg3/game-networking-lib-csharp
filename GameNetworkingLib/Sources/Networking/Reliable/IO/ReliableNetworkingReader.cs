@@ -7,7 +7,7 @@ namespace Networking.IO {
 
         public ReliableNetworkingReader(ITCPSocket socket) : base(socket) { }
 
-        protected override void Receive() {
+        public override void Receive() {
             if (this.isReceiving) { return; }
 
             this.isReceiving = true;

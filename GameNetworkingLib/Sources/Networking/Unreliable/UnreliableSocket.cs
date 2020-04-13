@@ -38,7 +38,7 @@ namespace Networking.Sockets {
         }
 
         public void Read() {
-            this.reader.Read();
+            this.reader.Receive();
         }
 
         public void Send(UnreliableNetClient client, byte[] message) {

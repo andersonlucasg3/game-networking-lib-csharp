@@ -116,6 +116,8 @@ namespace GameNetworking.Commons.Server {
         }
 
         void IGameServer<TPlayer, TSocket, TClient, TNetClient>.RemovePlayer(TPlayer player) {
+            if (player == null) { return; }
+            this.networkingServer.Disconnect(player.client);
             this.playersStorage.Remove(player.playerId);
         }
 

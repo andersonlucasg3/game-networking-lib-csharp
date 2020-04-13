@@ -11,6 +11,7 @@ namespace GameNetworking.Commons.Models {
             TClient client { get; internal set; }
             int playerId { get; internal set; }
             float mostRecentPingValue { get; internal set; }
+            double lastReceivedPingRequest { get; internal set; }
         }
 
         public class NetworkPlayer<TSocket, TClient, TNetClient> : INetworkPlayer<TSocket, TClient, TNetClient>
@@ -22,10 +23,12 @@ namespace GameNetworking.Commons.Models {
             TClient INetworkPlayer<TSocket, TClient, TNetClient>.client { get; set; }
             int INetworkPlayer<TSocket, TClient, TNetClient>.playerId { get; set; }
             float INetworkPlayer<TSocket, TClient, TNetClient>.mostRecentPingValue { get; set; }
+            double INetworkPlayer<TSocket, TClient, TNetClient>.lastReceivedPingRequest { get; set; }
 
             public TClient client { get => self.client; internal set => self.client = value; }
             public int playerId { get => self.playerId; internal set => self.playerId = value; }
             public float mostRecentPingValue { get => self.mostRecentPingValue; internal set => self.mostRecentPingValue = value; }
+            public double lastReceivedPingRequest { get => self.lastReceivedPingRequest; internal set => self.lastReceivedPingRequest = value; }
 
             public NetworkPlayer() { }
 

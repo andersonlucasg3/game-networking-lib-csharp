@@ -10,6 +10,7 @@ using Networking.Commons.Sockets;
 using GameNetworking.Commons.Models;
 using Networking.Commons.Models;
 using Test.Core.Model;
+using System.Threading;
 
 namespace Tests.Core {
     public interface IClientListener<TPlayer, TSocket, TClient, TNetClient> : IGameClient<TPlayer, TSocket, TClient, TNetClient>.IListener
@@ -275,6 +276,27 @@ namespace Tests.Core {
 
             Assert.Less(MathF.Abs(player1.mostRecentPingValue - client2client1Ping), 0.02F);
             Assert.Less(MathF.Abs(player2.mostRecentPingValue - client1client2Ping), 0.02F);
+        }
+
+        [Test]
+        public void TestConnectionTimeOutClient() {
+            this.NewClient(out TGameClient client1, out TClientListener clientListener);
+            this.NewServer(out TGameServer server, out TServerListener _);
+
+            client1.timeOutDelay = 1F;
+
+            server.Start("0.0.0.0", 1);
+
+            client1.Connect("0.0.0.0", 1);
+
+            server.Update();
+            client1.Update();
+
+            Thread.Sleep((int)(client1.timeOutDelay * 1000));
+
+            client1.Update();
+
+            Assert.IsTrue(clientListener.disconnectCalled);
         }
     }
 

@@ -22,5 +22,7 @@ namespace GameNetworking {
         public override void Disconnect() {
             this.connection.Disconnect();
         }
+
+        internal override void DidDisconnect() { /* Maybe do nothing... */ }
     }
 }

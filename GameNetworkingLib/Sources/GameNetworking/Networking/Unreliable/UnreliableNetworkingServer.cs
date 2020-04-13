@@ -15,6 +15,7 @@ namespace GameNetworking.Networking {
             for (int index = 0; index < this.clientsList.Count; index++) {
                 this.Flush(this.clientsList[index]);
             }
+            this.RemoveDisconnected();
         }
 
         #region Private methods

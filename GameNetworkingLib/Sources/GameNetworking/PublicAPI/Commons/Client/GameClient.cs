@@ -82,7 +82,6 @@ namespace GameNetworking.Commons.Client {
         public abstract void Disconnect();
 
         public void Send(ITypedMessage message) {
-            Logger.Log($"Sending {message} to server");
             this.networkingClient.Send(message);
         }
 

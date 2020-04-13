@@ -99,8 +99,8 @@ namespace GameNetworking.Commons.Server {
             var players = this.playersStorage.players;
             for (int index = 0; index < players.Count; index++) {
                 var player = players[index];
-                var elapsedTime = now - player.lastReceivedPingRequest;
                 var now = TimeUtils.CurrentTime();
+                var elapsedTime = now - player.lastReceivedPongRequest;
                 if (elapsedTime >= this.timeOutDelay) {
                     this.clientAcceptor.Disconnect(player);
                 }

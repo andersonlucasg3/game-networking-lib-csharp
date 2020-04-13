@@ -31,7 +31,7 @@ namespace GameNetworking.Commons.Server {
 
         private readonly IGameServer<TPlayer, TSocket, TClient, TNetClient> instance;
 
-        public float pingInterval { get; set; }
+        public float pingInterval { get; set; } = 2F;
 
         public GameServerPingController(IGameServer<TPlayer, TSocket, TClient, TNetClient> instance, NetworkPlayerCollection<TPlayer, TSocket, TClient, TNetClient> storage) {
             this.instance = instance;

@@ -55,10 +55,13 @@ namespace GameNetworking.Commons.Server {
         }
 
         public float PongReceived(TPlayer player) {
-            var pingPlayer = this.pingPlayers[player.playerId];
-            var pingValue = pingPlayer?.ReceivedPong() ?? 0F;
-            player.mostRecentPingValue = pingValue;
-            return pingValue;
+            if (player == null) { return 0F; }
+            if (this.pingPlayers.TryGetValue(player.playerId, out PingPlayer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient> pingPlayer)) {
+                var pingValue = pingPlayer.ReceivedPong();
+                player.mostRecentPingValue = pingValue;
+                return pingValue;
+            }
+            return 0;
         }
 
         void NetworkPlayerCollection<TPlayer, TSocket, TClient, TNetClient>.IListener.PlayerStorageDidAdd(TPlayer player) {

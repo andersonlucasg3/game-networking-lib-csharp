@@ -2,6 +2,8 @@
 using System.Net;
 using System.Threading;
 using GameNetworking;
+using GameNetworking.Commons.Client;
+using GameNetworking.Messages;
 using GameNetworking.Networking;
 using GameNetworking.Networking.Models;
 using Logging;
@@ -67,28 +69,58 @@ namespace Tests.Core {
             client.Connect("127.0.0.1", 64000);
 
             Update();
-            Update();
 
             Assert.AreEqual(1, serverListener.connectedPlayers.Count);
             Assert.IsTrue(clientListener.connectedCalled);
+        }
 
-            void ValidateProcessTiming() {
-                Update();
-                Update();
+        [Test]
+        public void TestClientConnectionController() {
+            var sender = new MessageSender();
 
-                var pingValue = server.pingController.GetPingValue(client.FindPlayer(p => p.isLocalPlayer));
-                Logger.Log($"Current ping value: {pingValue}");
-                Assert.Less(pingValue, .3F);
+            var timeOutCalled = false;
+            var conn = new UnreliableClientConnectionController(sender, () => timeOutCalled = true) { secondsBetweenRetries = .1f };
+
+            conn.Connect();
+
+            Assert.AreEqual(MessageType.connect, (MessageType)sender.sentMessage.type);
+
+            sender.sentMessage = null;
+
+            var sleepTime = (int)(conn.secondsBetweenRetries * 1000);
+
+            void Update() {
+                Thread.Sleep(sleepTime);
+
+                conn.Update();
+
+                if (!timeOutCalled) {
+                    Assert.AreEqual(MessageType.connect, (MessageType)sender.sentMessage.type);
+                    sender.sentMessage = null;
+                }
             }
 
-            var sleepMillis = 10;
-            var loopCount = 1000;
-            Logger.Log($"Will take {sleepMillis * loopCount / 1000} seconds to finish.");
-            for (int index = 0; index < loopCount; index++) {
-                Thread.Sleep(sleepMillis);
+            Update();
+            Update();
+            Update();
+            Update();
 
-                ValidateProcessTiming();
-            }
+            Assert.IsTrue(timeOutCalled);
+
+            timeOutCalled = false;
+
+            conn.Connect();
+
+            conn.Update();
+
+            conn.ReceivedConnected();
+
+            conn.Update();
+            conn.Update();
+            conn.Update();
+            conn.Update();
+
+            Assert.IsFalse(timeOutCalled);
         }
 
         public class ClientListener : IClientListener<UnreliableClientPlayer, IUDPSocket, UnreliableNetworkClient, UnreliableNetClient> {
@@ -122,6 +154,14 @@ namespace Tests.Core {
             public void GameServerDidReceiveClientMessage(MessageContainer container, UnreliableServerPlayer player) => Assert.NotNull(player);
 
             #endregion
+        }
+
+        public class MessageSender : IGameClientMessageSender {
+            public ITypedMessage sentMessage = null;
+
+            public void Send(ITypedMessage message) {
+                this.sentMessage = message;
+            }
         }
     }
 }

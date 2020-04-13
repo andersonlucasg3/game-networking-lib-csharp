@@ -252,27 +252,29 @@ namespace Tests.Core {
             client2.Connect("0.0.0.0", 1);
 
             Update();
-            Update();
-            Update();
-            Update();
-            Update();
 
             var player1 = client1.FindPlayer(player => player.isLocalPlayer);
             var player2 = client2.FindPlayer(player => player.isLocalPlayer);
-
+            
+            Update();
+            
             var serverPlayer1 = server.FindPlayer(player1.playerId);
             var serverPlayer2 = server.FindPlayer(player2.playerId);
             var serverPing1 = serverPlayer1.mostRecentPingValue;
             var serverPing2 = serverPlayer2.mostRecentPingValue;
-
-            Assert.AreEqual(serverPing1, player1.mostRecentPingValue);
-            Assert.AreEqual(serverPing2, player2.mostRecentPingValue);
+            
+            Update();
+            
+            Assert.Less(MathF.Abs(serverPing1 - player1.mostRecentPingValue), 0.01F);
+            Assert.Less(MathF.Abs(serverPing2 - player2.mostRecentPingValue), 0.01F);
 
             var client1client2Ping = client1.GetPing(player2.playerId);
             var client2client1Ping = client2.GetPing(player1.playerId);
 
-            Assert.AreEqual(player1.mostRecentPingValue, client2client1Ping);
-            Assert.AreEqual(player2.mostRecentPingValue, client1client2Ping);
+            Update();
+
+            Assert.Less(MathF.Abs(player1.mostRecentPingValue - client2client1Ping), 0.01F);
+            Assert.Less(MathF.Abs(player2.mostRecentPingValue - client1client2Ping), 0.01F);
         }
     }
 

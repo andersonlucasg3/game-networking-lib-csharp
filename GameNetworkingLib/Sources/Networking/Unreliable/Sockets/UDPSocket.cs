@@ -72,8 +72,10 @@ namespace Networking.Sockets {
         }
 
         public void Read(Action<byte[], IUDPSocket> callback) {
-            if (this.socket == null) { return; }
-            if (this.socket.Available == 0) { return; }
+            if (this.socket == null) {
+                callback.Invoke(null, null);
+                return;
+            }
 
             var buffer = new byte[bufferSize];
             EndPoint endPoint = new IPEndPoint(IPAddress.Any, 0);
@@ -95,9 +97,7 @@ namespace Networking.Sockets {
         }
 
         public void Write(byte[] bytes, Action<int> callback) {
-            if (this.socket == null) { return; }
-
-            if (bytes.Length == 0) {
+            if (bytes.Length == 0 || this.socket == null) {
                 callback.Invoke(0);
                 return;
             }

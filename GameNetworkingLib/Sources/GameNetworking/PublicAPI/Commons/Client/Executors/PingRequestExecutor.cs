@@ -17,7 +17,9 @@ namespace GameNetworking.Executors.Client {
         public PingRequestExecutor(IGameClient<TPlayer, TSocket, TClient, TNetClient> client) : base(client) { }
 
         public override void Execute() {
-            this.instance.localPlayer.lastReceivedPingRequest = TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds;
+            if (this.instance.localPlayer != null) {
+                this.instance.localPlayer.lastReceivedPingRequest = TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds;
+            }
 
             this.instance.Send(new PongRequestMessage());
         }

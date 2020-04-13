@@ -33,6 +33,8 @@ namespace GameNetworking {
 
         public override void Disconnect() {
             this.Send(new UnreliableDisconnectMessage());
+            this.Send(new UnreliableDisconnectMessage());
+            this.Send(new UnreliableDisconnectMessage());
         }
 
         public override void Update() {

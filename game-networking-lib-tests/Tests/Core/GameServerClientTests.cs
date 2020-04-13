@@ -265,16 +265,16 @@ namespace Tests.Core {
             
             Update();
             
-            Assert.Less(MathF.Abs(serverPing1 - player1.mostRecentPingValue), 0.01F);
-            Assert.Less(MathF.Abs(serverPing2 - player2.mostRecentPingValue), 0.01F);
+            Assert.Less(MathF.Abs(serverPing1 - player1.mostRecentPingValue), 0.02F);
+            Assert.Less(MathF.Abs(serverPing2 - player2.mostRecentPingValue), 0.02F);
 
             var client1client2Ping = client1.GetPing(player2.playerId);
             var client2client1Ping = client2.GetPing(player1.playerId);
 
             Update();
 
-            Assert.Less(MathF.Abs(player1.mostRecentPingValue - client2client1Ping), 0.01F);
-            Assert.Less(MathF.Abs(player2.mostRecentPingValue - client1client2Ping), 0.01F);
+            Assert.Less(MathF.Abs(player1.mostRecentPingValue - client2client1Ping), 0.02F);
+            Assert.Less(MathF.Abs(player2.mostRecentPingValue - client1client2Ping), 0.02F);
         }
     }
 

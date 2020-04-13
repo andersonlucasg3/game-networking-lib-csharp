@@ -16,8 +16,6 @@ namespace GameNetworking {
 
         internal readonly UnreliableClientConnectionController clientConnectionController;
 
-        public double timeOutDelay { get; set; } = 10F;
-
         public UnreliableGameClient(UnreliableNetworkingClient backend, IMainThreadDispatcher dispatcher) : base(backend, new UnreliableClientMessageRouter<TPlayer>(dispatcher)) {
             this.networkingClient.listener = this;
 
@@ -44,15 +42,6 @@ namespace GameNetworking {
             base.Update();
 
             this.clientConnectionController.Update();
-
-            if (this.localPlayer == null) { return; }
-
-            var now = TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds;
-            var elapsedTime = this.localPlayer.lastReceivedPingRequest - now;
-            if (elapsedTime >= this.timeOutDelay) {
-                this.Disconnect();
-                this.DidDisconnect();
-            }
         }
 
         internal void DidConnect() {
@@ -60,7 +49,7 @@ namespace GameNetworking {
             this.listener?.GameClientDidConnect();
         }
 
-        internal void DidDisconnect() {
+        internal override void DidDisconnect() {
             this.listener?.GameClientDidDisconnect();
         }
 

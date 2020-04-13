@@ -30,6 +30,7 @@ namespace GameNetworking.Commons.Client {
             void GameClientNetworkPlayerDidDisconnect(TPlayer player);
         }
 
+        double timeOutDelay { get; set; }
         TPlayer localPlayer { get; }
 
         IListener listener { get; set; }
@@ -64,6 +65,8 @@ namespace GameNetworking.Commons.Client {
         internal TNetworkingClient networkingClient { get; private set; }
 
         public TPlayer localPlayer { get; private set; }
+        public double timeOutDelay { get; set; } = 10F;
+
         public IGameClient<TPlayer, TSocket, TClient, TNetClient>.IListener listener { get; set; }
 
         public GameClient(TNetworkingClient backend, GameClientMessageRouter<TGameClientDerived, TPlayer, TSocket, TClient, TNetClient> router) {
@@ -85,6 +88,15 @@ namespace GameNetworking.Commons.Client {
 
         public virtual void Update() {
             this.networkingClient.Update();
+
+            if (this.localPlayer == null) { return; }
+
+            var now = TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds;
+            var elapsedTime = now - this.localPlayer.lastReceivedPingRequest;
+            if (elapsedTime >= this.timeOutDelay) {
+                this.Disconnect();
+                this.DidDisconnect();
+            }
         }
 
         public float GetPing(int playerId) {
@@ -128,5 +140,7 @@ namespace GameNetworking.Commons.Client {
         internal void GameClientConnectionDidReceiveMessage(MessageContainer container) {
             this.router.Route(container);
         }
+
+        internal abstract void DidDisconnect();
     }
 }

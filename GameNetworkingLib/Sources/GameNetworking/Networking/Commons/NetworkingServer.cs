@@ -68,9 +68,8 @@ namespace GameNetworking.Networking.Commons {
         }
 
         public virtual void Update() {
-            TClient client;
             for (int i = 0; i < this.clientsList.Count; i++) {
-                client = this.clientsList[i];
+                TClient client = this.clientsList[i];
                 this.Read(client);
                 this.Flush(client);
             }

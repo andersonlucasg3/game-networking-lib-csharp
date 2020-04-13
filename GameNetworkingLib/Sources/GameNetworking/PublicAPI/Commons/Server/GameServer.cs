@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using GameNetworking.Commons.Models;
 using GameNetworking.Commons.Models.Server;
 using GameNetworking.Networking.Commons;
@@ -19,6 +20,8 @@ namespace GameNetworking.Commons.Server {
             void GameServerPlayerDidDisconnect(TPlayer player);
             void GameServerDidReceiveClientMessage(MessageContainer container, TPlayer player);
         }
+
+        double timeOutDelay { get; set; }
 
         IListener listener { get; set; }
 
@@ -59,6 +62,7 @@ namespace GameNetworking.Commons.Server {
         protected TNetworkingServer networkingServer { get; private set; }
         protected NetworkPlayerCollection<TPlayer, TSocket, TClient, TNetClient> playersStorage { get; private set; }
 
+        public double timeOutDelay { get; set; } = 10F;
         public IGameServerPingController<TPlayer, TSocket, TClient, TNetClient> pingController { get; }
         public IGameServer<TPlayer, TSocket, TClient, TNetClient>.IListener listener { get; set; }
 
@@ -91,6 +95,16 @@ namespace GameNetworking.Commons.Server {
         public void Update() {
             this.networkingServer.Update();
             this.pingController.Update();
+
+            var players = this.playersStorage.players;
+            for (int index = 0; index < players.Count; index++) {
+                var player = players[index];
+                var now = TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds;
+                var elapsedTime = now - player.lastReceivedPingRequest;
+                if (elapsedTime >= this.timeOutDelay) {
+                    this.clientAcceptor.Disconnect(player);
+                }
+            }
         }
 
         void IGameServer<TPlayer, TSocket, TClient, TNetClient>.AddPlayer(TPlayer player) {
@@ -147,6 +161,7 @@ namespace GameNetworking.Commons.Server {
 
         void INetworkingServer<TSocket, TClient, TNetClient>.IListener.NetworkingServerClientDidDisconnect(TClient client) {
             var player = this.playersStorage.Find(client);
+            if (player == null) { return; }
             this.clientAcceptor.Disconnect(player);
         }
 

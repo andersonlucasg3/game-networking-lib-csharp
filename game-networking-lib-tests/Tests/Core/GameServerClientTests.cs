@@ -11,6 +11,7 @@ using GameNetworking.Commons.Models;
 using Networking.Commons.Models;
 using Test.Core.Model;
 using System.Threading;
+using System.Linq;
 
 namespace Tests.Core {
     public interface IClientListener<TPlayer, TSocket, TClient, TNetClient> : IGameClient<TPlayer, TSocket, TClient, TNetClient>.IListener
@@ -281,9 +282,10 @@ namespace Tests.Core {
         [Test]
         public void TestConnectionTimeOutClient() {
             this.NewClient(out TGameClient client1, out TClientListener clientListener);
-            this.NewServer(out TGameServer server, out TServerListener _);
+            this.NewServer(out TGameServer server, out TServerListener serverListener);
 
             client1.timeOutDelay = 1F;
+            server.timeOutDelay = 1F;
 
             server.Start("0.0.0.0", 1);
 
@@ -292,11 +294,17 @@ namespace Tests.Core {
             server.Update();
             client1.Update();
 
+            var localPlayer = client1.localPlayer;
+
             Thread.Sleep((int)(client1.timeOutDelay * 1000));
 
             client1.Update();
 
             Assert.IsTrue(clientListener.disconnectCalled);
+
+            server.Update();
+
+            Assert.AreEqual(localPlayer.playerId, serverListener.disconnectedPlayers.First().playerId);
         }
     }
 

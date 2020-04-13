@@ -63,6 +63,8 @@ namespace GameNetworking.Commons.Server {
         }
 
         public void Disconnect(TPlayer player) {
+            if (player == null) { return; }
+
             this.listener.RemovePlayer(player);
 
             Logger.Log($"(Disconnect) count {this.listener.AllPlayers().Count}");

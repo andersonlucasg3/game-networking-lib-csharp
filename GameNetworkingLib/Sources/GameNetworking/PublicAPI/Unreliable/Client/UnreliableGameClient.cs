@@ -39,9 +39,9 @@ namespace GameNetworking {
         }
 
         public override void Update() {
-            base.Update();
-
             this.clientConnectionController.Update();
+
+            base.Update();
         }
 
         internal void DidConnect() {

@@ -29,8 +29,13 @@ namespace Tests.Core {
         protected override UnreliableNetworkingServer NewServer() => new UnreliableNetworkingServer(new UnreliableSocket(new UnreliableSocketMock()));
 
         protected override void NewServer(out UnreliableGameServer<UnreliableServerPlayer> server, out ServerListener listener) {
+            NewServer(out server, out listener, out _);
+        }
+
+        protected override void NewServer(out UnreliableGameServer<UnreliableServerPlayer> server, out ServerListener listener, out UnreliableNetworkingServer networkingServer) {
             var newListener = new ServerListener();
-            server = new UnreliableGameServer<UnreliableServerPlayer>(this.NewServer(), new MainThreadDispatcher()) { listener = newListener };
+            networkingServer = this.NewServer();
+            server = new UnreliableGameServer<UnreliableServerPlayer>(networkingServer, new MainThreadDispatcher()) { listener = newListener };
             listener = newListener;
         }
 
@@ -40,38 +45,6 @@ namespace Tests.Core {
             client.Start($"192.168.0.{ipCounter}", 5);
             ipCounter++;
             listener = newListener;
-        }
-
-        [Test]
-        public void TestRealSocketConnection() {
-            Logger.IsLoggingEnabled = true;
-
-            var mainThreadDispatcher = new MainThreadDispatcher();
-
-            ServerListener serverListener = new ServerListener();
-            ClientListener clientListener = new ClientListener();
-
-            var server = new UnreliableGameServer<UnreliableServerPlayer>(new UnreliableNetworkingServer(new UnreliableSocket(new UDPSocket())), mainThreadDispatcher) { listener = serverListener };
-            var client = new UnreliableGameClient<UnreliableClientPlayer>(new UnreliableNetworkingClient(new UnreliableSocket(new UDPSocket())), mainThreadDispatcher) { listener = clientListener };
-
-            void Update() {
-                this.Update(server);
-                this.Update(server);
-                this.Update(client);
-                this.Update(client);
-            }
-
-            var localIP = IPAddress.Any.ToString();
-
-            server.Start(localIP, 64000);
-
-            client.Start(localIP, 63000);
-            client.Connect("127.0.0.1", 64000);
-
-            Update();
-
-            Assert.AreEqual(1, serverListener.connectedPlayers.Count);
-            Assert.IsTrue(clientListener.connectedCalled);
         }
 
         [Test]

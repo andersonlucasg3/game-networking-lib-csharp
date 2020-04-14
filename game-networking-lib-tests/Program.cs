@@ -1,4 +1,6 @@
-﻿namespace Tests {
+﻿#if ENABLE
+
+namespace Tests {
     using Protobuf;
 
     class Program {
@@ -11,3 +13,5 @@
         } 
     }
 }
+
+#endif

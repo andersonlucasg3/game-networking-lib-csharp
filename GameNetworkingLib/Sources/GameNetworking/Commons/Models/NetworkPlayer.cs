@@ -1,4 +1,5 @@
 ﻿using System;
+using Boo.Lang;
 using Networking.Commons.Models;
 using Networking.Commons.Sockets;
 
@@ -46,7 +47,7 @@ namespace GameNetworking.Commons.Models {
             }
 
             public override int GetHashCode() {
-                return HashCode.Combine(this.client, this.playerId);
+                return this.client.GetHashCode() + this.playerId.GetHashCode();
             }
         }
     }

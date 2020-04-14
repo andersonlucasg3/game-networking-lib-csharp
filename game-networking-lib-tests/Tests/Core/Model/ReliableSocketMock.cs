@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if !UNITY_64
+
+using System;
 using System.Collections.Generic;
 using Networking.Sockets;
 using Networking.Commons.Models;
@@ -76,3 +78,5 @@ namespace Tests.Core.Model {
     }
 
 }
+
+#endif

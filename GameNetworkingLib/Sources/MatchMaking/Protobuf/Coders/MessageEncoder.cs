@@ -1,4 +1,6 @@
-﻿using Google.Protobuf;
+﻿#if ENABLE
+
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using System.Collections.Generic;
 using System.IO;
@@ -22,3 +24,5 @@ namespace MatchMaking.Protobuf.Coders {
         }
     }
 }
+
+#endif

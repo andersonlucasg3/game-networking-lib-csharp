@@ -1,3 +1,5 @@
+#if !UNITY_64
+
 using NUnit.Framework;
 using Messages.Coders;
 using Messages.Coders.Binary;
@@ -343,3 +345,5 @@ namespace Tests.IO {
         }
     }
 }
+
+#endif

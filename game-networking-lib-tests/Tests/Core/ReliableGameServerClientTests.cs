@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿#if !UNITY_64
+
+using System.Collections.Generic;
 using System.Threading;
 using GameNetworking;
 using GameNetworking.Commons.Client;
@@ -77,3 +79,5 @@ namespace Tests.Core {
         }
     }
 }
+
+#endif

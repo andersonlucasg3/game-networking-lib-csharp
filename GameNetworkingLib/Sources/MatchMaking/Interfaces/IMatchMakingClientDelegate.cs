@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if ENABLE
+
 namespace MatchMaking {
     using Models;
 
@@ -11,3 +12,5 @@ namespace MatchMaking {
         void MatchMakingClientDidReceiveUnknownMessage(MatchMakingClient<TClient> matchMaking, MessageContainer message);
     }
 }
+
+#endif

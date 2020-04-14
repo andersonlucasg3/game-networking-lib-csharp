@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿#if ENABLE
+
+using System.Collections.Generic;
 using System.Collections;
 
 namespace MatchMaking.Protobuf.Coders {
@@ -31,3 +33,5 @@ namespace MatchMaking.Protobuf.Coders {
         }
     }
 }
+
+#endif

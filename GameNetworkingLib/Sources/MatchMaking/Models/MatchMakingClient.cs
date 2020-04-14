@@ -1,4 +1,6 @@
-﻿namespace MatchMaking.Models {
+﻿#if ENABLE
+
+namespace MatchMaking.Models {
     using Coders;
     using Networking.Models;
 
@@ -32,3 +34,5 @@
         }
     }
 }
+
+#endif

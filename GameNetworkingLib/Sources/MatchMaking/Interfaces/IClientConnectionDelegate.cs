@@ -1,4 +1,6 @@
-﻿namespace MatchMaking.Connection {
+﻿#if ENABLE
+
+namespace MatchMaking.Connection {
     using Models;
 
     public interface IClientConnectionDelegate<TClient> where TClient: MatchMakingClient {
@@ -11,3 +13,5 @@
         void ClientDidReadMessage(MessageContainer container);
     }
 }
+
+#endif

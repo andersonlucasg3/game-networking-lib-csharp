@@ -1,4 +1,6 @@
-﻿using Networking;
+﻿#if ENABLE
+
+using Networking;
 using Networking.Sockets;
 
 namespace MatchMaking {
@@ -85,3 +87,5 @@ namespace MatchMaking {
         #endregion
     }
 }
+
+#endif

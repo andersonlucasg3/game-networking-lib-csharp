@@ -55,7 +55,7 @@ namespace GameNetworking.Commons.Models {
         }
 
         public override int GetHashCode() {
-            return HashCode.Combine(client);
+            return client.GetHashCode();
         }
     }
 }

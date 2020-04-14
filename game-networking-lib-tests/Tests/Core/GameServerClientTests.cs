@@ -1,4 +1,6 @@
-﻿using NUnit.Framework;
+﻿#if !UNITY_64
+
+using NUnit.Framework;
 using Messages.Models;
 using System.Collections.Generic;
 using GameNetworking.Commons;
@@ -350,3 +352,5 @@ namespace Tests.Core {
         }
     }
 }
+
+#endif

@@ -70,7 +70,6 @@ namespace Messages.Coders {
             if (hasValue) {
                 Encoder encoder = new Encoder(this.writer.BaseStream);
                 value.Encode(encoder);
-                encoder.Dispose();
             }
         }
     }

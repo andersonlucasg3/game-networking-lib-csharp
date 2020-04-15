@@ -10,7 +10,7 @@ using GameNetworking.Networking.Commons;
 using Messages.Models;
 
 namespace GameNetworking {
-    public class UnreliableGameClient<TPlayer> : GameClient<UnreliableNetworkingClient, TPlayer, IUDPSocket, UnreliableNetworkClient, UnreliableNetClient, UnreliableGameClient<TPlayer>>, INetworkingClient<IUDPSocket, UnreliableNetworkClient, UnreliableNetClient>.IListener
+    public class UnreliableGameClient<TPlayer> : GameClient<UnreliableNetworkingClient, TPlayer, IUDPSocket, UnreliableNetworkClient, UnreliableNetClient, UnreliableGameClient<TPlayer>>, INetworkingClientListener
         where TPlayer : class, INetworkPlayer<IUDPSocket, UnreliableNetworkClient, UnreliableNetClient>, new() {
 
         internal readonly UnreliableClientConnectionController clientConnectionController;
@@ -54,7 +54,7 @@ namespace GameNetworking {
             this.listener?.GameClientDidDisconnect();
         }
 
-        void INetworkingClient<IUDPSocket, UnreliableNetworkClient, UnreliableNetClient>.IListener.NetworkingClientDidReadMessage(MessageContainer container) {
+        void INetworkingClientListener.NetworkingClientDidReadMessage(MessageContainer container) {
             this.GameClientConnectionDidReceiveMessage(container);
         }
 

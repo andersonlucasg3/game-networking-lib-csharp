@@ -9,15 +9,14 @@ namespace Networking {
     using Commons.Models;
     using Networking.IO;
 
+    public interface IReliableSocketListener {
+        void NetworkingDidConnect(ReliableNetClient client);
+        void NetworkingConnectDidTimeout();
+        void NetworkingDidDisconnect(ReliableNetClient client);
+    }
+
     public interface IReliableSocket : INetworking<ITCPSocket, ReliableNetClient> {
-
-        public interface IListener {
-            void NetworkingDidConnect(ReliableNetClient client);
-            void NetworkingConnectDidTimeout();
-            void NetworkingDidDisconnect(ReliableNetClient client);
-        }
-
-        IListener listener { get; set; }
+        IReliableSocketListener listener { get; set; }
 
         ReliableNetClient Accept();
 
@@ -32,7 +31,7 @@ namespace Networking {
 
         public int port { get; private set; }
 
-        public IReliableSocket.IListener listener { get; set; }
+        public IReliableSocketListener listener { get; set; }
 
         public ReliableSocket(ITCPSocket socket) {
             this.socket = socket;

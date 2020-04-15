@@ -5,18 +5,18 @@ using Networking.Commons.Models;
 using Networking.Commons.Sockets;
 
 namespace GameNetworking.Networking.Commons {
+    public interface INetworkingClientListener {
+        void NetworkingClientDidReadMessage(MessageContainer container);
+    }
+    
     public interface INetworkingClient<TSocket, TClient, TNetClient>
         where TSocket : ISocket
         where TClient : INetworkClient<TSocket, TNetClient>
         where TNetClient : INetClient<TSocket, TNetClient> {
 
-        public interface IListener {
-            void NetworkingClientDidReadMessage(MessageContainer container);
-        }
-
         TClient client { get; }
 
-        IListener listener { get; set; }
+        INetworkingClientListener listener { get; set; }
 
         void Send(ITypedMessage message);
         void Update();
@@ -24,7 +24,7 @@ namespace GameNetworking.Networking.Commons {
         void Close();
     }
 
-    public abstract class NetworkingClient<TNetworking, TSocket, TClient, TNetClient> : INetworkingClient<TSocket, TClient, TNetClient>, INetClient<TSocket, TNetClient>.IListener
+    public abstract class NetworkingClient<TNetworking, TSocket, TClient, TNetClient> : INetworkingClient<TSocket, TClient, TNetClient>, INetClientListener<TSocket, TNetClient>
         where TNetworking : INetworking<TSocket, TNetClient>
         where TSocket : ISocket
         where TClient : INetworkClient<TSocket, TNetClient>
@@ -34,7 +34,7 @@ namespace GameNetworking.Networking.Commons {
 
         public TClient client { get; protected set; }
 
-        public INetworkingClient<TSocket, TClient, TNetClient>.IListener listener { get; set; }
+        public INetworkingClientListener listener { get; set; }
 
         public NetworkingClient(TNetworking backend) {
             this.networking = backend;
@@ -54,9 +54,9 @@ namespace GameNetworking.Networking.Commons {
             this.networking.Stop();
         }
 
-        #region INetClient<TSocket, TNetClient>.IListener
+        #region INetClientListener
 
-        void INetClient<TSocket, TNetClient>.IListener.ClientDidReadBytes(TNetClient client, byte[] bytes) {
+        void INetClientListener<TSocket, TNetClient>.ClientDidReadBytes(TNetClient client, byte[] bytes) {
             this.client.reader.Add(bytes);
             MessageContainer container;
             do {

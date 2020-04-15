@@ -7,24 +7,30 @@ using Networking.Commons.Models;
 using Networking.Commons.Sockets;
 
 namespace GameNetworking.Networking.Commons {
+    public interface INetworkingServerListener<TSocket, TClient, TNetClient>
+        where TSocket : ISocket
+        where TClient : INetworkClient<TSocket, TNetClient>
+        where TNetClient : INetClient<TSocket, TNetClient> {
+        void NetworkingServerDidAcceptClient(TClient client);
+        void NetworkingServerClientDidDisconnect(TClient client);
+    }
+
+    public interface INetworkingServerMessagesListener<TSocket, TClient, TNetClient>
+        where TSocket : ISocket
+        where TClient : INetworkClient<TSocket, TNetClient>
+        where TNetClient : INetClient<TSocket, TNetClient> {
+        void NetworkingServerDidReadMessage(MessageContainer container, TClient client);
+    }
+
     public interface INetworkingServer<TSocket, TClient, TNetClient>
         where TSocket : ISocket
         where TClient : INetworkClient<TSocket, TNetClient>
         where TNetClient : INetClient<TSocket, TNetClient> {
 
-        public interface IListener {
-            void NetworkingServerDidAcceptClient(TClient client);
-            void NetworkingServerClientDidDisconnect(TClient client);
-        }
-
-        public interface IMessagesListener {
-            void NetworkingServerDidReadMessage(MessageContainer container, TClient client);
-        }
-
         IReadOnlyList<TClient> clients { get; }
 
-        internal IListener listener { get; set; }
-        IMessagesListener messagesListener { get; set; }
+        INetworkingServerListener<TSocket, TClient, TNetClient> listener { get; set; }
+        INetworkingServerMessagesListener<TSocket, TClient, TNetClient> messagesListener { get; set; }
 
         void Start(string host, int port);
         void Stop();
@@ -37,7 +43,7 @@ namespace GameNetworking.Networking.Commons {
         void SendBroadcast(ITypedMessage message, List<TClient> clients);
     }
 
-    public abstract class NetworkingServer<TNetworking, TSocket, TClient, TNetClient> : INetworkingServer<TSocket, TClient, TNetClient>, INetClient<TSocket, TNetClient>.IListener
+    public abstract class NetworkingServer<TNetworking, TSocket, TClient, TNetClient> : INetworkingServer<TSocket, TClient, TNetClient>, INetClientListener<TSocket, TNetClient>
         where TNetworking : INetworking<TSocket, TNetClient>
         where TSocket : ISocket
         where TClient : INetworkClient<TSocket, TNetClient>
@@ -51,10 +57,10 @@ namespace GameNetworking.Networking.Commons {
 
         protected TNetworking networking { get; private set; }
 
-        INetworkingServer<TSocket, TClient, TNetClient>.IListener INetworkingServer<TSocket, TClient, TNetClient>.listener { get; set; }
-        internal INetworkingServer<TSocket, TClient, TNetClient>.IListener listener { get => self.listener; set => self.listener = value; }
+        INetworkingServerListener<TSocket, TClient, TNetClient> INetworkingServer<TSocket, TClient, TNetClient>.listener { get; set; }
+        internal INetworkingServerListener<TSocket, TClient, TNetClient> listener { get => self.listener; set => self.listener = value; }
 
-        public INetworkingServer<TSocket, TClient, TNetClient>.IMessagesListener messagesListener { get; set; }
+        public INetworkingServerMessagesListener<TSocket, TClient, TNetClient> messagesListener { get; set; }
 
         public IReadOnlyList<TClient> clients => this.clientsList;
 
@@ -113,7 +119,7 @@ namespace GameNetworking.Networking.Commons {
             client.reader.Add(bytes);
 
             MessageContainer message;
-            while ((message = client.reader.Decode()) != null) { 
+            while ((message = client.reader.Decode()) != null) {
                 this.messagesListener?.NetworkingServerDidReadMessage(message, client);
             }
         }
@@ -135,7 +141,7 @@ namespace GameNetworking.Networking.Commons {
 
         #region INetClient<TSocket, TClient>.IListener
 
-        void INetClient<TSocket, TNetClient>.IListener.ClientDidReadBytes(TNetClient client, byte[] bytes) {
+        void INetClientListener<TSocket, TNetClient>.ClientDidReadBytes(TNetClient client, byte[] bytes) {
             if (!clientsCollection.TryGetValue(client, out TClient n_client)) { return; }
             this.TryReadMessage(bytes, n_client);
         }

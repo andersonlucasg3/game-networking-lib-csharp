@@ -9,10 +9,10 @@ namespace GameNetworking.Commons.Models {
                 where TSocket : ISocket
                 where TClient : INetworkClient<TSocket, TNetClient>
                 where TNetClient : INetClient<TSocket, TNetClient> {
-            TClient client { get; internal set; }
-            int playerId { get; internal set; }
-            float mostRecentPingValue { get; internal set; }
-            double lastReceivedPongRequest { get; internal set; }
+            TClient client { get; set; }
+            int playerId { get; set; }
+            float mostRecentPingValue { get; set; }
+            double lastReceivedPongRequest { get; set; }
         }
 
         public class NetworkPlayer<TSocket, TClient, TNetClient> : INetworkPlayer<TSocket, TClient, TNetClient>
@@ -57,9 +57,9 @@ namespace GameNetworking.Commons.Models {
                 where TSocket : ISocket
                 where TClient : INetworkClient<TSocket, TNetClient>
                 where TNetClient : INetClient<TSocket, TNetClient> {
-            double lastReceivedPingRequest { get; internal set; }
+            double lastReceivedPingRequest { get; set; }
 
-            bool isLocalPlayer { get; internal set; }
+            bool isLocalPlayer { get; set; }
         }
 
         public class NetworkPlayer<TSocket, TClient, TNetClient> : Server.NetworkPlayer<TSocket, TClient, TNetClient>, INetworkPlayer<TSocket, TClient, TNetClient>

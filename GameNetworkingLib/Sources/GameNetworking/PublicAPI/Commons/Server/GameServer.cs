@@ -9,23 +9,28 @@ using Networking.Commons.Models;
 using Networking.Commons.Sockets;
 
 namespace GameNetworking.Commons.Server {
+    public interface IGameServerListener<TPlayer, TSocket, TClient, TNetClient>
+        where TPlayer : INetworkPlayer<TSocket, TClient, TNetClient>
+        where TSocket : ISocket
+        where TClient : INetworkClient<TSocket, TNetClient>
+        where TNetClient : INetClient<TSocket, TNetClient> {
+        void GameServerPlayerDidConnect(TPlayer player);
+        void GameServerPlayerDidDisconnect(TPlayer player);
+        void GameServerDidReceiveClientMessage(MessageContainer container, TPlayer player);
+    }
+
     public interface IGameServer<TPlayer, TSocket, TClient, TNetClient>
         where TPlayer : INetworkPlayer<TSocket, TClient, TNetClient>
         where TSocket : ISocket
         where TClient : INetworkClient<TSocket, TNetClient>
         where TNetClient : INetClient<TSocket, TNetClient> {
 
-        public interface IListener {
-            void GameServerPlayerDidConnect(TPlayer player);
-            void GameServerPlayerDidDisconnect(TPlayer player);
-            void GameServerDidReceiveClientMessage(MessageContainer container, TPlayer player);
-        }
 
         double timeOutDelay { get; set; }
 
-        IListener listener { get; set; }
+        IGameServerListener<TPlayer, TSocket, TClient, TNetClient> listener { get; set; }
 
-        public IGameServerPingController<TPlayer, TSocket, TClient, TNetClient> pingController { get; }
+        IGameServerPingController<TPlayer, TSocket, TClient, TNetClient> pingController { get; }
 
         void Start(string host, int port);
         void Stop();
@@ -38,21 +43,21 @@ namespace GameNetworking.Commons.Server {
         void SendBroadcast(ITypedMessage message);
         void SendBroadcast(ITypedMessage message, TPlayer excludePlayer);
 
-        internal void AddPlayer(TPlayer player);
-        internal void RemovePlayer(TPlayer player);
+        void AddPlayer(TPlayer player);
+        void RemovePlayer(TPlayer player);
     }
 
     public abstract class GameServer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient, TClientAcceptor, TGameServerDerived> : IGameServer<TPlayer, TSocket, TClient, TNetClient>,
         GameServerClientAcceptor<TGameServerDerived, TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>.IListener,
-        INetworkingServer<TSocket, TClient, TNetClient>.IListener,
-        INetworkingServer<TSocket, TClient, TNetClient>.IMessagesListener
+        INetworkingServerListener<TSocket, TClient, TNetClient>,
+        INetworkingServerMessagesListener<TSocket, TClient, TNetClient>
         where TNetworkingServer : INetworkingServer<TSocket, TClient, TNetClient>
         where TPlayer : class, INetworkPlayer<TSocket, TClient, TNetClient>, new()
         where TSocket : ISocket
         where TClient : INetworkClient<TSocket, TNetClient>
         where TNetClient : INetClient<TSocket, TNetClient>
         where TClientAcceptor : GameServerClientAcceptor<TGameServerDerived, TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>, new()
-        where TGameServerDerived : GameServer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient, TClientAcceptor, TGameServerDerived> { 
+        where TGameServerDerived : GameServer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient, TClientAcceptor, TGameServerDerived> {
 
         private readonly GameServerMessageRouter<TGameServerDerived, TNetworkingServer, TPlayer, TSocket, TClient, TNetClient> router;
         private readonly TClientAcceptor clientAcceptor;
@@ -64,7 +69,7 @@ namespace GameNetworking.Commons.Server {
 
         public double timeOutDelay { get; set; } = 10F;
         public IGameServerPingController<TPlayer, TSocket, TClient, TNetClient> pingController { get; }
-        public IGameServer<TPlayer, TSocket, TClient, TNetClient>.IListener listener { get; set; }
+        public IGameServerListener<TPlayer, TSocket, TClient, TNetClient> listener { get; set; }
 
         protected GameServer(TNetworkingServer server, GameServerMessageRouter<TGameServerDerived, TNetworkingServer, TPlayer, TSocket, TClient, TNetClient> router) {
             this.networkingServer = server;
@@ -158,17 +163,17 @@ namespace GameNetworking.Commons.Server {
 
         #region INetworkingServer<ITCPSocket, ReliableNetworkClient, ReliableNetClient>.IMessagesListener
 
-        void INetworkingServer<TSocket, TClient, TNetClient>.IListener.NetworkingServerDidAcceptClient(TClient client) { 
+        void INetworkingServerListener<TSocket, TClient, TNetClient>.NetworkingServerDidAcceptClient(TClient client) {
             this.clientAcceptor.AcceptClient(client);
         }
 
-        void INetworkingServer<TSocket, TClient, TNetClient>.IListener.NetworkingServerClientDidDisconnect(TClient client) {
+        void INetworkingServerListener<TSocket, TClient, TNetClient>.NetworkingServerClientDidDisconnect(TClient client) {
             var player = this.playersStorage.Find(client);
             if (player == null) { return; }
             this.clientAcceptor.Disconnect(player);
         }
 
-        void INetworkingServer<TSocket, TClient, TNetClient>.IMessagesListener.NetworkingServerDidReadMessage(MessageContainer container, TClient client) {
+        void INetworkingServerMessagesListener<TSocket, TClient, TNetClient>.NetworkingServerDidReadMessage(MessageContainer container, TClient client) {
             var player = this.playersStorage.Find(client);
             this.router.Route(container, player);
         }

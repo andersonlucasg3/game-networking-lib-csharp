@@ -18,7 +18,7 @@ namespace Networking.Sockets {
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1001:Types that own disposable fields should be disposable", Justification = "<Pending>")]
     public sealed class UDPSocket : IUDPSocket {
-        private const int bufferSize = 1024;
+        private const int bufferSize = 1024 * 1024;
         private const int SIO_UDP_CONNRESET = -1744830452;
         
         private readonly UDPSocket parent;
@@ -53,8 +53,7 @@ namespace Networking.Sockets {
 
         public void Bind(NetEndPoint endPoint) {
             this.boundEndPoint = this.From(endPoint);
-            this.socket = new Socket(this.boundEndPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
-            this.socket.DontFragment = true;
+            this.socket = new Socket(this.boundEndPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp) { DontFragment = true };
             this.socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             try { this.socket.IOControl((IOControlCode)SIO_UDP_CONNRESET, new byte[] { 0, 0, 0, 0 }, null); } catch { Logger.Log($"Error setting SIO_UDP_CONNRESET. Maybe not running on Windows."); }
             this.socket.Bind(this.boundEndPoint);

@@ -1,4 +1,6 @@
-﻿using Networking.Commons.Models;
+﻿#if !UNITY_64
+
+using Networking.Commons.Models;
 using NUnit.Framework;
 using Test.Core.Model;
 using Tests.Core.Model;
@@ -195,3 +197,5 @@ namespace Tests.Core {
         }
     }
 }
+
+#endif

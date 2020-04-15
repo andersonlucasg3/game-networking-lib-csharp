@@ -7,7 +7,7 @@ using Networking.Models;
 using GameNetworking.Networking;
 
 namespace GameNetworking {
-    internal class GameClientConnection<TPlayer> : ReliableNetworkingClient.IListener
+    internal class GameClientConnection<TPlayer> : IReliableNetworkingClientListener
         where TPlayer : class, INetworkPlayer<ITCPSocket, ReliableNetworkClient, ReliableNetClient>, new() {
         private readonly ReliableGameClient<TPlayer> client;
 
@@ -26,21 +26,21 @@ namespace GameNetworking {
 
         #region INetworkingClient<TSocket, TClient, TNetClient>.IListener
 
-        void ReliableNetworkingClient.IListener.NetworkingClientDidConnect() {
+        void IReliableNetworkingClientListener.NetworkingClientDidConnect() {
             this.client?.listener?.GameClientDidConnect();
         }
 
-        void ReliableNetworkingClient.IListener.NetworkingClientConnectDidTimeout() {
+        void IReliableNetworkingClientListener.NetworkingClientConnectDidTimeout() {
             this.client?.DidDisconnect();
             this.client?.listener?.GameClientConnectDidTimeout();
         }
 
-        void ReliableNetworkingClient.IListener.NetworkingClientDidDisconnect() {
+        void IReliableNetworkingClientListener.NetworkingClientDidDisconnect() {
             this.client?.DidDisconnect();
             this.client?.listener?.GameClientDidDisconnect();
         }
 
-        void INetworkingClient<ITCPSocket, ReliableNetworkClient, ReliableNetClient>.IListener.NetworkingClientDidReadMessage(MessageContainer container) {
+        void INetworkingClientListener.NetworkingClientDidReadMessage(MessageContainer container) {
             this.client?.GameClientConnectionDidReceiveMessage(container);
         }
 

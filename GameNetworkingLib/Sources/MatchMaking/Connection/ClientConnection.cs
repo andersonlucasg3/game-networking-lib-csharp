@@ -1,4 +1,6 @@
-﻿using Networking;
+﻿#if ENABLE
+
+using Networking;
 using Google.Protobuf;
 using Networking.Commons.Models;
 using Networking.Models;
@@ -89,3 +91,5 @@ namespace MatchMaking.Connection {
         #endregion
     }
 }
+
+#endif

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
@@ -56,7 +55,7 @@ namespace Networking.Sockets {
             this.boundEndPoint = this.From(endPoint);
             this.socket = new Socket(this.boundEndPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
             this.socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-            this.socket.IOControl((IOControlCode)SIO_UDP_CONNRESET, new byte[] { 0, 0, 0, 0 }, null);
+            try { this.socket.IOControl((IOControlCode)SIO_UDP_CONNRESET, new byte[] { 0, 0, 0, 0 }, null); } catch { Logger.Log($"Error setting SIO_UDP_CONNRESET. Maybe not running on Windows."); }
             this.socket.Bind(this.boundEndPoint);
             this.isCommunicable = true;
         }

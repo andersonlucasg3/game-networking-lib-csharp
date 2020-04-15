@@ -1,4 +1,6 @@
-﻿using NUnit.Framework;
+﻿#if !UNITY_64
+
+using NUnit.Framework;
 using System;
 using MatchMaking.Protobuf.Coders;
 using MatchMaking.Models;
@@ -145,3 +147,5 @@ namespace Tests.Protobuf {
         }
     }
 }
+
+#endif

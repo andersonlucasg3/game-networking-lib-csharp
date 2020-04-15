@@ -5,14 +5,20 @@ namespace Networking.Commons.Models {
     using IO;
     using Sockets;
 
-    public interface INetClient<TSocket, TDerived> : IEquatable<TDerived> where TDerived : INetClient<TSocket, TDerived> {
-        public interface IListener {
-            void ClientDidReadBytes(TDerived client, byte[] bytes);
-        }
+    public interface INetClientListener<TSocket, TNetClientDerived>
+        where TSocket : ISocket
+        where TNetClientDerived : INetClient<TSocket, TNetClientDerived> {
 
-        TSocket socket { get; internal set; }
+        void ClientDidReadBytes(TNetClientDerived client, byte[] bytes);
+    }
 
-        IListener listener { get; set; }
+    public interface INetClient<TSocket, TDerived> : IEquatable<TDerived>
+        where TSocket : ISocket
+        where TDerived : INetClient<TSocket, TDerived> {
+
+        TSocket socket { get; set; }
+
+        INetClientListener<TSocket, TDerived> listener { get; set; }
 
         void Close();
 
@@ -20,14 +26,14 @@ namespace Networking.Commons.Models {
         void Write(byte[] bytes);
     }
 
-    public abstract class NetClient<TSocket, TDerived> : INetClient<TSocket, TDerived>, IReader.IListener where TSocket : ISocket where TDerived : NetClient<TSocket, TDerived> {
+    public abstract class NetClient<TSocket, TDerived> : INetClient<TSocket, TDerived>, IReaderListener where TSocket : ISocket where TDerived : NetClient<TSocket, TDerived> {
         TSocket INetClient<TSocket, TDerived>.socket { get; set; }
 
         private INetClient<TSocket, TDerived> self => this;
 
         protected TSocket socket { get => self.socket; private set => self.socket = value; }
 
-        public INetClient<TSocket, TDerived>.IListener listener { get; set; }
+        public INetClientListener<TSocket, TDerived> listener { get; set; }
 
         internal NetClient(TSocket socket) {
             this.socket = socket;
@@ -59,7 +65,7 @@ namespace Networking.Commons.Models {
             return base.GetHashCode();
         }
 
-        void IReader.IListener.ClientDidRead(byte[] bytes) {
+        void IReaderListener.ClientDidRead(byte[] bytes) {
             listener?.ClientDidReadBytes(this as TDerived, bytes);
         }
     }

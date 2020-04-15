@@ -1,12 +1,12 @@
 namespace Networking.Commons.IO {
     using Sockets;
 
+    public interface IReaderListener {
+        void ClientDidRead(byte[] bytes);
+    }
+    
     public interface IReader {
-        public interface IListener {
-            void ClientDidRead(byte[] bytes);
-        }
-
-        IListener listener { get; set; }
+        IReaderListener listener { get; set; }
 
         void Receive();
     }
@@ -15,7 +15,7 @@ namespace Networking.Commons.IO {
         where TSocket : ISocket {
         protected TSocket socket { get; }
 
-        public IReader.IListener listener { get; set; }
+        public IReaderListener listener { get; set; }
 
         internal NetworkingReader(TSocket socket) {
             this.socket = socket;

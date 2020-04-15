@@ -1,4 +1,6 @@
-﻿namespace MatchMaking.Coders {
+﻿#if ENABLE
+
+namespace MatchMaking.Coders {
     using Models;
 
     internal interface IMessageDecoder {
@@ -6,3 +8,5 @@
         MessageContainer Decode();
     }
 }
+
+#endif

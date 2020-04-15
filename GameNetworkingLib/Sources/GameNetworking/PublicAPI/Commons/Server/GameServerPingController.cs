@@ -129,7 +129,7 @@ namespace GameNetworking.Commons.Server {
         }
 
         public override int GetHashCode() {
-            return HashCode.Combine(player);
+            return player.GetHashCode();
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if !UNITY_64
+
+using System;
 using System.Collections.Generic;
 using System.Net;
 using GameNetworking;
@@ -49,3 +51,5 @@ namespace TestClientApp {
         }
     }
 }
+
+#endif

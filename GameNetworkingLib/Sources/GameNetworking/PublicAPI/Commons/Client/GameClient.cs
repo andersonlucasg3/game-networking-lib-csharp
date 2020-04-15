@@ -14,39 +14,44 @@ namespace GameNetworking.Commons.Client {
         void Send(ITypedMessage message);
     }
 
+    public interface IGameClientListener<TPlayer, TSocket, TClient, TNetClient>
+        where TPlayer : class, INetworkPlayer<TSocket, TClient, TNetClient>, new()
+        where TSocket : ISocket
+        where TClient : INetworkClient<TSocket, TNetClient>
+        where TNetClient : INetClient<TSocket, TNetClient> {
+        void GameClientDidConnect();
+        void GameClientConnectDidTimeout();
+        void GameClientDidDisconnect();
+
+        void GameClientDidIdentifyLocalPlayer(TPlayer player);
+        void GameClientDidReceiveMessage(MessageContainer container);
+        void GameClientNetworkPlayerDidDisconnect(TPlayer player);
+    }
+
     public interface IGameClient<TPlayer, TSocket, TClient, TNetClient> : IGameClientMessageSender
         where TPlayer : class, INetworkPlayer<TSocket, TClient, TNetClient>, new()
         where TSocket : ISocket
         where TClient : INetworkClient<TSocket, TNetClient>
         where TNetClient : INetClient<TSocket, TNetClient> {
 
-        public interface IListener {
-            void GameClientDidConnect();
-            void GameClientConnectDidTimeout();
-            void GameClientDidDisconnect();
-
-            void GameClientDidIdentifyLocalPlayer(TPlayer player);
-            void GameClientDidReceiveMessage(MessageContainer container);
-            void GameClientNetworkPlayerDidDisconnect(TPlayer player);
-        }
 
         double timeOutDelay { get; set; }
         TPlayer localPlayer { get; }
 
-        IListener listener { get; set; }
+        IGameClientListener<TPlayer, TSocket, TClient, TNetClient> listener { get; set; }
 
         void Connect(string host, int port);
         void Disconnect();
 
         void Update();
         float GetPing(int playerId);
-        
+
         TPlayer FindPlayer(int playerId);
         TPlayer FindPlayer(Func<TPlayer, bool> predicate);
         List<TPlayer> AllPlayers();
 
-        internal void AddPlayer(TPlayer player);
-        internal TPlayer RemovePlayer(int playerId);
+        void AddPlayer(TPlayer player);
+        TPlayer RemovePlayer(int playerId);
     }
 
     public abstract class GameClient<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient, TGameClientDerived> : IGameClient<TPlayer, TSocket, TClient, TNetClient>
@@ -67,7 +72,7 @@ namespace GameNetworking.Commons.Client {
         public TPlayer localPlayer { get; private set; }
         public double timeOutDelay { get; set; } = 10F;
 
-        public IGameClient<TPlayer, TSocket, TClient, TNetClient>.IListener listener { get; set; }
+        public IGameClientListener<TPlayer, TSocket, TClient, TNetClient> listener { get; set; }
 
         public GameClient(TNetworkingClient backend, GameClientMessageRouter<TGameClientDerived, TPlayer, TSocket, TClient, TNetClient> router) {
             this.networkingClient = backend;

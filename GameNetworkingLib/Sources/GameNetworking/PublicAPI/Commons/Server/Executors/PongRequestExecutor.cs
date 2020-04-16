@@ -26,11 +26,9 @@ namespace GameNetworking.Executors.Server {
             this.instance.pingController.PongReceived(this.player);
 
             var players = this.instance.AllPlayers();
-            PingResultRequestMessage message;
-            TPlayer player;
-            for (int i = 0; i < players.Count; i++) {
-                player = players[i];
-                message = new PingResultRequestMessage(player.playerId, player.mostRecentPingValue);
+            for (int index = 0; index < players.Count; index++) {
+                TPlayer player = players[index];
+                PingResultRequestMessage message = new PingResultRequestMessage(player.playerId, player.mostRecentPingValue);
                 this.instance.Send(message, this.player);
             }
         }

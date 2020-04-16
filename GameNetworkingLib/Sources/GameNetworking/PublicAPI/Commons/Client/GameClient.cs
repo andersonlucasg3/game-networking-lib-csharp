@@ -100,12 +100,13 @@ namespace GameNetworking.Commons.Client {
             if (elapsedTime >= this.timeOutDelay) {
                 this.Disconnect();
                 this.DidDisconnect();
+                this.localPlayer = null;
             }
         }
 
         public float GetPing(int playerId) {
-            var serverPlayer = this.playersStorage[playerId];
-            return serverPlayer.mostRecentPingValue;
+            if (!this.playersStorage.TryGetPlayer(playerId, out TPlayer player)) { return 0F; }
+            return player.mostRecentPingValue;
         }
 
         public TPlayer FindPlayer(int playerId) {

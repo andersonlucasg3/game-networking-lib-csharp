@@ -28,6 +28,8 @@ namespace TestServerApp {
 
             program.server.Start(IPAddress.Any.ToString(), 64000);
 
+            program.server.listener = program;
+
             while (true) {
                 var copyActions = new List<Action>(program.actions);
                 program.actions.RemoveAll(_ => true);

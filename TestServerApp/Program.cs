@@ -8,6 +8,7 @@ using GameNetworking.Commons;
 using GameNetworking.Commons.Server;
 using GameNetworking.Networking;
 using GameNetworking.Networking.Models;
+using Logging;
 using Messages.Coders;
 using Messages.Models;
 using Networking.Models;
@@ -46,8 +47,13 @@ namespace TestServerApp {
 
         public void GameServerDidReceiveClientMessage(MessageContainer container, UnreliablePlayer player) {
             if (container.type == 1001) {
-                this.server.Send(new Message(), player);
+                this.Send(player);
             }
+        }
+
+        private void Send(UnreliablePlayer player) {
+            this.server.Send(new Message(), player);
+            Logger.Log("Send message!");
         }
     }
 

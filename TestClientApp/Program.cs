@@ -8,6 +8,7 @@ using GameNetworking.Commons;
 using GameNetworking.Commons.Client;
 using GameNetworking.Networking;
 using GameNetworking.Networking.Models;
+using Logging;
 using Messages.Coders;
 using Messages.Models;
 using Networking.Models;
@@ -30,7 +31,7 @@ namespace TestClientApp {
 
             program.client.listener = program;
 
-            program.client.Send(new Message());
+            program.Send();
 
             while (true) {
                 var copyActions = new List<Action>(program.actions);
@@ -57,8 +58,13 @@ namespace TestClientApp {
 
         public void GameClientDidReceiveMessage(MessageContainer container) {
             if (container.type == 1002) {
-                this.client.Send(new Message());
+                this.Send();
             }
+        }
+
+        private void Send() {
+            this.client.Send(new Message());
+            Logger.Log("Send message!");
         }
     }
 

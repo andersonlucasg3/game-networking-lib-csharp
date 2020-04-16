@@ -2,7 +2,7 @@
     using Models;
 
     public interface IStreamReader {
-        void Add(byte[] buffer);
+        void Add(byte[] buffer, int count);
 
         MessageContainer Decode();
     }

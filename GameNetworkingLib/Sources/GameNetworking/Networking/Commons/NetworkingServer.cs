@@ -115,8 +115,8 @@ namespace GameNetworking.Networking.Commons {
             this.networking.Flush(client.client);
         }
 
-        protected virtual void TryReadMessage(byte[] bytes, TClient client) {
-            client.reader.Add(bytes);
+        protected virtual void TryReadMessage(byte[] bytes, int count, TClient client) {
+            client.reader.Add(bytes, count);
 
             MessageContainer message;
             while ((message = client.reader.Decode()) != null) {
@@ -141,9 +141,9 @@ namespace GameNetworking.Networking.Commons {
 
         #region INetClient<TSocket, TClient>.IListener
 
-        void INetClientListener<TSocket, TNetClient>.ClientDidReadBytes(TNetClient client, byte[] bytes) {
+        void INetClientListener<TSocket, TNetClient>.ClientDidReadBytes(TNetClient client, byte[] bytes, int count) {
             if (!clientsCollection.TryGetValue(client, out TClient n_client)) { return; }
-            this.TryReadMessage(bytes, n_client);
+            this.TryReadMessage(bytes, count, n_client);
         }
 
         #endregion

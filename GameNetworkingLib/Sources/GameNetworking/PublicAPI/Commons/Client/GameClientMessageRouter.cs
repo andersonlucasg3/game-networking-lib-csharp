@@ -32,7 +32,6 @@ namespace GameNetworking.Commons.Client {
         }
 
         protected void Execute(IExecutor executor) {
-            Logger.Log($"Enqueuing executor {executor}");
             dispatcher.Enqueue(executor.Execute);
         }
 

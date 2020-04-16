@@ -33,14 +33,12 @@ namespace GameNetworking.Commons.Server {
 
             this.listener.AddPlayer(player);
 
-            Logger.Log($"(AcceptClient) count {this.listener.AllPlayers().Count}");
+            if (Logger.IsLoggingEnabled) { Logger.Log($"(AcceptClient) count {this.listener.AllPlayers().Count}"); }
 
             var players = this.listener.AllPlayers();
             TPlayer each;
             for (int i = 0; i < players.Count; i++) {
                 each = players[i];
-
-                Logger.Log($"Sending ConnectedPlayerMessage from {player.playerId} to {each.playerId}");
 
                 // Sends the connected player message to all players
                 this.listener.Send(new ConnectedPlayerMessage {
@@ -49,8 +47,6 @@ namespace GameNetworking.Commons.Server {
                 }, each);
 
                 if (each.Equals(player)) { continue; }
-
-                Logger.Log($"Sending ConnectedPlayerMessage from {each.playerId} to {player.playerId}");
 
                 // Sends the existing players to the player that just connected
                 this.listener.Send(new ConnectedPlayerMessage {
@@ -67,7 +63,7 @@ namespace GameNetworking.Commons.Server {
 
             this.listener.RemovePlayer(player);
 
-            Logger.Log($"(Disconnect) count {this.listener.AllPlayers().Count}");
+            if (Logger.IsLoggingEnabled) { Logger.Log($"(Disconnect) count {this.listener.AllPlayers().Count}"); }
 
             if (player != null) {
                 this.listener.ClientAcceptorPlayerDidDisconnect(player);

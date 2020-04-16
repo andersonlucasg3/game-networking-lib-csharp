@@ -5,24 +5,24 @@ namespace Messages.Streams {
     using Models;
 
     public class MessageStreamReader : IStreamReader {
-        private List<byte> buffer;
+        private List<byte> byteList;
 
         public MessageStreamReader() {
-            this.buffer = new List<byte>();
+            this.byteList = new List<byte>();
         }
 
-        public void Add(byte[] buffer) {
-            if (buffer == null || buffer.Length == 0) { return; }
-            this.buffer.AddRange(buffer);
+        public void Add(byte[] buffer, int count) {
+            if (count == 0) { return; }
+            for (int index = 0; index < count; index++) { this.byteList.Add(buffer[index]); }
         }
 
         public MessageContainer Decode() {
-            var arrayBuffer = this.buffer.ToArray();
+            var arrayBuffer = this.byteList.ToArray();
             int delimiterIndex = CoderHelper.CheckForDelimiter(arrayBuffer);
             if (delimiterIndex != -1) {
                 byte[] bytes = CoderHelper.PackageBytes(delimiterIndex, arrayBuffer);
                 var container = new MessageContainer(bytes);
-                CoderHelper.SliceBuffer(delimiterIndex, ref this.buffer);
+                CoderHelper.SliceBuffer(delimiterIndex, ref this.byteList);
                 return container;
             }
             return null;

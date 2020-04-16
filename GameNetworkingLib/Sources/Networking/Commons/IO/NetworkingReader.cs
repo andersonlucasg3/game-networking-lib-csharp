@@ -2,7 +2,7 @@ namespace Networking.Commons.IO {
     using Sockets;
 
     public interface IReaderListener {
-        void ClientDidRead(byte[] bytes);
+        void ClientDidRead(byte[] bytes, int count);
     }
     
     public interface IReader {

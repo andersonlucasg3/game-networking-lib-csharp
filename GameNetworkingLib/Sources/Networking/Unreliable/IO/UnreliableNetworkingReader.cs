@@ -4,7 +4,7 @@ using Networking.Sockets;
 namespace Networking.IO {
     public class UnreliableNetworkingReader : NetworkingReader<IUDPSocket> {
         public interface IListener {
-            void ReaderDidRead(byte[] bytes, IUDPSocket from);
+            void ReaderDidRead(byte[] bytes, int count, IUDPSocket from);
         }
 
         private bool isReceiving = false;
@@ -17,8 +17,8 @@ namespace Networking.IO {
             if (this.isReceiving) { return; }
             this.isReceiving = true;
 
-            this.socket.Read((bytes, fromSocket) => {
-                this.listener?.ReaderDidRead(bytes, fromSocket);
+            this.socket.Read((bytes, count, fromSocket) => {
+                this.listener?.ReaderDidRead(bytes, count, fromSocket);
 
                 this.isReceiving = false;
             });

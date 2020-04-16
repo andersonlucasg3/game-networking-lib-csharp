@@ -9,7 +9,7 @@ namespace Networking.Commons.Models {
         where TSocket : ISocket
         where TNetClientDerived : INetClient<TSocket, TNetClientDerived> {
 
-        void ClientDidReadBytes(TNetClientDerived client, byte[] bytes);
+        void ClientDidReadBytes(TNetClientDerived client, byte[] bytes, int count);
     }
 
     public interface INetClient<TSocket, TDerived> : IEquatable<TDerived>
@@ -65,8 +65,8 @@ namespace Networking.Commons.Models {
             return base.GetHashCode();
         }
 
-        void IReaderListener.ClientDidRead(byte[] bytes) {
-            listener?.ClientDidReadBytes(this as TDerived, bytes);
+        void IReaderListener.ClientDidRead(byte[] bytes, int count) {
+            listener?.ClientDidReadBytes(this as TDerived, bytes, count);
         }
     }
 }

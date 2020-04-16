@@ -56,8 +56,8 @@ namespace GameNetworking.Networking.Commons {
 
         #region INetClientListener
 
-        void INetClientListener<TSocket, TNetClient>.ClientDidReadBytes(TNetClient client, byte[] bytes) {
-            this.client.reader.Add(bytes);
+        void INetClientListener<TSocket, TNetClient>.ClientDidReadBytes(TNetClient client, byte[] bytes, int count) {
+            this.client.reader.Add(bytes, count);
             MessageContainer container;
             do {
                 container = this.client.reader.Decode();

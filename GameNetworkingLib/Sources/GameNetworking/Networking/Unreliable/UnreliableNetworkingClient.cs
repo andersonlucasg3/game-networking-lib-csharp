@@ -26,9 +26,9 @@ namespace GameNetworking.Networking {
             this.networking.Flush(this.client.client);
         }
 
-        void UnreliableSocket.IListener.SocketDidRead(byte[] bytes, UnreliableNetClient client) {
+        void UnreliableSocket.IListener.SocketDidRead(byte[] bytes, int count, UnreliableNetClient client) {
             var listener = this as INetClientListener<IUDPSocket, UnreliableNetClient>;
-            listener.ClientDidReadBytes(client, bytes);
+            listener.ClientDidReadBytes(client, bytes, count);
         }
     }
 }

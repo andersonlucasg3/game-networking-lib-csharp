@@ -77,7 +77,7 @@ namespace GameNetworking.Commons.Models {
             public bool isLocalPlayer { get; internal set; }
             public double lastReceivedPingRequest { get; internal set; }
 
-            public NetworkPlayer() : base() { }
+            public NetworkPlayer() : base() { this.lastReceivedPingRequest = TimeUtils.CurrentTime(); }
 
             public void Configure(int playerId, bool isLocalPlayer) {
                 this.Configure(playerId);

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using Networking.Commons.Sockets;
 
 namespace Networking.Commons.IO {
@@ -10,13 +10,13 @@ namespace Networking.Commons.IO {
     public abstract class NetworkingWriter<TSocket> : IWriter
         where TSocket : ISocket {
         private readonly TSocket socket;
-        private readonly Queue<byte[]> buffer;
+        private readonly ConcurrentQueue<byte[]> buffer;
 
         private bool isSending = false;
 
         internal NetworkingWriter(TSocket socket) {
             this.socket = socket;
-            this.buffer = new Queue<byte[]>();
+            this.buffer = new ConcurrentQueue<byte[]>();
         }
 
         private void WritePriv(byte[] buffer) {
@@ -27,7 +27,7 @@ namespace Networking.Commons.IO {
 
             this.socket.Write(buffer, (written) => {
                 if (buffer.Length != written && written != 0) { throw new System.Exception("Deu merda!"); }
-                if (buffer.Length == written && this.buffer.Count > 0) { this.buffer.Dequeue(); }
+                if (buffer.Length == written && this.buffer.Count > 0) { this.buffer.TryDequeue(out _); }
                 this.isSending = false;
             });
         }

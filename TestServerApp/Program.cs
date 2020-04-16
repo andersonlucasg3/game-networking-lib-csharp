@@ -27,7 +27,7 @@ namespace TestServerApp {
             var program = new Program();
             program.server = new UnreliableGameServer<UnreliablePlayer>(new UnreliableNetworkingServer(new UnreliableSocket(new UDPSocket())), program);
 
-            program.server.Start(IPAddress.Any.ToString(), 64000);
+            program.server.Start("127.0.0.1", 64000);
 
             program.server.listener = program;
 
@@ -44,11 +44,16 @@ namespace TestServerApp {
             this.actions.Add(action);
         }
 
-        public void GameServerPlayerDidConnect(UnreliablePlayer player) { }
+        public void GameServerPlayerDidConnect(UnreliablePlayer player) {
+            Logger.Log("GameServerPlayerDidConnect");
+        }
 
-        public void GameServerPlayerDidDisconnect(UnreliablePlayer player) { }
+        public void GameServerPlayerDidDisconnect(UnreliablePlayer player) {
+            Logger.Log("GameServerPlayerDidDisconnect");
+        }
 
         public void GameServerDidReceiveClientMessage(MessageContainer container, UnreliablePlayer player) {
+            Logger.Log("GameServerDidReceiveClientMessage");
             if (container.type == 1001) {
                 this.Send(player);
             }

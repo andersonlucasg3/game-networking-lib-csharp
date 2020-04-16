@@ -27,12 +27,10 @@ namespace TestClientApp {
             var program = new Program();
             program.client = new UnreliableGameClient<UnreliablePlayer>(new UnreliableNetworkingClient(new UnreliableSocket(new UDPSocket())), program);
 
-            program.client.Start(IPAddress.Any.ToString(), 63000);
+            program.client.Start("0.0.0.0", 63000);
             program.client.Connect("127.0.0.1", 64000);
 
             program.client.listener = program;
-
-            program.Send();
 
             while (true) {
                 var copyActions = new List<Action>(program.actions);
@@ -47,17 +45,29 @@ namespace TestClientApp {
             this.actions.Add(action);
         }
 
-        public void GameClientDidConnect() { }
+        public void GameClientDidConnect() {
+            Logger.Log("GameClientDidConnect");
+        }
 
-        public void GameClientConnectDidTimeout() { }
+        public void GameClientConnectDidTimeout() {
+            Logger.Log("GameClientConnectDidTimeout");
+        }
 
-        public void GameClientDidDisconnect() { }
+        public void GameClientDidDisconnect() {
+            Logger.Log("GameClientDidDisconnect");
+        }
 
-        public void GameClientDidIdentifyLocalPlayer(UnreliablePlayer player) { }
+        public void GameClientDidIdentifyLocalPlayer(UnreliablePlayer player) {
+            Logger.Log("GameClientDidIdentifyLocalPlayer");
+            this.Send();
+        }
 
-        public void GameClientNetworkPlayerDidDisconnect(UnreliablePlayer player) { }
+        public void GameClientNetworkPlayerDidDisconnect(UnreliablePlayer player) {
+            Logger.Log("GameClientNetworkPlayerDidDisconnect");
+        }
 
         public void GameClientDidReceiveMessage(MessageContainer container) {
+            Logger.Log("GameClientDidReceiveMessage");
             if (container.type == 1002) {
                 this.Send();
             }

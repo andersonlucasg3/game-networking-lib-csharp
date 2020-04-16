@@ -1,48 +1,48 @@
 using System.Collections.Generic;
+using Networking.Commons.Sockets;
 
 namespace Networking.Commons.IO {
-    using Sockets;
-
     public interface IWriter {
         void Write(byte[] data);
         void Flush();
     }
 
-    public abstract class NetworkingWriter<TSocket> : IWriter 
+    public abstract class NetworkingWriter<TSocket> : IWriter
         where TSocket : ISocket {
         private readonly TSocket socket;
-        private readonly List<byte> buffer;
+        private readonly Queue<byte[]> buffer;
 
         private bool isSending = false;
-        
+
         internal NetworkingWriter(TSocket socket) {
             this.socket = socket;
-            this.buffer = new List<byte>();
+            this.buffer = new Queue<byte[]>();
         }
 
-        private void Write() {
-            if (this.buffer.Count == 0) { return; }
+        private void WritePriv(byte[] buffer) {
             if (this.isSending) { return; }
             this.isSending = true;
 
-            this.socket.Write(this.buffer.ToArray(), (written) => {
-                if (written > 0) { this.ShrinkBuffer(written); }
+            if (buffer == null && !this.buffer.TryPeek(out buffer)) { return; }
+
+            this.socket.Write(buffer, (written) => {
+                if (buffer.Length != written && written != 0) { throw new System.Exception("Deu merda!"); }
+                if (buffer.Length == written && this.buffer.Count > 0) { this.buffer.Dequeue(); }
                 this.isSending = false;
             });
         }
 
         public void Write(byte[] data) {
-            this.buffer.AddRange(data);
-            this.Write();
+            if (this.isSending) {
+                this.buffer.Enqueue(data);
+            } else {
+                this.WritePriv(data);
+            }
         }
 
         public void Flush() {
-            this.Write();
-        }
-
-        private void ShrinkBuffer(int written) {
             if (this.buffer.Count == 0) { return; }
-            this.buffer.RemoveRange(0, written);
+            this.WritePriv(null);
         }
     }
 }

@@ -19,7 +19,7 @@ namespace GameNetworking.Executors.Client {
         }
 
         public override void Execute() {
-            var player = this.instance.FindPlayer(this.message.playerId);
+            if (!(this.instance.FindPlayer(this.message.playerId) is NetworkPlayer<TSocket, TClient, TNetClient> player)) { return; }
             player.mostRecentPingValue = this.message.pingValue;
         }
     }

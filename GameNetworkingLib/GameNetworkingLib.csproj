@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <OutputPath>..\..\realistic_fps\Assets\Plugins\</OutputPath>
+    <OutputPath></OutputPath>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
     <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
@@ -16,51 +16,7 @@
     <OutputPath></OutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <Folder Include="Sources\MatchMaking\Connection\" />
     <Folder Include="Sources\GameNetworking\Commons\Interfaces\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="Google.Protobuf">
-      <HintPath>..\..\..\.nuget\packages\google.protobuf\3.10.1\lib\netstandard2.0\Google.Protobuf.dll</HintPath>
-      <Private>true</Private>
-      <EmbedInteropTypes></EmbedInteropTypes>
-    </Reference>
-    <Reference Include="System.Buffers">
-      <HintPath>..\..\..\.nuget\packages\system.buffers\4.4.0\lib\netstandard2.0\System.Buffers.dll</HintPath>
-      <Private>true</Private>
-    </Reference>
-    <Reference Include="System.Memory">
-      <HintPath>..\..\..\.nuget\packages\system.memory\4.5.2\lib\netstandard2.0\System.Memory.dll</HintPath>
-      <Private>true</Private>
-      <EmbedInteropTypes></EmbedInteropTypes>
-    </Reference>
-    <Reference Include="System.Runtime.CompilerServices.Unsafe">
-      <HintPath>..\..\..\.nuget\packages\system.runtime.compilerservices.unsafe\4.5.2\lib\netstandard2.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
-      <Private>true</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Google.Protobuf" Version="3.11.4" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="2.9.8">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.8">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.CodeQuality.Analyzers" Version="2.9.8">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.NetCore.Analyzers" Version="2.9.8">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.NetFramework.Analyzers" Version="2.9.8">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
   </ItemGroup>
 </Project>
 

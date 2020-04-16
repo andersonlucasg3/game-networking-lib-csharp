@@ -16,7 +16,7 @@ using System.Threading;
 using System.Linq;
 
 namespace Tests.Core {
-    public interface IClientListener<TPlayer, TSocket, TClient, TNetClient> : IGameClient<TPlayer, TSocket, TClient, TNetClient>.IListener
+    public interface IClientListener<TPlayer, TSocket, TClient, TNetClient> : IGameClientListener<TPlayer, TSocket, TClient, TNetClient>
         where TPlayer : class, GameNetworking.Commons.Models.Client.INetworkPlayer<TSocket, TClient, TNetClient>, new()
         where TSocket : ISocket
         where TClient : INetworkClient<TSocket, TNetClient>
@@ -30,7 +30,7 @@ namespace Tests.Core {
         TPlayer localPlayer { get; }
     }
 
-    public interface IServerListener<TPlayer, TSocket, TClient, TNetClient> : IGameServer<TPlayer, TSocket, TClient, TNetClient>.IListener
+    public interface IServerListener<TPlayer, TSocket, TClient, TNetClient> : IGameServerListener<TPlayer, TSocket, TClient, TNetClient>
         where TPlayer : class, GameNetworking.Commons.Models.Server.INetworkPlayer<TSocket, TClient, TNetClient>, new()
         where TSocket : ISocket
         where TClient : INetworkClient<TSocket, TNetClient>

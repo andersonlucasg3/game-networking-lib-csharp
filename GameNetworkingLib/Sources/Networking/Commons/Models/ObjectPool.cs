@@ -8,7 +8,7 @@ namespace Networking.Commons {
 
         public ObjectPool(Func<T> factory) {
             bag = new ConcurrentBag<T>();
-            this.factory = factory ?? throw new ArgumentNullException("objectGenerator");
+            this.factory = factory ?? throw new ArgumentNullException(nameof(factory));
         }
 
         public T Rent() {

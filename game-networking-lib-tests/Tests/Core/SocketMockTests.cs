@@ -50,7 +50,7 @@ namespace Tests.Core {
             connected.Write(new byte[1] { 0 }, null);
 
             UnreliableSocketMock acceptedClient = null;
-            server.Read((bytes, socket) => acceptedClient = socket as UnreliableSocketMock);
+            server.Read((bytes, _, socket) => acceptedClient = socket as UnreliableSocketMock);
             accepted = acceptedClient;
         }
 
@@ -117,7 +117,7 @@ namespace Tests.Core {
             connectedSocket.Write(buffer, null);
 
             byte[] readBytes = null;
-            acceptedSocket.Read((bytes) => readBytes = bytes);
+            acceptedSocket.Read((bytes, count) => readBytes = bytes);
 
             Assert.AreEqual(readBytes, buffer);
         }
@@ -131,7 +131,7 @@ namespace Tests.Core {
             connectedSocket.Write(buffer, null);
 
             byte[] readBytes = null;
-            acceptedSocket.Read((bytes, _) => readBytes = bytes);
+            acceptedSocket.Read((bytes, _, socket) => readBytes = bytes);
 
             Assert.AreEqual(buffer, readBytes);
             Assert.AreEqual(connectedSocket, acceptedSocket);
@@ -151,8 +151,8 @@ namespace Tests.Core {
 
             byte[] readBytes1 = null;
             byte[] readBytes2 = null;
-            acceptedSocket1.Read((buffer) => readBytes1 = buffer);
-            acceptedSocket2.Read((buffer) => readBytes2 = buffer);
+            acceptedSocket1.Read((buffer, _) => readBytes1 = buffer);
+            acceptedSocket2.Read((buffer, _) => readBytes2 = buffer);
 
             Assert.AreEqual(readBytes1, buffer1);
             Assert.AreEqual(readBytes2, buffer2);
@@ -172,8 +172,8 @@ namespace Tests.Core {
 
             byte[] readBytes1 = null;
             byte[] readBytes2 = null;
-            acceptedSocket1.Read((buffer, _) => readBytes1 = buffer);
-            acceptedSocket2.Read((buffer, _) => readBytes2 = buffer);
+            acceptedSocket1.Read((buffer, _, socket) => readBytes1 = buffer);
+            acceptedSocket2.Read((buffer, _, socket) => readBytes2 = buffer);
 
             Assert.AreEqual(buffer1, readBytes1);
             Assert.AreEqual(buffer2, readBytes2);

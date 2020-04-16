@@ -93,10 +93,6 @@ namespace GameNetworking.Commons.Server {
             this.networkingServer.Stop();
         }
 
-        public float GetPing(TPlayer player) {
-            return this.pingController.GetPingValue(player);
-        }
-
         public void Update() {
             this.networkingServer.Update();
             this.pingController.Update();

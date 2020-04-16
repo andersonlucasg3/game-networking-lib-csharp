@@ -14,7 +14,6 @@ namespace GameNetworking.Commons.Server {
         where TClient : INetworkClient<TSocket, TNetClient>
         where TNetClient : INetClient<TSocket, TNetClient> {
 
-        float GetPingValue(TPlayer player);
         float PongReceived(TPlayer player);
         void Update();
     }
@@ -31,31 +30,30 @@ namespace GameNetworking.Commons.Server {
 
         private readonly IGameServer<TPlayer, TSocket, TClient, TNetClient> instance;
 
-        public float pingInterval { get; set; } = 2F;
+        public float pingInterval { get; set; } = 1F;
 
         public GameServerPingController(IGameServer<TPlayer, TSocket, TClient, TNetClient> instance, NetworkPlayerCollection<TPlayer, TSocket, TClient, TNetClient> storage) {
             this.instance = instance;
             storage.listeners.Add(this);
         }
 
-        public float GetPingValue(TPlayer player) {
-            return this.pingPlayers[player.playerId].pingValue;
-        }
-
         public void Update() {
             if (this.pingPlayersArray == null) { return; }
-            PingPlayer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient> pingPlayer;
-            for (int i = 0; i < this.pingPlayersArray.Length; i++) {
-                pingPlayer = this.pingPlayersArray[i];
-                if (!pingPlayer.pingSent && pingPlayer.canSendNextPing) {
-                    pingPlayer.SendingPing();
-                    this.instance.Send(new PingRequestMessage(), pingPlayer.player);
-                }
+            for (int index = 0; index < this.pingPlayersArray.Length; index++) {
+                this.VerifyAndSendPing(this.pingPlayersArray[index]);
             }
         }
 
-        public float PongReceived(TPlayer player) {
-            if (player == null) { return 0F; }
+        private void VerifyAndSendPing(PingPlayer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient> pingPlayer) {
+            pingPlayer.Checkup();
+            if (pingPlayer.canSendNextPing) {
+                pingPlayer.SendingPing();
+                this.instance.Send(new PingRequestMessage(), pingPlayer.player);
+            }
+        }
+
+        public float PongReceived(TPlayer from) {
+            if (!(from is NetworkPlayer<TSocket, TClient, TNetClient> player)) { return 0F; }
 
             player.lastReceivedPongRequest = TimeUtils.CurrentTime();
 
@@ -94,11 +92,10 @@ namespace GameNetworking.Commons.Server {
 
         private double pingSentTime;
 
-        private double pingElapsedTime { get { return CurrentTime() - this.pingSentTime; } }
+        private double pingElapsedTime { get { return TimeUtils.CurrentTime() - this.pingSentTime; } }
 
         internal bool pingSent { get; private set; }
         internal bool canSendNextPing { get { return this.pingElapsedTime > (pingController?.pingInterval ?? 0.5F); } }
-        internal float pingValue { get; private set; }
 
         internal TPlayer player { get; }
 
@@ -106,15 +103,19 @@ namespace GameNetworking.Commons.Server {
             this.player = instance;
         }
 
+        internal void Checkup() {
+            this.pingSent = this.canSendNextPing;
+        }
+
         internal void SendingPing() {
             this.pingSent = true;
-            this.pingSentTime = CurrentTime();
+            this.pingSentTime = TimeUtils.CurrentTime();
         }
 
         internal float ReceivedPong() {
             this.pingSent = false;
-            this.pingValue = (float)this.pingElapsedTime;
-            return this.pingValue;
+            if (!(this.player is NetworkPlayer<TSocket, TClient, TNetClient> player)) { return 0F; }
+            return player.mostRecentPingValue = (float)this.pingElapsedTime;
         }
 
         public override bool Equals(object obj) {
@@ -122,10 +123,6 @@ namespace GameNetworking.Commons.Server {
                 return this.player.Equals(player);
             }
             return Equals(this, obj);
-        }
-
-        private static double CurrentTime() {
-            return TimeUtils.CurrentTime();
         }
 
         public override int GetHashCode() {

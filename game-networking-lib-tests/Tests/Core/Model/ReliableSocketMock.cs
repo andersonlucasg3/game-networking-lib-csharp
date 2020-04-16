@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using Networking.Sockets;
 using Networking.Commons.Models;
+using System.Linq;
 
 namespace Tests.Core.Model {
     class ReliableSocketMock : ITCPSocket {
@@ -60,8 +61,8 @@ namespace Tests.Core.Model {
             disconnectAction?.Invoke();
         }
 
-        public void Read(Action<byte[]> readAction) {
-            readAction?.Invoke(this.buffer);
+        public void Read(Action<byte[], int> readAction) {
+            readAction?.Invoke(this.buffer, this.buffer.Length);
             this.buffer = null;
         }
 

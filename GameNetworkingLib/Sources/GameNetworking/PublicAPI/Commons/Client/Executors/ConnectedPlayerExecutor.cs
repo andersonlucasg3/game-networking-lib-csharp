@@ -19,10 +19,8 @@ namespace GameNetworking.Executors.Client {
         }
 
         public override void Execute() {
-            var player = new TPlayer() {
-                playerId = this.message.playerId,
-                isLocalPlayer = this.message.isMe
-            };
+            var player = new TPlayer();
+            player.Configure(this.message.playerId, this.message.isMe);
             this.instance.AddPlayer(player);
 
             if (player.isLocalPlayer) {

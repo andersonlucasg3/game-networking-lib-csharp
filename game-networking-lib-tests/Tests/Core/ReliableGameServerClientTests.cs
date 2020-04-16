@@ -55,12 +55,12 @@ namespace Tests.Core {
 
             #region IGameClientListener
 
-            void IGameClient<ReliableClientPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient>.IListener.GameClientDidConnect() => this.connectedCalled = true;
-            void IGameClient<ReliableClientPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient>.IListener.GameClientConnectDidTimeout() => this.connectTimeoutCalled = true;
-            void IGameClient<ReliableClientPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient>.IListener.GameClientDidDisconnect() => this.disconnectCalled = true;
-            void IGameClient<ReliableClientPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient>.IListener.GameClientDidIdentifyLocalPlayer(ReliableClientPlayer player) => this.localPlayer = player;
-            void IGameClient<ReliableClientPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient>.IListener.GameClientDidReceiveMessage(MessageContainer container) => this.receivedMessages.Add(container);
-            void IGameClient<ReliableClientPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient>.IListener.GameClientNetworkPlayerDidDisconnect(ReliableClientPlayer player) => this.disconnectedPlayers.Add(player);
+            void IGameClientListener<ReliableClientPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient>.GameClientDidConnect() => this.connectedCalled = true;
+            void IGameClientListener<ReliableClientPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient>.GameClientConnectDidTimeout() => this.connectTimeoutCalled = true;
+            void IGameClientListener<ReliableClientPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient>.GameClientDidDisconnect() => this.disconnectCalled = true;
+            void IGameClientListener<ReliableClientPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient>.GameClientDidIdentifyLocalPlayer(ReliableClientPlayer player) => this.localPlayer = player;
+            void IGameClientListener<ReliableClientPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient>.GameClientDidReceiveMessage(MessageContainer container) => this.receivedMessages.Add(container);
+            void IGameClientListener<ReliableClientPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient>.GameClientNetworkPlayerDidDisconnect(ReliableClientPlayer player) => this.disconnectedPlayers.Add(player);
 
             #endregion
         }
@@ -71,9 +71,9 @@ namespace Tests.Core {
 
             #region IGameServerListener
 
-            void IGameServer<ReliableServerPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient>.IListener.GameServerPlayerDidConnect(ReliableServerPlayer player) => connectedPlayers.Add(player);
-            void IGameServer<ReliableServerPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient>.IListener.GameServerPlayerDidDisconnect(ReliableServerPlayer player) => disconnectedPlayers.Add(player);
-            void IGameServer<ReliableServerPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient>.IListener.GameServerDidReceiveClientMessage(MessageContainer container, ReliableServerPlayer player) => Assert.NotNull(player);
+            void IGameServerListener<ReliableServerPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient>.GameServerPlayerDidConnect(ReliableServerPlayer player) => connectedPlayers.Add(player);
+            void IGameServerListener<ReliableServerPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient>.GameServerPlayerDidDisconnect(ReliableServerPlayer player) => disconnectedPlayers.Add(player);
+            void IGameServerListener<ReliableServerPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient>.GameServerDidReceiveClientMessage(MessageContainer container, ReliableServerPlayer player) => Assert.NotNull(player);
 
             #endregion
         }

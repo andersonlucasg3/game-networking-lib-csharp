@@ -1,4 +1,5 @@
-﻿using GameNetworking.Networking.Commons;
+﻿using System.Security.Principal;
+using GameNetworking.Networking.Commons;
 using GameNetworking.Networking.Models;
 using Messages.Streams;
 using Networking.Models;
@@ -35,9 +36,9 @@ namespace GameNetworking.Networking {
 
         #region UnreliableSocket.IListener
 
-        void UnreliableSocket.IListener.SocketDidRead(byte[] bytes, UnreliableNetClient client) {
+        void UnreliableSocket.IListener.SocketDidRead(byte[] bytes, int count, UnreliableNetClient client) {
             var n_client = this.AcceptOrRetrieveClient(client);
-            this.TryReadMessage(bytes, n_client);
+            this.TryReadMessage(bytes, count, n_client);
         }
 
         #endregion

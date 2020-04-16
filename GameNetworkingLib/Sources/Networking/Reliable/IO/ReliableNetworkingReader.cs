@@ -12,8 +12,8 @@ namespace Networking.IO {
 
             this.isReceiving = true;
 
-            this.socket.Read((buffer) => {
-                this.listener?.ClientDidRead(buffer);
+            this.socket.Read((buffer, count) => {
+                this.listener?.ClientDidRead(buffer, count);
 
                 this.isReceiving = false;
             });

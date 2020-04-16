@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using Logging;
+using Networking.Commons;
 using Networking.Commons.Models;
 using Networking.Commons.Sockets;
 
@@ -13,18 +14,19 @@ namespace Networking.Sockets {
 
         void Close();
 
-        void Read(Action<byte[], IUDPSocket> callback);
+        void Read(Action<byte[], int, IUDPSocket> callback);
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1001:Types that own disposable fields should be disposable", Justification = "<Pending>")]
     public sealed class UDPSocket : IUDPSocket {
-        private const int bufferSize = 1024 * 1024;
+        private const int bufferSize = 8 * 1024;
         private const int SIO_UDP_CONNRESET = -1744830452;
         
         private readonly UDPSocket parent;
         private Socket socket;
         private IPEndPoint boundEndPoint;
         private IPEndPoint remoteEndPoint;
+        private ObjectPool<byte[]> bufferPool;
 
         private readonly Dictionary<EndPoint, UDPSocket> instantiatedEndPointSockets;
 
@@ -33,6 +35,7 @@ namespace Networking.Sockets {
 
         public UDPSocket() {
             this.instantiatedEndPointSockets = new Dictionary<EndPoint, UDPSocket>();
+            this.bufferPool = new ObjectPool<byte[]>(() => new byte[bufferSize]);
         }
 
         private UDPSocket(UDPSocket parent, IPEndPoint remoteEndPoint) : this() {
@@ -72,13 +75,14 @@ namespace Networking.Sockets {
             this.CleanUpSocket();
         }
 
-        public void Read(Action<byte[], IUDPSocket> callback) {
+        public void Read(Action<byte[], int, IUDPSocket> callback) {
             if (this.socket == null) {
-                callback.Invoke(null, null);
+                callback.Invoke(null, 0, null);
                 return;
             }
 
-            var buffer = new byte[bufferSize];
+            var buffer = this.bufferPool.Rent();
+
             EndPoint endPoint = new IPEndPoint(IPAddress.Any, 0);
             this.socket.BeginReceiveFrom(buffer, 0, bufferSize, SocketFlags.None, ref endPoint, ar => {
                 if (this.socket == null) { return; }
@@ -90,10 +94,9 @@ namespace Networking.Sockets {
                     this.instantiatedEndPointSockets[endPoint] = socket;
                 }
 
-                byte[] shrinkedBuffer = new byte[readBytes];
-                Array.Copy(buffer, shrinkedBuffer, readBytes);
+                callback.Invoke(buffer, readBytes, socket);
 
-                callback.Invoke(shrinkedBuffer, socket);
+                this.bufferPool.Pay(buffer);
             }, null);
         }
 

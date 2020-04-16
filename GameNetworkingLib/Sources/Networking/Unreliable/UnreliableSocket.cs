@@ -7,7 +7,7 @@ using Networking.Models;
 namespace Networking.Sockets {
     public class UnreliableSocket : INetworking<IUDPSocket, UnreliableNetClient>, UnreliableNetworkingReader.IListener {
         public interface IListener {
-            void SocketDidRead(byte[] bytes, UnreliableNetClient client);
+            void SocketDidRead(byte[] bytes, int count, UnreliableNetClient client);
         }
 
         private readonly UnreliableNetworkingReader reader;
@@ -51,14 +51,14 @@ namespace Networking.Sockets {
 
         void INetworking<IUDPSocket, UnreliableNetClient>.Read(UnreliableNetClient client) { }
         
-        void UnreliableNetworkingReader.IListener.ReaderDidRead(byte[] bytes, IUDPSocket from) {
+        void UnreliableNetworkingReader.IListener.ReaderDidRead(byte[] bytes, int count, IUDPSocket from) {
             if (from == null) { return; }
 
             if (!this.socketClientCollection.TryGetValue(from, out UnreliableNetClient client)) {
                 client = new UnreliableNetClient(from);
                 this.socketClientCollection[from] = client;
             }
-            this.listener?.SocketDidRead(bytes, client);
+            this.listener?.SocketDidRead(bytes, count, client);
         }
     }
 }

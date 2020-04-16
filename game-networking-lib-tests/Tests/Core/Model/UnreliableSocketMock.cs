@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Net;
 using Networking.Commons.Models;
 using Networking.Sockets;
@@ -67,20 +68,20 @@ namespace Test.Core.Model {
             this.isCommunicable = false;
         }
 
-        public void Read(Action<byte[], IUDPSocket> callback) {
+        public void Read(Action<byte[], int, IUDPSocket> callback) {
             var identifiable = writtenBytes.Find(id => id.toEndPoint == this.selfEndPoint && id.bytes.Count > 0);
             if (identifiable == null) {
-                callback?.Invoke(null, null);
+                callback?.Invoke(null, 0, null);
                 return;
             }
             var bytes = identifiable.bytes.ToArray();
             if (this.socketMapping.TryGetValue(identifiable.fromSocketId, out UnreliableSocketMock value)) {
-                callback?.Invoke(bytes, value);
+                callback?.Invoke(bytes, bytes.Length, value);
             } else {
                 var newSocket = new UnreliableSocketMock(identifiable.fromSocketId) { selfEndPoint = this.selfEndPoint };
                 newSocket.BindToRemote(identifiable.fromEndPoint);
                 this.socketMapping.Add(identifiable.fromSocketId, newSocket);
-                callback?.Invoke(bytes, newSocket);
+                callback?.Invoke(bytes, bytes.Length, newSocket);
             }
             identifiable.bytes.Clear();
         }

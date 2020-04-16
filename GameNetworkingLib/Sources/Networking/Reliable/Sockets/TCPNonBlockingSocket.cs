@@ -5,6 +5,7 @@ using System.Net.Sockets;
 namespace Networking.Sockets {
     using Commons.Models;
     using Commons.Sockets;
+    using Networking.Commons;
 
     public interface ITCPSocket : ISocket {
         bool isConnected { get; }
@@ -23,13 +24,16 @@ namespace Networking.Sockets {
         void Connect(NetEndPoint endPoint, Action callback);
         void Disconnect(Action callback);
 
-        void Read(Action<byte[]> callback);
+        void Read(Action<byte[], int> callback);
 
         #endregion
     }
 
     public sealed class TCPNonBlockingSocket : ITCPSocket, IDisposable {
+        private const int bufferSize = 8 * 1024;
+
         private readonly Socket socket;
+        private readonly ObjectPool<byte[]> bufferPool;
 
         public bool isConnected => this.socket.Connected;
         public bool isBound => this.socket.IsBound;
@@ -37,6 +41,7 @@ namespace Networking.Sockets {
         public bool isCommunicable => this.isConnected;
 
         public TCPNonBlockingSocket() {
+            this.bufferPool = new ObjectPool<byte[]>(() => new byte[bufferSize]);
             this.socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp) {
                 NoDelay = true,
                 Blocking = false,
@@ -105,16 +110,15 @@ namespace Networking.Sockets {
 
         #region Read & Write
 
-        public void Read(Action<byte[]> readAction) {
-            var bufferSize = 1024;
-            byte[] buffer = new byte[bufferSize];
+        public void Read(Action<byte[], int> readAction) {
+            var buffer = this.bufferPool.Rent();
+
             this.socket.BeginReceive(buffer, 0, bufferSize, SocketFlags.None, (ar) => {
                 var count = this.socket.EndReceive(ar);
 
-                byte[] shrinked = new byte[count];
-                this.Copy(buffer, ref shrinked);
+                readAction?.Invoke(buffer, count);
 
-                readAction?.Invoke(shrinked);
+                this.bufferPool.Pay(buffer);
             }, this);
         }
 

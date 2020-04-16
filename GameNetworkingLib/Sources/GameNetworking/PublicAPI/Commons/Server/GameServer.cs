@@ -158,7 +158,6 @@ namespace GameNetworking.Commons.Server {
         public void Send(ITypedMessage message, TPlayer player) {
             if (player == null || player.client == null) { return; }
             this.networkingServer.Send(message, player.client);
-            Logger.Log($"Sending {message} to ClientInfo-{player.client.client.socket}");
         }
 
         #region INetworkingServer<ITCPSocket, ReliableNetworkClient, ReliableNetClient>.IMessagesListener

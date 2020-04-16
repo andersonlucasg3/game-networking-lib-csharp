@@ -30,7 +30,6 @@ namespace GameNetworking.Commons.Server {
         }
 
         protected void Execute(IExecutor executor) {
-            Logger.Log($"Enqueuing executor {executor}");
             dispatcher.Enqueue(executor.Execute);
         }
 

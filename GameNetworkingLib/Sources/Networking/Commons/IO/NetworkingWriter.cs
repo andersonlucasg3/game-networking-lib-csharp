@@ -8,13 +8,13 @@ namespace Networking.Commons.IO {
         void Flush();
     }
 
-    public abstract class NetworkingWriter<TSocket> : IWriter 
+    public abstract class NetworkingWriter<TSocket> : IWriter
         where TSocket : ISocket {
         private readonly TSocket socket;
         private readonly List<byte> buffer;
 
         private bool isSending = false;
-        
+
         internal NetworkingWriter(TSocket socket) {
             this.socket = socket;
             this.buffer = new List<byte>();
@@ -41,7 +41,7 @@ namespace Networking.Commons.IO {
         }
 
         private void ShrinkBuffer(int written) {
-            if (this.buffer.Count == 0) { return; }
+            if (this.buffer.Count == 0 || written == 0) { return; }
             this.buffer.RemoveRange(0, written);
         }
     }

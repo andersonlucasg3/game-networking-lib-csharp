@@ -21,7 +21,7 @@ namespace Networking.Sockets {
     public sealed class UDPSocket : IUDPSocket {
         private const int bufferSize = 8 * 1024;
         private const int SIO_UDP_CONNRESET = -1744830452;
-        
+
         private readonly ObjectPool<byte[]> bufferPool;
         private readonly UDPSocket parent;
         private Socket socket;
@@ -56,14 +56,13 @@ namespace Networking.Sockets {
 
         public void Bind(NetEndPoint endPoint) {
             this.boundEndPoint = this.From(endPoint);
-            this.socket = new Socket(this.boundEndPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp) { DontFragment = true };
-            this.socket.ReceiveBufferSize = bufferSize;
-            this.socket.SendBufferSize = bufferSize;
+            this.socket = new Socket(this.boundEndPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp) {
+                ReceiveBufferSize = bufferSize,
+                SendBufferSize = bufferSize
+            };
             this.socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-#pragma warning disable CA1031 // Do not catch general exception types
-            try { this.socket.IOControl((IOControlCode)SIO_UDP_CONNRESET, new byte[] { 0, 0, 0, 0 }, null); } 
-            catch (Exception) { Logger.Log($"Error setting SIO_UDP_CONNRESET. Maybe not running on Windows."); }
-#pragma warning restore CA1031 // Do not catch general exception types
+            try { this.socket.DontFragment = true; } catch (Exception) { Logger.Log("DontFragment not supported."); }
+            try { this.socket.IOControl((IOControlCode)SIO_UDP_CONNRESET, new byte[] { 0, 0, 0, 0 }, null); } catch (Exception) { Logger.Log("Error setting SIO_UDP_CONNRESET. Maybe not running on Windows."); }
             this.socket.Bind(this.boundEndPoint);
             this.isCommunicable = true;
         }

@@ -22,7 +22,11 @@ namespace Networking.Commons.Models {
         }
 
         public override int GetHashCode() {
+#if !UNITY_64
             return host.GetHashCode(StringComparison.InvariantCulture) + port.GetHashCode();
+#else
+            return host.GetHashCode() + port.GetHashCode();
+#endif
         }
 
         public static bool operator ==(NetEndPoint left, NetEndPoint right) {

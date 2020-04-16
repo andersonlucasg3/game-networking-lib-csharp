@@ -23,9 +23,10 @@ namespace Networking.Commons.IO {
             if (this.isSending) { return; }
             this.isSending = true;
 
-            if (!this.buffer.TryDequeue(out byte[] buffer)) { return; }
-
+            if (!this.buffer.TryPeek(out byte[] buffer)) { return; }
             this.socket.Write(buffer, (written) => {
+                if (buffer.Length != written) { throw new System.Exception("Deu merda!"); }
+                if (!this.buffer.TryDequeue(out _)) { throw new System.Exception("Deu merda 2 !"); }
                 this.isSending = false;
             });
         }

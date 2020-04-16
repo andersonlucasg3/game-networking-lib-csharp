@@ -21,6 +21,7 @@ namespace TestServerApp {
         private readonly List<Action> actions = new List<Action>();
 
         private UnreliableGameServer<UnreliablePlayer> server;
+        private int counter = 0;
 
         static void Main(string[] _) {
             var program = new Program();
@@ -55,7 +56,7 @@ namespace TestServerApp {
 
         private void Send(UnreliablePlayer player) {
             this.server.Send(new Message(), player);
-            Logger.Log("Send message!");
+            Logger.Log($"Send message! {counter++}");
         }
     }
 

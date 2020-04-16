@@ -21,6 +21,7 @@ namespace TestClientApp {
         private readonly List<Action> actions = new List<Action>();
 
         private UnreliableGameClient<UnreliablePlayer> client;
+        private int counter = 0;
 
         static void Main(string[] _) {
             var program = new Program();
@@ -64,7 +65,10 @@ namespace TestClientApp {
 
         private void Send() {
             this.client.Send(new Message());
-            Logger.Log("Send message!");
+            Logger.Log($"Send message! {counter++}");
+            if (this.client.localPlayer == null) { return; }
+            var ping = this.client.GetPing(this.client.localPlayer.playerId);
+            Logger.Log($"Player ping {ping}");
         }
     }
 

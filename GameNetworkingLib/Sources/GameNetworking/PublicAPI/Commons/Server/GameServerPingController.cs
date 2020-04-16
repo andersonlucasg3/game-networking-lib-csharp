@@ -54,8 +54,8 @@ namespace GameNetworking.Commons.Server {
             }
         }
 
-        public float PongReceived(TPlayer player) {
-            if (player == null) { return 0F; }
+        public float PongReceived(TPlayer from) {
+            if (!(from is NetworkPlayer<TSocket, TClient, TNetClient> player)) { return 0F; }
 
             player.lastReceivedPongRequest = TimeUtils.CurrentTime();
 

@@ -10,7 +10,7 @@ namespace GameNetworking.Commons.Server {
     public abstract class GameServerClientAcceptor<TGame, TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>
         where TGame : IGameServer<TPlayer, TSocket, TClient, TNetClient>
         where TNetworkingServer : INetworkingServer<TSocket, TClient, TNetClient>
-        where TPlayer : class, INetworkPlayer<TSocket, TClient, TNetClient>, new() 
+        where TPlayer : class, INetworkPlayer<TSocket, TClient, TNetClient>, new()
         where TSocket : ISocket
         where TClient : INetworkClient<TSocket, TNetClient>
         where TNetClient : INetClient<TSocket, TNetClient> {
@@ -20,16 +20,15 @@ namespace GameNetworking.Commons.Server {
             void ClientAcceptorPlayerDidDisconnect(TPlayer player);
         }
 
-        private int playerIdCounter = 1;
+        private int playerIdCounter = 0;
 
         public IListener listener { get; set; }
 
         public GameServerClientAcceptor() { }
 
         public void AcceptClient(TClient client) {
-            var player = new TPlayer() { client = client, playerId = this.playerIdCounter };
-
-            this.playerIdCounter++;
+            var player = new TPlayer();
+            player.Configure(client, this.playerIdCounter++);
 
             this.listener.AddPlayer(player);
 

@@ -22,7 +22,7 @@ namespace Networking.Commons.Models {
         }
 
         public override int GetHashCode() {
-            return host.GetHashCode() + port.GetHashCode();
+            return host.GetHashCode(StringComparison.InvariantCulture) + port.GetHashCode();
         }
 
         public static bool operator ==(NetEndPoint left, NetEndPoint right) {

@@ -135,7 +135,8 @@ namespace Tests.IO {
             this.Measure(() => {
                 var position = 0;
                 do {
-                    decoder.Add(data.GetRange(position, 1).ToArray());
+                    var x = data.GetRange(position, 1).ToArray();
+                    decoder.Add(x, x.Length);
                     var container = decoder.Decode();
                     if (container != null) {
                         if (container.Is(LoginRequest.Type)) {

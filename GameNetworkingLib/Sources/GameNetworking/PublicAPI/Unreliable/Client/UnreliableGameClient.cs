@@ -3,11 +3,11 @@ using GameNetworking.Commons.Client;
 using GameNetworking.Commons.Models.Client;
 using GameNetworking.Messages.Client;
 using GameNetworking.Networking;
+using GameNetworking.Networking.Commons;
 using GameNetworking.Networking.Models;
+using Messages.Models;
 using Networking.Models;
 using Networking.Sockets;
-using GameNetworking.Networking.Commons;
-using Messages.Models;
 
 namespace GameNetworking {
     public class UnreliableGameClient<TPlayer> : GameClient<UnreliableNetworkingClient, TPlayer, IUDPSocket, UnreliableNetworkClient, UnreliableNetClient, UnreliableGameClient<TPlayer>>, INetworkingClientListener

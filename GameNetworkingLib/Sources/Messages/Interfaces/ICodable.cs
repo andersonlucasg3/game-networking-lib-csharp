@@ -1,3 +1,3 @@
 ﻿namespace Messages.Coders {
-    public interface ICodable: IEncodable, IDecodable { }
+    public interface ICodable : IEncodable, IDecodable { }
 }

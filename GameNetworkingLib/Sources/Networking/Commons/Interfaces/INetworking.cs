@@ -1,6 +1,6 @@
 ﻿namespace Networking.Commons {
-    using Sockets;
     using Models;
+    using Sockets;
 
     public interface INetworking<TSocket, TClient> where TSocket : ISocket where TClient : INetClient<TSocket, TClient> {
         int port { get; }

@@ -4,7 +4,7 @@ namespace Networking.Commons.IO {
     public interface IReaderListener {
         void ClientDidRead(byte[] bytes, int count);
     }
-    
+
     public interface IReader {
         IReaderListener listener { get; set; }
 

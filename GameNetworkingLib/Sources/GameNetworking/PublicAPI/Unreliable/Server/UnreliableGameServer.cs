@@ -10,7 +10,7 @@ namespace GameNetworking {
     public class UnreliableGameServer<TPlayer> : GameServer<UnreliableNetworkingServer, TPlayer, IUDPSocket, UnreliableNetworkClient, UnreliableNetClient, UnreliableClientAcceptor<TPlayer>, UnreliableGameServer<TPlayer>>
         where TPlayer : class, INetworkPlayer<IUDPSocket, UnreliableNetworkClient, UnreliableNetClient>, new() {
 
-        public UnreliableGameServer(UnreliableNetworkingServer server, IMainThreadDispatcher dispatcher) 
+        public UnreliableGameServer(UnreliableNetworkingServer server, IMainThreadDispatcher dispatcher)
             : base(server, new GameServerMessageRouter<UnreliableGameServer<TPlayer>, UnreliableNetworkingServer, TPlayer, IUDPSocket, UnreliableNetworkClient, UnreliableNetClient>(dispatcher)) {
             this.networkingServer.listener = this;
         }

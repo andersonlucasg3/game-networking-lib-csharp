@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using GameNetworking.Commons.Models;
 using Messages.Models;
 using Messages.Streams;

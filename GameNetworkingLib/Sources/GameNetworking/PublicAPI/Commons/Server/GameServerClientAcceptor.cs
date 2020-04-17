@@ -1,10 +1,10 @@
-﻿using Logging;
+﻿using GameNetworking.Commons.Models;
 using GameNetworking.Commons.Models.Server;
 using GameNetworking.Messages.Server;
-using Networking.Commons.Sockets;
-using GameNetworking.Commons.Models;
 using GameNetworking.Networking.Commons;
+using Logging;
 using Networking.Commons.Models;
+using Networking.Commons.Sockets;
 
 namespace GameNetworking.Commons.Server {
     public abstract class GameServerClientAcceptor<TGame, TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>

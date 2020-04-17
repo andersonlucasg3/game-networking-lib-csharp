@@ -1,9 +1,9 @@
-﻿using Networking;
-using Networking.Models;
-using Messages.Streams;
-using Networking.Sockets;
-using GameNetworking.Networking.Commons;
+﻿using GameNetworking.Networking.Commons;
 using GameNetworking.Networking.Models;
+using Messages.Streams;
+using Networking;
+using Networking.Models;
+using Networking.Sockets;
 
 namespace GameNetworking.Networking {
     public class ReliableNetworkingServer : NetworkingServer<ReliableSocket, ITCPSocket, ReliableNetworkClient, ReliableNetClient> {

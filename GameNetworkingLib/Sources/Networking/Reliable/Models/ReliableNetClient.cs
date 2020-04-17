@@ -1,8 +1,8 @@
 using System;
 
 namespace Networking.Models {
-    using Commons.Models;
     using Commons.IO;
+    using Commons.Models;
     using Sockets;
 
     public interface IReliableNetClient<TSocket, TDerived> : INetClient<TSocket, TDerived>

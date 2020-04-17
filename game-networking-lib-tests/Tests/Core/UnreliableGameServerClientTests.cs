@@ -104,7 +104,7 @@ namespace Tests.Core {
             public bool disconnectCalled { get; private set; }
             public UnreliableClientPlayer localPlayer { get; private set; }
 
-            #region IGameClientListener
+#region IGameClientListener
 
             public void GameClientDidConnect() => this.connectedCalled = true;
             public void GameClientConnectDidTimeout() => this.connectTimeoutCalled = true;
@@ -113,20 +113,20 @@ namespace Tests.Core {
             public void GameClientDidReceiveMessage(MessageContainer container) => this.receivedMessages.Add(container);
             public void GameClientNetworkPlayerDidDisconnect(UnreliableClientPlayer player) => this.disconnectedPlayers.Add(player);
 
-            #endregion
+#endregion
         }
 
         public class ServerListener : IServerListener<UnreliableServerPlayer, IUDPSocket, UnreliableNetworkClient, UnreliableNetClient> {
             public List<UnreliableServerPlayer> connectedPlayers { get; } = new List<UnreliableServerPlayer>();
             public List<UnreliableServerPlayer> disconnectedPlayers { get; } = new List<UnreliableServerPlayer>();
 
-            #region IGameServerListener
+#region IGameServerListener
 
             public void GameServerPlayerDidConnect(UnreliableServerPlayer player) => connectedPlayers.Add(player);
             public void GameServerPlayerDidDisconnect(UnreliableServerPlayer player) => disconnectedPlayers.Add(player);
             public void GameServerDidReceiveClientMessage(MessageContainer container, UnreliableServerPlayer player) => Assert.NotNull(player);
 
-            #endregion
+#endregion
         }
 
         public class MessageSender : IGameClientMessageSender {

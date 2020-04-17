@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using GameNetworking.Commons.Models;
 using GameNetworking.Commons.Models.Server;
 using GameNetworking.Networking.Commons;
-using Logging;
 using Messages.Models;
 using Networking.Commons.Models;
 using Networking.Commons.Sockets;
@@ -161,7 +159,7 @@ namespace GameNetworking.Commons.Server {
         #region INetworkingServer<ITCPSocket, ReliableNetworkClient, ReliableNetClient>.IMessagesListener
 
         void INetworkingServerListener<TSocket, TClient, TNetClient>.NetworkingServerDidAcceptClient(TClient client) {
-            
+
         }
 
         void INetworkingServerListener<TSocket, TClient, TNetClient>.NetworkingServerClientDidDisconnect(TClient client) {

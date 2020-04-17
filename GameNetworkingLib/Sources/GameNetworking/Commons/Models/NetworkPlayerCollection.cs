@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using GameNetworking.Commons.Models.Server;
 using Networking.Commons.Models;
@@ -7,12 +6,11 @@ using Networking.Commons.Sockets;
 namespace GameNetworking.Commons.Models {
     using System.Collections;
 
-    public class NetworkPlayerCollection<TPlayer, TSocket, TClient, TNetClient> : IEnumerable<TPlayer> 
+    public class NetworkPlayerCollection<TPlayer, TSocket, TClient, TNetClient> : IEnumerable<TPlayer>
         where TPlayer : class, INetworkPlayer<TSocket, TClient, TNetClient>, new()
         where TSocket : ISocket
         where TClient : INetworkClient<TSocket, TNetClient>
-        where TNetClient : INetClient<TSocket, TNetClient>
-        {
+        where TNetClient : INetClient<TSocket, TNetClient> {
         public interface IListener {
             void PlayerStorageDidAdd(TPlayer player);
             void PlayerStorageDidRemove(TPlayer player);

@@ -61,7 +61,8 @@ namespace GameNetworking.Networking {
         #region UnreliableSocket.IListener
 
         void UnreliableSocket.IListener.SocketDidRead(byte[] bytes, int count, UnreliableNetClient client) {
-            /*bool isNew = */this.AcceptOrRetrieveClient(client, out UnreliableNetworkClient networkClient);
+            /*bool isNew = */
+            this.AcceptOrRetrieveClient(client, out UnreliableNetworkClient networkClient);
             this.TryReadMessage(bytes, count, networkClient);
             //if (isNew) { this.listener?.NetworkingServerDidAcceptClient(networkClient); }
         }

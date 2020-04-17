@@ -1,10 +1,10 @@
-﻿using Messages.Models;
-using GameNetworking.Networking.Commons;
-using Networking.Sockets;
-using GameNetworking.Commons.Models.Client;
-using GameNetworking.Networking.Models;
-using Networking.Models;
+﻿using GameNetworking.Commons.Models.Client;
 using GameNetworking.Networking;
+using GameNetworking.Networking.Commons;
+using GameNetworking.Networking.Models;
+using Messages.Models;
+using Networking.Models;
+using Networking.Sockets;
 
 namespace GameNetworking {
     internal class GameClientConnection<TPlayer> : IReliableNetworkingClientListener

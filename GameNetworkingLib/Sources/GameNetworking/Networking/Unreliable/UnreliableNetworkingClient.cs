@@ -1,9 +1,9 @@
 ﻿using GameNetworking.Networking.Commons;
 using GameNetworking.Networking.Models;
+using Messages.Streams;
 using Networking.Commons.Models;
 using Networking.Models;
 using Networking.Sockets;
-using Messages.Streams;
 
 namespace GameNetworking.Networking {
     public class UnreliableNetworkingClient : NetworkingClient<UnreliableSocket, IUDPSocket, UnreliableNetworkClient, UnreliableNetClient>, UnreliableSocket.IListener {

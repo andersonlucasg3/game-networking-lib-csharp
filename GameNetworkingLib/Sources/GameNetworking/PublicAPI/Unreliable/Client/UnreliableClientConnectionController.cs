@@ -59,8 +59,9 @@ namespace GameNetworking {
         }
 
         private void Send() {
-            this.client.Send(new UnreliableConnectMessage());
-            this.client.Send(new UnreliableConnectMessage());
+            var connect = new UnreliableConnectMessage();
+            this.client.Send(connect);
+            this.client.Send(connect);
         }
 
         #endregion

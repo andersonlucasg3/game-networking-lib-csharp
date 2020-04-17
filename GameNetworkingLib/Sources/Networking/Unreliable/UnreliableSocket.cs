@@ -14,7 +14,7 @@ namespace Networking.Sockets {
         private readonly Dictionary<IUDPSocket, UnreliableNetClient> socketClientCollection = new Dictionary<IUDPSocket, UnreliableNetClient>();
 
         internal IUDPSocket socket { get; private set; }
-        
+
         public int port { get; private set; }
 
         public IListener listener { get; set; }
@@ -50,7 +50,7 @@ namespace Networking.Sockets {
         }
 
         void INetworking<IUDPSocket, UnreliableNetClient>.Read(UnreliableNetClient client) { }
-        
+
         void UnreliableNetworkingReader.IListener.ReaderDidRead(byte[] bytes, int count, IUDPSocket from) {
             if (from == null) { return; }
 

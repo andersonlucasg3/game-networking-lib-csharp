@@ -1,7 +1,7 @@
-﻿using Messages.Streams;
+﻿using GameNetworking.Commons.Models;
+using Messages.Streams;
 using Networking.Models;
 using Networking.Sockets;
-using GameNetworking.Commons.Models;
 
 namespace GameNetworking.Networking.Models {
     public class ReliableNetworkClient : NetworkClient<ITCPSocket, ReliableNetClient> {

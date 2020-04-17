@@ -53,7 +53,7 @@ namespace Tests.Core {
             public bool disconnectCalled { get; private set; }
             public ReliableClientPlayer localPlayer { get; private set; }
 
-            #region IGameClientListener
+#region IGameClientListener
 
             void IGameClientListener<ReliableClientPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient>.GameClientDidConnect() => this.connectedCalled = true;
             void IGameClientListener<ReliableClientPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient>.GameClientConnectDidTimeout() => this.connectTimeoutCalled = true;
@@ -62,20 +62,20 @@ namespace Tests.Core {
             void IGameClientListener<ReliableClientPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient>.GameClientDidReceiveMessage(MessageContainer container) => this.receivedMessages.Add(container);
             void IGameClientListener<ReliableClientPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient>.GameClientNetworkPlayerDidDisconnect(ReliableClientPlayer player) => this.disconnectedPlayers.Add(player);
 
-            #endregion
+#endregion
         }
 
         public class ServerListener : IServerListener<ReliableServerPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient> {
             public List<ReliableServerPlayer> connectedPlayers { get; } = new List<ReliableServerPlayer>();
             public List<ReliableServerPlayer> disconnectedPlayers { get; } = new List<ReliableServerPlayer>();
 
-            #region IGameServerListener
+#region IGameServerListener
 
             void IGameServerListener<ReliableServerPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient>.GameServerPlayerDidConnect(ReliableServerPlayer player) => connectedPlayers.Add(player);
             void IGameServerListener<ReliableServerPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient>.GameServerPlayerDidDisconnect(ReliableServerPlayer player) => disconnectedPlayers.Add(player);
             void IGameServerListener<ReliableServerPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient>.GameServerDidReceiveClientMessage(MessageContainer container, ReliableServerPlayer player) => Assert.NotNull(player);
 
-            #endregion
+#endregion
         }
     }
 }

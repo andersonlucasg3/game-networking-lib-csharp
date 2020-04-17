@@ -1,10 +1,10 @@
 ﻿using GameNetworking.Commons;
-using GameNetworking.Commons.Models.Client;
 using GameNetworking.Commons.Client;
-using Networking.Sockets;
+using GameNetworking.Commons.Models.Client;
+using GameNetworking.Networking;
 using GameNetworking.Networking.Models;
 using Networking.Models;
-using GameNetworking.Networking;
+using Networking.Sockets;
 
 namespace GameNetworking {
     public class ReliableGameClient<TPlayer> : GameClient<ReliableNetworkingClient, TPlayer, ITCPSocket, ReliableNetworkClient, ReliableNetClient, ReliableGameClient<TPlayer>>

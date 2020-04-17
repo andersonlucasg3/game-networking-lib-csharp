@@ -1,21 +1,21 @@
-﻿using Logging;
+﻿using GameNetworking.Commons.Models;
 using GameNetworking.Commons.Models.Server;
 using GameNetworking.Messages.Server;
-using Networking.Commons.Sockets;
-using GameNetworking.Commons.Models;
 using GameNetworking.Networking.Commons;
+using Logging;
 using Networking.Commons.Models;
+using Networking.Commons.Sockets;
 
 namespace GameNetworking.Commons.Server {
     public abstract class GameServerClientAcceptor<TGame, TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>
-        where TGame : IGameServer<TPlayer, TSocket, TClient, TNetClient>
+        where TGame : IGameServer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>
         where TNetworkingServer : INetworkingServer<TSocket, TClient, TNetClient>
         where TPlayer : class, INetworkPlayer<TSocket, TClient, TNetClient>, new()
         where TSocket : ISocket
         where TClient : INetworkClient<TSocket, TNetClient>
         where TNetClient : INetClient<TSocket, TNetClient> {
 
-        public interface IListener : IGameServer<TPlayer, TSocket, TClient, TNetClient> {
+        public interface IListener : IGameServer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient> {
             void ClientAcceptorPlayerDidConnect(TPlayer player);
             void ClientAcceptorPlayerDidDisconnect(TPlayer player);
         }

@@ -1,17 +1,16 @@
-﻿using Messages.Models;
-using Networking.Commons.Sockets;
-using Networking.Commons.Models;
-using GameNetworking.Commons.Models;
-using GameNetworking.Executors.Server;
-using GameNetworking.Networking.Commons;
+﻿using GameNetworking.Commons.Models;
 using GameNetworking.Commons.Models.Server;
-using GameNetworking.Messages;
 using GameNetworking.Executors;
-using Logging;
+using GameNetworking.Executors.Server;
+using GameNetworking.Messages;
+using GameNetworking.Networking.Commons;
+using Messages.Models;
+using Networking.Commons.Models;
+using Networking.Commons.Sockets;
 
 namespace GameNetworking.Commons.Server {
     public class GameServerMessageRouter<TGame, TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>
-        where TGame : IGameServer<TPlayer, TSocket, TClient, TNetClient>
+        where TGame : IGameServer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>
         where TNetworkingServer : INetworkingServer<TSocket, TClient, TNetClient>
         where TPlayer : class, INetworkPlayer<TSocket, TClient, TNetClient>, new()
         where TSocket : ISocket
@@ -37,8 +36,8 @@ namespace GameNetworking.Commons.Server {
             if (container == null) { return; }
 
             switch ((MessageType)container.type) {
-            case MessageType.pong: Execute(new PongRequestExecutor<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>(this.server, player)); break;
-            default: this.server.listener?.GameServerDidReceiveClientMessage(container, player); break;
+                case MessageType.pong: Execute(new PongRequestExecutor<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>(this.server, player)); break;
+                default: this.server.listener?.GameServerDidReceiveClientMessage(container, player); break;
             }
         }
     }

@@ -1,28 +1,35 @@
 ﻿using GameNetworking.Commons;
-using GameNetworking.Commons.Models.Server;
-using GameNetworking.Commons.Server;
+using GameNetworking.Executors;
 using GameNetworking.Executors.Server;
 using GameNetworking.Messages;
 using GameNetworking.Networking;
 using GameNetworking.Networking.Models;
 using Messages.Models;
-using Networking.Models;
-using Networking.Sockets;
 
 namespace GameNetworking {
-    public class UnreliableServerMessageRouter<TPlayer> : GameServerMessageRouter<UnreliableGameServer<TPlayer>, UnreliableNetworkingServer, TPlayer, IUDPSocket, UnreliableNetworkClient, UnreliableNetClient>
-        where TPlayer : class, INetworkPlayer<IUDPSocket, UnreliableNetworkClient, UnreliableNetClient>, new() {
+    public class UnreliableServerMessageRouter {
+        private readonly UnreliableNetworkingServer server;
+        private readonly IMainThreadDispatcher dispatcher;
 
-        internal UnreliableServerMessageRouter(IMainThreadDispatcher dispatcher) : base(dispatcher) { }
+        internal UnreliableServerMessageRouter(UnreliableNetworkingServer server, IMainThreadDispatcher dispatcher) {
+            this.server = server;
+            this.dispatcher = dispatcher;
+        }
 
-        public override void Route(MessageContainer container, TPlayer player) {
-            if (container == null) { return; }
+        public bool Route(MessageContainer container, UnreliableNetworkClient client) {
+            var type = (MessageType)container.type;
 
-            switch ((MessageType)container.type) {
-                case MessageType.connect: this.Execute(new UnreliableConnectExecutor<TPlayer>(this.server, player)); break;
-                case MessageType.disconnect: this.Execute(new UnreliableDisconnectExecutor<TPlayer>(this.server, player)); break;
-                default: base.Route(container, player); break;
+            switch (type) {
+                case MessageType.connect: this.Execute(new UnreliableConnectExecutor(this.server, client)); break;
+                case MessageType.disconnect: this.Execute(new UnreliableDisconnectExecutor(this.server, client)); break;
+                default: return false;
             }
+
+            return true;
+        }
+
+        private void Execute(IExecutor executor) {
+            this.dispatcher.Enqueue(executor.Execute);
         }
     }
 }

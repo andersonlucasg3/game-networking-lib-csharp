@@ -1,23 +1,26 @@
 ﻿using GameNetworking.Commons;
-using GameNetworking.Commons.Models.Server;
 using GameNetworking.Messages.Server;
+using GameNetworking.Networking;
 using GameNetworking.Networking.Models;
-using Networking.Models;
-using Networking.Sockets;
 
 namespace GameNetworking.Executors.Server {
-    public class UnreliableConnectExecutor<TPlayer> : BaseExecutor<UnreliableGameServer<TPlayer>>
-        where TPlayer : class, INetworkPlayer<IUDPSocket, UnreliableNetworkClient, UnreliableNetClient>, new() {
+    public class UnreliableConnectExecutor : BaseExecutor<UnreliableNetworkingServer> {
+        private readonly UnreliableNetworkClient client;
 
-        private readonly TPlayer player;
-
-        public UnreliableConnectExecutor(UnreliableGameServer<TPlayer> instance, TPlayer player) : base(instance) {
-            this.player = player;
+        public UnreliableConnectExecutor(UnreliableNetworkingServer instance, UnreliableNetworkClient client) : base(instance) {
+            this.client = client;
         }
 
         public override void Execute() {
-            this.instance.Send(new UnreliableConnectResponseMessage(), this.player);
-            this.instance.Send(new UnreliableConnectResponseMessage(), this.player);
+            if (this.client.isConnected) { return; }
+
+            var connect = new UnreliableConnectResponseMessage();
+            this.instance.Send(connect, this.client);
+            this.instance.Send(connect, this.client);
+
+            this.client.isConnected = true;
+
+            this.instance.listener?.NetworkingServerDidAcceptClient(this.client);
         }
     }
 }

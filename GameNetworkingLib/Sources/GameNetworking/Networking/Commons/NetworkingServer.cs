@@ -120,8 +120,12 @@ namespace GameNetworking.Networking.Commons {
 
             MessageContainer message;
             while ((message = client.reader.Decode()) != null) {
-                this.messagesListener?.NetworkingServerDidReadMessage(message, client);
+                this.ProcessMessage(message, client);
             }
+        }
+
+        protected virtual void ProcessMessage(MessageContainer message, TClient client) {
+            this.messagesListener?.NetworkingServerDidReadMessage(message, client);
         }
 
         protected void RemoveDisconnected() {

@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using GameNetworking.Commons.Models;
 using GameNetworking.Commons.Models.Client;
 using GameNetworking.Networking.Commons;

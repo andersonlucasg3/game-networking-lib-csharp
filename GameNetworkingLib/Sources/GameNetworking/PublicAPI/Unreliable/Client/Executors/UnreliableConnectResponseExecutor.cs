@@ -5,7 +5,7 @@ using Networking.Models;
 using Networking.Sockets;
 
 namespace GameNetworking.Executors.Client {
-    public class UnreliableConnectResponseExecutor<TPlayer> : BaseExecutor<UnreliableGameClient<TPlayer>> 
+    public class UnreliableConnectResponseExecutor<TPlayer> : BaseExecutor<UnreliableGameClient<TPlayer>>
         where TPlayer : class, INetworkPlayer<IUDPSocket, UnreliableNetworkClient, UnreliableNetClient>, new() {
         public UnreliableConnectResponseExecutor(UnreliableGameClient<TPlayer> instance) : base(instance) { }
 

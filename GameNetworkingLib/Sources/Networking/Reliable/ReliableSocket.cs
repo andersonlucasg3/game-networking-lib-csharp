@@ -1,13 +1,12 @@
-﻿using System.Net;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Networking {
-    using Models;
-    using Sockets;
-    using Logging;
     using Commons;
     using Commons.Models;
+    using Logging;
+    using Models;
     using Networking.IO;
+    using Sockets;
 
     public interface IReliableSocketListener {
         void NetworkingDidConnect(ReliableNetClient client);

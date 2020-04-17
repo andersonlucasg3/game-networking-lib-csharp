@@ -1,6 +1,6 @@
-﻿using Messages.Streams;
+﻿using System;
 using Messages.Models;
-using System;
+using Messages.Streams;
 using Networking.Commons.Models;
 using Networking.Commons.Sockets;
 

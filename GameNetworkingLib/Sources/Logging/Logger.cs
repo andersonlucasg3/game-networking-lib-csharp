@@ -1,6 +1,6 @@
 using System;
-using System.Runtime.CompilerServices;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Logging {
     public static class Logger {

@@ -118,7 +118,6 @@ namespace GameNetworking.Commons.Server {
 
         void IGameServer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>.RemovePlayer(TPlayer player) {
             if (player == null) { return; }
-            this.networkingServer.Disconnect(player.client);
             this.playersStorage.Remove(player.playerId);
         }
 
@@ -159,7 +158,7 @@ namespace GameNetworking.Commons.Server {
         #region INetworkingServer<ITCPSocket, ReliableNetworkClient, ReliableNetClient>.IMessagesListener
 
         void INetworkingServerListener<TSocket, TClient, TNetClient>.NetworkingServerDidAcceptClient(TClient client) {
-
+            this.clientAcceptor.AcceptClient(client);
         }
 
         void INetworkingServerListener<TSocket, TClient, TNetClient>.NetworkingServerClientDidDisconnect(TClient client) {

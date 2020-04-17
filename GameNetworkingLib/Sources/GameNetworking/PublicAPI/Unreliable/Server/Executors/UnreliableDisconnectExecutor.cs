@@ -1,4 +1,5 @@
 ﻿using GameNetworking.Commons;
+using GameNetworking.Messages.Server;
 using GameNetworking.Networking;
 using GameNetworking.Networking.Models;
 
@@ -12,6 +13,10 @@ namespace GameNetworking.Executors.Server {
 
         public override void Execute() {
             if (this.client == null) { return; }
+
+            var disconnect = new UnreliableDisconnectResponseMessage();
+            this.instance.Send(disconnect, client);
+            this.instance.Send(disconnect, client);
 
             this.instance.Disconnect(this.client);
         }

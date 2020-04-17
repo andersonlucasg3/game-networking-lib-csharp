@@ -20,7 +20,7 @@ namespace GameNetworking.Executors.Server {
 
             this.client.isConnected = true;
 
-            this.instance.listener.NetworkingServerDidAcceptClient(this.client);
+            this.instance.listener?.NetworkingServerDidAcceptClient(this.client);
         }
     }
 }

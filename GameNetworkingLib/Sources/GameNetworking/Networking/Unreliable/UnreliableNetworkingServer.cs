@@ -1,5 +1,4 @@
 ﻿using GameNetworking.Commons;
-using GameNetworking.Messages.Server;
 using GameNetworking.Networking.Commons;
 using GameNetworking.Networking.Models;
 using Messages.Models;
@@ -17,10 +16,6 @@ namespace GameNetworking.Networking {
         }
 
         public override void Disconnect(UnreliableNetworkClient client) {
-            var disconnect = new UnreliableDisconnectResponseMessage();
-            this.Send(disconnect, client);
-            this.Send(disconnect, client);
-
             base.Disconnect(client);
 
             this.listener?.NetworkingServerClientDidDisconnect(client);

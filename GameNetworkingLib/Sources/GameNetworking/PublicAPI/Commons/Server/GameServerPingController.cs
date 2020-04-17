@@ -28,11 +28,11 @@ namespace GameNetworking.Commons.Server {
         private readonly Dictionary<int, PingPlayer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>> pingPlayers = new Dictionary<int, PingPlayer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>>();
         private PingPlayer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>[] pingPlayersArray;
 
-        private readonly IGameServer<TPlayer, TSocket, TClient, TNetClient> instance;
+        private readonly IGameServer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient> instance;
 
         public float pingInterval { get; set; } = 1F;
 
-        public GameServerPingController(IGameServer<TPlayer, TSocket, TClient, TNetClient> instance, NetworkPlayerCollection<TPlayer, TSocket, TClient, TNetClient> storage) {
+        public GameServerPingController(IGameServer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient> instance, NetworkPlayerCollection<TPlayer, TSocket, TClient, TNetClient> storage) {
             this.instance = instance;
             storage.listeners.Add(this);
         }

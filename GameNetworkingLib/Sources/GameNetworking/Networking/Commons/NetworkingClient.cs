@@ -8,7 +8,7 @@ namespace GameNetworking.Networking.Commons {
     public interface INetworkingClientListener {
         void NetworkingClientDidReadMessage(MessageContainer container);
     }
-    
+
     public interface INetworkingClient<TSocket, TClient, TNetClient>
         where TSocket : ISocket
         where TClient : INetworkClient<TSocket, TNetClient>
@@ -58,12 +58,10 @@ namespace GameNetworking.Networking.Commons {
 
         void INetClientListener<TSocket, TNetClient>.ClientDidReadBytes(TNetClient client, byte[] bytes, int count) {
             this.client.reader.Add(bytes, count);
-            MessageContainer container;
-            do {
-                container = this.client.reader.Decode();
-                if (container == null) { continue; }
-                this.listener?.NetworkingClientDidReadMessage(container);
-            } while (container != null);
+            MessageContainer message;
+            while ((message = this.client.reader.Decode()) != null) {
+                this.listener?.NetworkingClientDidReadMessage(message);
+            }
         }
 
         #endregion

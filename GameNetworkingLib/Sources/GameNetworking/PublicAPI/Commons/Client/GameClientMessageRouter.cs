@@ -1,13 +1,9 @@
-﻿using GameNetworking.Commons;
-using GameNetworking.Commons.Client;
-using GameNetworking.Commons.Models;
+﻿using GameNetworking.Commons.Models;
 using GameNetworking.Commons.Models.Client;
 using GameNetworking.Executors;
 using GameNetworking.Executors.Client;
 using GameNetworking.Messages;
 using GameNetworking.Messages.Server;
-using GameNetworking.Networking.Commons;
-using Logging;
 using Messages.Models;
 using Networking.Commons.Models;
 using Networking.Commons.Sockets;

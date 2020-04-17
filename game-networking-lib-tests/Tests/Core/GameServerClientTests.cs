@@ -43,7 +43,7 @@ namespace Tests.Core {
     public abstract class GameServerClientTests<TNetworkingServer, TNetworkingClient, TGameServer, TGameClient, TServerPlayer, TClientPlayer, TSocket, TClient, TNetClient, TClientAcceptor, TServerListener, TClientListener>
         where TNetworkingServer : INetworkingServer<TSocket, TClient, TNetClient>
         where TNetworkingClient : INetworkingClient<TSocket, TClient, TNetClient>
-        where TGameServer : IGameServer<TServerPlayer, TSocket, TClient, TNetClient>
+        where TGameServer : IGameServer<TNetworkingServer, TServerPlayer, TSocket, TClient, TNetClient>
         where TGameClient : IGameClient<TClientPlayer, TSocket, TClient, TNetClient>
         where TServerPlayer : class, GameNetworking.Commons.Models.Server.INetworkPlayer<TSocket, TClient, TNetClient>, new()
         where TClientPlayer : class, GameNetworking.Commons.Models.Client.INetworkPlayer<TSocket, TClient, TNetClient>, new()

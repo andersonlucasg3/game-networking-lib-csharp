@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Net;
 using GameNetworking;
 using GameNetworking.Commons;
 using GameNetworking.Commons.Server;
@@ -25,7 +24,7 @@ namespace TestServerApp {
 
         static void Main(string[] _) {
             var program = new Program();
-            program.server = new UnreliableGameServer<UnreliablePlayer>(new UnreliableNetworkingServer(new UnreliableSocket(new UDPSocket())), program);
+            program.server = new UnreliableGameServer<UnreliablePlayer>(new UnreliableNetworkingServer(new UnreliableSocket(new UDPSocket()), program), program);
 
             program.server.Start("127.0.0.1", 64000);
 

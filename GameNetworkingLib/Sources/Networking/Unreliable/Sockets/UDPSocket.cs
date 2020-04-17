@@ -124,6 +124,13 @@ namespace Networking.Sockets {
             return this.remoteEndPoint.Equals(endPoint);
         }
 
+        public override bool Equals(object obj) {
+            if (obj is UDPSocket other) {
+                return this.Equals(other.remoteEndPoint);
+            }
+            return base.Equals(obj);
+        }
+
         #endregion
 
         #region Private Methods

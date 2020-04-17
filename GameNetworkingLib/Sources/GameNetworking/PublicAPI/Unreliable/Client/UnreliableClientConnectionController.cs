@@ -1,13 +1,7 @@
 ﻿using System;
 using GameNetworking.Commons;
 using GameNetworking.Commons.Client;
-using GameNetworking.Commons.Models;
-using GameNetworking.Commons.Models.Client;
 using GameNetworking.Messages.Client;
-using GameNetworking.Networking.Models;
-using Networking.Commons.Models;
-using Networking.Models;
-using Networking.Sockets;
 
 namespace GameNetworking {
     public class UnreliableClientConnectionController {
@@ -15,12 +9,12 @@ namespace GameNetworking {
 
         private readonly Action timeOutAction = null;
 
-        private bool isConnecting = false;
         private int retryCount = 0;
         private double startTime = -1F;
 
         private double elapsedTime => TimeUtils.CurrentTime() - this.startTime;
 
+        public bool isConnecting { get; private set; } = false;
         public float secondsBetweenRetries { get; set; } = 3F;
         public int maximumNumberOfRetries { get; set; } = 3;
 
@@ -65,6 +59,7 @@ namespace GameNetworking {
         }
 
         private void Send() {
+            this.client.Send(new UnreliableConnectMessage());
             this.client.Send(new UnreliableConnectMessage());
         }
 

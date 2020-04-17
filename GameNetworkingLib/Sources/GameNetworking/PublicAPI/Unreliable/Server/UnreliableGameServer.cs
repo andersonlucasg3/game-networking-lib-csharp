@@ -17,6 +17,7 @@ namespace GameNetworking {
 
         public void Disconnect(TPlayer player) {
             this.Send(new UnreliableDisconnectResponseMessage(), player);
+            this.Send(new UnreliableDisconnectResponseMessage(), player);
         }
 
         internal void DisconnectRequired(TPlayer player) {

@@ -17,6 +17,7 @@ namespace GameNetworking.Executors.Server {
 
         public override void Execute() {
             this.instance.Send(new UnreliableConnectResponseMessage(), this.player);
+            this.instance.Send(new UnreliableConnectResponseMessage(), this.player);
         }
     }
 }

@@ -84,7 +84,10 @@ namespace GameNetworking.Commons.Client {
 
         public abstract void Connect(string host, int port);
         public abstract void Disconnect();
-        internal abstract void DidDisconnect();
+
+        internal virtual void DidDisconnect() {
+            this.localPlayer = null;
+        }
 
         public void Send(ITypedMessage message) {
             this.networkingClient.Send(message);
@@ -100,7 +103,6 @@ namespace GameNetworking.Commons.Client {
             if (elapsedTime >= this.timeOutDelay) {
                 this.Disconnect();
                 this.DidDisconnect();
-                this.localPlayer = null;
             }
         }
 

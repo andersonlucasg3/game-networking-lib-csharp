@@ -34,7 +34,6 @@ namespace GameNetworking {
         public override void Disconnect() {
             this.Send(new UnreliableDisconnectMessage());
             this.Send(new UnreliableDisconnectMessage());
-            this.Send(new UnreliableDisconnectMessage());
         }
 
         public override void Update() {
@@ -44,14 +43,19 @@ namespace GameNetworking {
         }
 
         internal void DidConnect() {
-            this.clientConnectionController.Stop();
-            this.listener?.GameClientDidConnect();
+            if (this.clientConnectionController.isConnecting) {
+                this.clientConnectionController.Stop();
+                this.listener?.GameClientDidConnect();
+            }
         }
 
         internal override void DidDisconnect() {
-            this.playersStorage.Clear();
-            this.networkingClient.Close();
-            this.listener?.GameClientDidDisconnect();
+            if (this.localPlayer != null) {
+                this.playersStorage.Clear();
+                this.networkingClient.Close();
+                this.listener?.GameClientDidDisconnect();
+            }
+            base.DidDisconnect();
         }
 
         void INetworkingClientListener.NetworkingClientDidReadMessage(MessageContainer container) {

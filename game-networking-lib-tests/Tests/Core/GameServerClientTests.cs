@@ -317,7 +317,7 @@ namespace Tests.Core {
 
         [Test]
         public void TestOneClientDisconnectAndReconnect() {
-            this.NewClient(out TGameClient client1, out TClientListener _);
+            this.NewClient(out TGameClient client1, out TClientListener clientListener);
             this.NewServer(out TGameServer server, out TServerListener _);
 
             client1.timeOutDelay = 1F;
@@ -329,19 +329,21 @@ namespace Tests.Core {
             server.Update();
             client1.Update();
 
+            Assert.IsTrue(clientListener.localPlayer.playerId == 0);
+
             client1.Disconnect();
 
             server.Update();
             client1.Update();
 
-            this.NewClient(out client1, out TClientListener clientListener);
+            this.NewClient(out client1, out clientListener);
 
             client1.Connect("0.0.0.0", 1);
 
             server.Update();
             client1.Update();
 
-            Assert.IsTrue(clientListener.localPlayer.playerId == 2);
+            Assert.IsTrue(clientListener.localPlayer.playerId == 1);
         }
     }
 

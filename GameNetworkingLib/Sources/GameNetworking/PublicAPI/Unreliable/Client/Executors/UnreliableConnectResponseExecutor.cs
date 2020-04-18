@@ -10,7 +10,7 @@ namespace GameNetworking.Executors.Client {
         public UnreliableConnectResponseExecutor(UnreliableGameClient<TPlayer> instance) : base(instance) { }
 
         public override void Execute() {
-            this.instance.DidConnect();
+            this.instance.networkingClient.DidConnect();
         }
     }
 }

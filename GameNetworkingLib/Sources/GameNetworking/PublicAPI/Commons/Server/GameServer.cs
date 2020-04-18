@@ -103,7 +103,7 @@ namespace GameNetworking.Commons.Server {
                 var now = TimeUtils.CurrentTime();
                 var elapsedTime = now - player.lastReceivedPongRequest;
                 if (elapsedTime >= this.timeOutDelay) {
-                    this.clientAcceptor.Disconnect(player);
+                    this.networkingServer.Disconnect(player.client);
                 }
             }
         }

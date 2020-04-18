@@ -3,16 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using GameNetworking.Commons.Models;
 using GameNetworking.Commons.Models.Client;
+using GameNetworking.Messages.Client;
 using GameNetworking.Networking.Commons;
 using Messages.Models;
 using Networking.Commons.Models;
 using Networking.Commons.Sockets;
 
 namespace GameNetworking.Commons.Client {
-    public interface IGameClientMessageSender {
-        void Send(ITypedMessage message);
-    }
-
     public interface IGameClientListener<TPlayer, TSocket, TClient, TNetClient>
         where TPlayer : class, INetworkPlayer<TSocket, TClient, TNetClient>, new()
         where TSocket : ISocket
@@ -27,7 +24,7 @@ namespace GameNetworking.Commons.Client {
         void GameClientNetworkPlayerDidDisconnect(TPlayer player);
     }
 
-    public interface IGameClient<TPlayer, TSocket, TClient, TNetClient> : IGameClientMessageSender
+    public interface IGameClient<TPlayer, TSocket, TClient, TNetClient>
         where TPlayer : class, INetworkPlayer<TSocket, TClient, TNetClient>, new()
         where TSocket : ISocket
         where TClient : INetworkClient<TSocket, TNetClient>
@@ -44,6 +41,8 @@ namespace GameNetworking.Commons.Client {
 
         void Update();
         float GetPing(int playerId);
+
+        void Send(ITypedMessage message);
 
         TPlayer FindPlayer(int playerId);
         TPlayer FindPlayer(Func<TPlayer, bool> predicate);

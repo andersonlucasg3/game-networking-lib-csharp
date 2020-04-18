@@ -1,11 +1,15 @@
 ﻿using System;
 using GameNetworking.Commons;
-using GameNetworking.Commons.Client;
 using GameNetworking.Messages.Client;
+using Messages.Models;
 
 namespace GameNetworking {
+    public interface IUnreliableClientMessageSender {
+        void Send(ITypedMessage message);
+    }
+
     public class UnreliableClientConnectionController {
-        private readonly IGameClientMessageSender client;
+        private readonly IUnreliableClientMessageSender client;
 
         private readonly Action timeOutAction = null;
 
@@ -18,7 +22,7 @@ namespace GameNetworking {
         public float secondsBetweenRetries { get; set; } = 3F;
         public int maximumNumberOfRetries { get; set; } = 3;
 
-        public UnreliableClientConnectionController(IGameClientMessageSender client, Action timeOutAction) {
+        public UnreliableClientConnectionController(IUnreliableClientMessageSender client, Action timeOutAction) {
             this.client = client;
             this.timeOutAction = timeOutAction;
         }

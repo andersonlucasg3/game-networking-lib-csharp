@@ -60,8 +60,6 @@ namespace GameNetworking.Commons.Client {
         where TNetClient : INetClient<TSocket, TNetClient>
         where TGameClientDerived : GameClient<TNetworkingClient, TPlayer, TSocket, TClient, TNetClient, TGameClientDerived> {
 
-        private IGameClient<TPlayer, TSocket, TClient, TNetClient> self => this;
-
         protected NetworkPlayerCollection<TPlayer, TSocket, TClient, TNetClient> playersStorage { get; private set; }
         protected GameClientMessageRouter<TGameClientDerived, TPlayer, TSocket, TClient, TNetClient> router { get; private set; }
 
@@ -125,23 +123,15 @@ namespace GameNetworking.Commons.Client {
             return this.playersStorage.players;
         }
 
-        void IGameClient<TPlayer, TSocket, TClient, TNetClient>.AddPlayer(TPlayer player) {
+        public void AddPlayer(TPlayer player) {
             if (player.isLocalPlayer) { this.localPlayer = player; }
 
             this.playersStorage.Add(player);
         }
 
-        internal void AddPlayer(TPlayer player) {
-            this.self.AddPlayer(player);
-        }
-
-        TPlayer IGameClient<TPlayer, TSocket, TClient, TNetClient>.RemovePlayer(int playerId) {
+        public TPlayer RemovePlayer(int playerId) {
             if (this.localPlayer != null && this.localPlayer.playerId == playerId) { this.localPlayer = null; }
             return this.playersStorage.Remove(playerId);
-        }
-
-        internal TPlayer RemovePlayer(int playerId) {
-            return this.self.RemovePlayer(playerId);
         }
 
         internal void GameClientConnectionDidReceiveMessage(MessageContainer container) {

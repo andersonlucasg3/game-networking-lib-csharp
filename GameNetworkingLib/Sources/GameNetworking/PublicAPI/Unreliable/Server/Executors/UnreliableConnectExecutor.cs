@@ -13,12 +13,11 @@ namespace GameNetworking.Executors.Server {
 
         public override void Execute() {
             if (this.client.isConnected) { return; }
+            this.client.isConnected = true;
 
             var connect = new UnreliableConnectResponseMessage();
             this.instance.Send(connect, this.client);
             this.instance.Send(connect, this.client);
-
-            this.client.isConnected = true;
 
             this.instance.listener?.NetworkingServerDidAcceptClient(this.client);
         }

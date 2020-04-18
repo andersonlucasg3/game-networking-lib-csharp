@@ -59,8 +59,7 @@ namespace Networking.Sockets {
             this.boundEndPoint = this.From(endPoint);
             this.socket = new Socket(this.boundEndPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp) {
                 ReceiveBufferSize = bufferSize,
-                SendBufferSize = bufferSize,
-                Blocking = true
+                SendBufferSize = bufferSize
             };
             this.socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             try { this.socket.DontFragment = true; } catch (Exception) { Logger.Log("DontFragment not supported."); }
@@ -85,10 +84,12 @@ namespace Networking.Sockets {
                 return;
             }
 
-            Task.Run(() => {
-                var buffer = this.bufferPool.Rent();
-                EndPoint endPoint = new IPEndPoint(IPAddress.Any, 0);
-                var readBytes = this.socket.ReceiveFrom(buffer, 0, bufferSize, SocketFlags.None, ref endPoint);
+            var buffer = this.bufferPool.Rent();
+            EndPoint endPoint = new IPEndPoint(IPAddress.Any, 0);
+            this.socket.BeginReceiveFrom(buffer, 0, bufferSize, SocketFlags.None, ref endPoint, ar => {
+                if (this.socket == null) { return; }
+
+                var readBytes = this.socket.EndReceiveFrom(ar, ref endPoint);
 
                 if (!this.instantiatedEndPointSockets.TryGetValue(endPoint, out UDPSocket socket)) {
                     socket = new UDPSocket(this, endPoint as IPEndPoint);
@@ -98,21 +99,7 @@ namespace Networking.Sockets {
                 callback.Invoke(buffer, readBytes, socket);
 
                 this.bufferPool.Pay(buffer);
-            });
-            //this.socket.BeginReceiveFrom(buffer, 0, bufferSize, SocketFlags.None, ref endPoint, ar => {
-            //    if (this.socket == null) { return; }
-
-            //    var readBytes = this.socket.EndReceiveFrom(ar, ref endPoint);
-
-            //    if (!this.instantiatedEndPointSockets.TryGetValue(endPoint, out UDPSocket socket)) {
-            //        socket = new UDPSocket(this, endPoint as IPEndPoint);
-            //        this.instantiatedEndPointSockets[endPoint] = socket;
-            //    }
-
-            //    callback.Invoke(buffer, readBytes, socket);
-
-            //    this.bufferPool.Pay(buffer);
-            //}, null);
+            }, null);
         }
 
         public void Write(byte[] bytes, Action<int> callback) {

@@ -1,7 +1,6 @@
 ﻿using GameNetworking.Commons;
 using GameNetworking.Commons.Client;
 using GameNetworking.Commons.Models.Client;
-using GameNetworking.Messages.Client;
 using GameNetworking.Networking;
 using GameNetworking.Networking.Commons;
 using GameNetworking.Networking.Models;
@@ -10,15 +9,11 @@ using Networking.Models;
 using Networking.Sockets;
 
 namespace GameNetworking {
-    public class UnreliableGameClient<TPlayer> : GameClient<UnreliableNetworkingClient, TPlayer, IUDPSocket, UnreliableNetworkClient, UnreliableNetClient, UnreliableGameClient<TPlayer>>, INetworkingClientListener
+    public class UnreliableGameClient<TPlayer> : GameClient<UnreliableNetworkingClient, TPlayer, IUDPSocket, UnreliableNetworkClient, UnreliableNetClient, UnreliableGameClient<TPlayer>>, IUnreliableNetworkingClientListener
         where TPlayer : class, INetworkPlayer<IUDPSocket, UnreliableNetworkClient, UnreliableNetClient>, new() {
-
-        internal readonly UnreliableClientConnectionController clientConnectionController;
 
         public UnreliableGameClient(UnreliableNetworkingClient backend, IMainThreadDispatcher dispatcher) : base(backend, new UnreliableClientMessageRouter<TPlayer>(dispatcher)) {
             this.networkingClient.listener = this;
-
-            this.clientConnectionController = new UnreliableClientConnectionController(this, this.ConnectionDidTimeOut);
         }
 
         public void Start(string host, int port) {
@@ -27,34 +22,16 @@ namespace GameNetworking {
 
         public override void Connect(string host, int port) {
             this.networkingClient.Connect(host, port);
-
-            this.clientConnectionController.Connect();
         }
 
         public override void Disconnect() {
-            var disconnect = new UnreliableDisconnectMessage();
-            this.Send(disconnect);
-            this.Send(disconnect);
-        }
-
-        public override void Update() {
-            this.clientConnectionController.Update();
-
-            base.Update();
-        }
-
-        internal void DidConnect() {
-            if (this.clientConnectionController.isConnecting) {
-                this.clientConnectionController.Stop();
-                this.listener?.GameClientDidConnect();
-            }
+            this.networkingClient.Disconnect();
         }
 
         internal override void DidDisconnect() {
             if (this.localPlayer != null) {
                 this.playersStorage.Clear();
                 this.networkingClient.Close();
-                this.listener?.GameClientDidDisconnect();
             }
             base.DidDisconnect();
         }
@@ -63,13 +40,17 @@ namespace GameNetworking {
             this.GameClientConnectionDidReceiveMessage(container);
         }
 
-        #region Private Methods
+        void IUnreliableNetworkingClientListener.UnreliableNetworkingClientDidConnect() {
+            this.listener?.GameClientDidConnect();
+        }
 
-        private void ConnectionDidTimeOut() {
-            this.networkingClient.Close();
+        void IUnreliableNetworkingClientListener.UnreliableNetworkingClientConnectDidTimeout() {
             this.listener?.GameClientConnectDidTimeout();
         }
 
-        #endregion
+        void IUnreliableNetworkingClientListener.UnreliableNetworkingClientDidDisconnect() {
+            this.DidDisconnect();
+            this.listener?.GameClientDidDisconnect();
+        }
     }
 }

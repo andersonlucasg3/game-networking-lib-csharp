@@ -61,8 +61,6 @@ namespace GameNetworking.Commons.Server {
         private readonly GameServerMessageRouter<TGameServerDerived, TNetworkingServer, TPlayer, TSocket, TClient, TNetClient> router;
         internal readonly TClientAcceptor clientAcceptor;
 
-        private IGameServer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient> self => this;
-
         protected NetworkPlayerCollection<TPlayer, TSocket, TClient, TNetClient> playersStorage { get; private set; }
 
         public TNetworkingServer networkingServer { get; private set; }
@@ -103,26 +101,18 @@ namespace GameNetworking.Commons.Server {
                 var now = TimeUtils.CurrentTime();
                 var elapsedTime = now - player.lastReceivedPongRequest;
                 if (elapsedTime >= this.timeOutDelay) {
-                    this.clientAcceptor.Disconnect(player);
+                    this.networkingServer.Disconnect(player.client);
                 }
             }
         }
 
-        void IGameServer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>.AddPlayer(TPlayer player) {
+        public void AddPlayer(TPlayer player) {
             this.playersStorage.Add(player);
         }
 
-        internal void AddPlayer(TPlayer player) {
-            this.self.AddPlayer(player);
-        }
-
-        void IGameServer<TNetworkingServer, TPlayer, TSocket, TClient, TNetClient>.RemovePlayer(TPlayer player) {
+        public void RemovePlayer(TPlayer player) {
             if (player == null) { return; }
             this.playersStorage.Remove(player.playerId);
-        }
-
-        internal void RemovePlayer(TPlayer player) {
-            this.self.RemovePlayer(player);
         }
 
         public TPlayer FindPlayer(int playerId) {

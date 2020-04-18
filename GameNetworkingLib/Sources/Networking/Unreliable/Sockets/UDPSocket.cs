@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading.Tasks;
 using Logging;
 using Networking.Commons;
 using Networking.Commons.Models;
@@ -84,7 +85,6 @@ namespace Networking.Sockets {
             }
 
             var buffer = this.bufferPool.Rent();
-
             EndPoint endPoint = new IPEndPoint(IPAddress.Any, 0);
             this.socket.BeginReceiveFrom(buffer, 0, bufferSize, SocketFlags.None, ref endPoint, ar => {
                 if (this.socket == null) { return; }

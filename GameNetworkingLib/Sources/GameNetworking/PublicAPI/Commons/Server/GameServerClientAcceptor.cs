@@ -40,18 +40,22 @@ namespace GameNetworking.Commons.Server {
                 each = players[i];
 
                 // Sends the connected player message to all players
-                this.listener.Send(new ConnectedPlayerMessage {
+                var connectedAll = new ConnectedPlayerMessage {
                     playerId = player.playerId,
                     isMe = player.Equals(each)
-                }, each);
+                };
+                this.listener.Send(connectedAll, each);
+                this.listener.Send(connectedAll, each);
 
                 if (each.Equals(player)) { continue; }
 
                 // Sends the existing players to the player that just connected
-                this.listener.Send(new ConnectedPlayerMessage {
+                var connectedSelf = new ConnectedPlayerMessage {
                     playerId = each.playerId,
                     isMe = false
-                }, player);
+                };
+                this.listener.Send(connectedSelf, player);
+                this.listener.Send(connectedSelf, player);
             }
 
             this.listener.ClientAcceptorPlayerDidConnect(player);

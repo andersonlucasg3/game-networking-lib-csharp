@@ -49,17 +49,13 @@ namespace GameNetworking.Networking.Commons {
         where TClient : INetworkClient<TSocket, TNetClient>
         where TNetClient : INetClient<TSocket, TNetClient> {
 
-        private INetworkingServer<TSocket, TClient, TNetClient> self => this;
-
         protected List<TClient> clientsList { get; }
         protected Dictionary<TNetClient, TClient> clientsCollection { get; }
         protected Queue<TClient> disconnectedClientsToRemove { get; }
 
         protected TNetworking networking { get; private set; }
 
-        INetworkingServerListener<TSocket, TClient, TNetClient> INetworkingServer<TSocket, TClient, TNetClient>.listener { get; set; }
-        internal INetworkingServerListener<TSocket, TClient, TNetClient> listener { get => self.listener; set => self.listener = value; }
-
+        public INetworkingServerListener<TSocket, TClient, TNetClient> listener { get; set; }
         public INetworkingServerMessagesListener<TSocket, TClient, TNetClient> messagesListener { get; set; }
 
         public IReadOnlyList<TClient> clients => this.clientsList;
@@ -136,10 +132,6 @@ namespace GameNetworking.Networking.Commons {
                 removing.Close();
             }
         }
-
-        #endregion
-
-        #region Private methods
 
         #endregion
 

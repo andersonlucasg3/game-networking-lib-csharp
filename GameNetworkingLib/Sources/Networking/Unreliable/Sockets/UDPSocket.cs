@@ -60,7 +60,7 @@ namespace Networking.Sockets {
             this.socket = new Socket(this.boundEndPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp) {
                 ReceiveBufferSize = bufferSize,
                 SendBufferSize = bufferSize,
-                Blocking = false
+                Blocking = true
             };
             this.socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             try { this.socket.DontFragment = true; } catch (Exception) { Logger.Log("DontFragment not supported."); }
@@ -85,10 +85,9 @@ namespace Networking.Sockets {
                 return;
             }
 
-            var buffer = this.bufferPool.Rent();
-
-            EndPoint endPoint = new IPEndPoint(IPAddress.Any, 0);
             Task.Run(() => {
+                var buffer = this.bufferPool.Rent();
+                EndPoint endPoint = new IPEndPoint(IPAddress.Any, 0);
                 var readBytes = this.socket.ReceiveFrom(buffer, 0, bufferSize, SocketFlags.None, ref endPoint);
 
                 if (!this.instantiatedEndPointSockets.TryGetValue(endPoint, out UDPSocket socket)) {

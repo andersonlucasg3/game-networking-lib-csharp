@@ -131,6 +131,10 @@ namespace Networking.Sockets {
             return base.Equals(obj);
         }
 
+        public override int GetHashCode() {
+            return this.remoteEndPoint.GetHashCode();
+        }
+
         #endregion
 
         #region Private Methods

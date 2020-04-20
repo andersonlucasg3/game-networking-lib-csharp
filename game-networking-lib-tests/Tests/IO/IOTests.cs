@@ -13,11 +13,6 @@ using Logging;
 
 namespace Tests.IO {
     public class IOTests {
-        [SetUp]
-        public void Setup() {
-
-        }
-
         void Measure(Action action, string name) {
             DateTime start = DateTime.Now;
             action.Invoke();
@@ -41,7 +36,7 @@ namespace Tests.IO {
 
             Decoder decoder = new Decoder();
             this.Measure(() => {
-                Decoder.Decode<Value>(encoded);
+                Decoder.Decode<Value>(encoded, 0, encoded.Length);
             }, "Decoder");
         }
 
@@ -56,7 +51,7 @@ namespace Tests.IO {
 
                 Logger.Log($"Encoded message size: {encoded.Length}");
 
-                decoded = Decoder.Decode<Value>(encoded);
+                decoded = Decoder.Decode<Value>(encoded, 0, encoded.Length);
             }, "Encoder and Decoder");
 
             Assert.AreEqual(value.intVal, decoded.intVal);

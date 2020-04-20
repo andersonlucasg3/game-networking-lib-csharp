@@ -20,8 +20,9 @@ namespace Messages.Streams {
             var arrayBuffer = this.byteList.ToArray();
             int delimiterIndex = CoderHelper.CheckForDelimiter(arrayBuffer);
             if (delimiterIndex != -1) {
-                byte[] bytes = CoderHelper.PackageBytes(delimiterIndex, arrayBuffer);
-                var container = new MessageContainer(bytes);
+                byte[] packetBytes = MessageContainer.GetBuffer();
+                CoderHelper.PackageBytes(delimiterIndex, arrayBuffer, packetBytes);
+                var container = new MessageContainer(packetBytes);
                 CoderHelper.SliceBuffer(delimiterIndex, ref this.byteList);
                 return container;
             }

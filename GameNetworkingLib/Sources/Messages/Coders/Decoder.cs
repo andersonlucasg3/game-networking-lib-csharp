@@ -4,8 +4,8 @@ namespace Messages.Coders {
     internal sealed class Decoder : IDecoder, System.IDisposable {
         internal BinaryReader reader;
 
-        internal Decoder(byte[] buffer) {
-            this.reader = new BinaryReader(new MemoryStream(buffer));
+        internal Decoder(byte[] buffer, int index, int count) {
+            this.reader = new BinaryReader(new MemoryStream(buffer, index, count));
         }
 
         internal Decoder(Stream stream) {
@@ -73,8 +73,8 @@ namespace Messages.Coders {
 
     namespace Binary {
         public sealed class Decoder {
-            public static TDecodable Decode<TDecodable>(byte[] buffer) where TDecodable : IDecodable, new() {
-                Coders.Decoder decoder = new Coders.Decoder(buffer);
+            public static TDecodable Decode<TDecodable>(byte[] buffer, int index, int count) where TDecodable : IDecodable, new() {
+                Coders.Decoder decoder = new Coders.Decoder(buffer, index, count);
                 TDecodable value = new TDecodable();
                 value.Decode(decoder);
                 decoder.Dispose();

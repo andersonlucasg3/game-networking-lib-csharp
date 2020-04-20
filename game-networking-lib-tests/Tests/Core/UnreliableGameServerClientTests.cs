@@ -129,7 +129,7 @@ namespace Tests.Core {
 #endregion
         }
 
-        public class MessageSender : IGameClientMessageSender {
+        public class MessageSender : IUnreliableClientMessageSender {
             public ITypedMessage sentMessage = null;
 
             public void Send(ITypedMessage message) {

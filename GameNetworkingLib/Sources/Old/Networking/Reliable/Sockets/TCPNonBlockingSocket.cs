@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+using Messages.Commons;
+using Networking.Commons.Models;
+using Networking.Commons.Sockets;
 
 namespace Networking.Sockets {
-    using Commons.Models;
-    using Commons.Sockets;
-    using Networking.Commons;
-
     public interface ITCPSocket : ISocket {
         bool isConnected { get; }
 
@@ -135,12 +134,6 @@ namespace Networking.Sockets {
 
         private IPEndPoint From(NetEndPoint ep) {
             return new IPEndPoint(IPAddress.Parse(ep.host), ep.port);
-        }
-
-        private void Copy(byte[] source, ref byte[] destination) {
-            for (var i = 0; i < destination.Length; i++) {
-                destination[i] = source[i];
-            }
         }
 
         #endregion

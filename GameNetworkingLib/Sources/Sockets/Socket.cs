@@ -10,7 +10,8 @@ namespace GameNetworking.Sockets {
         void SocketDidWriteBytes(int count);
     }
 
-    public interface ISocket<TListener> where TListener : ISocketListener {
+    public interface ISocket<TListener>
+        where TListener : ISocketListener {
         bool isConnected { get; }
 
         TListener listener { get; set; }
@@ -19,7 +20,7 @@ namespace GameNetworking.Sockets {
 
         void Connect(NetEndPoint endPoint);
 
-        void Send(byte[] bytes);
+        void Send(byte[] bytes, int count);
         void Receive();
     }
 
@@ -30,7 +31,7 @@ namespace GameNetworking.Sockets {
         void SocketDidTimeout();
         void SocketDidDisconnect();
 
-        void SocketDidAccept(TCPSocket socket);
+        void SocketDidAccept(TcpSocket socket);
     }
 
     public interface ITCPSocket : ISocket<ITCPSocketListener> {
@@ -39,9 +40,7 @@ namespace GameNetworking.Sockets {
         void Disconnect();
     }
 
-    public sealed class TCPSocket : ITCPSocket {
-        private const int bufferSize = 8 * 1024;
-
+    public sealed class TcpSocket : ITCPSocket {
         private readonly Socket socket;
         private readonly ObjectPool<byte[]> bufferPool;
 
@@ -50,8 +49,8 @@ namespace GameNetworking.Sockets {
 
         public ITCPSocketListener listener { get; set; }
 
-        public TCPSocket() {
-            this.bufferPool = new ObjectPool<byte[]>(() => new byte[bufferSize]);
+        public TcpSocket() {
+            this.bufferPool = new ObjectPool<byte[]>(() => new byte[Consts.bufferSize]);
             this.socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp) {
                 NoDelay = true,
                 Blocking = false,
@@ -60,7 +59,7 @@ namespace GameNetworking.Sockets {
             };
         }
 
-        private TCPSocket(Socket socket) {
+        private TcpSocket(Socket socket) {
             this.socket = socket;
             this.socket.NoDelay = true;
             this.socket.Blocking = false;
@@ -73,7 +72,7 @@ namespace GameNetworking.Sockets {
         public void Accept() {
             this.socket.BeginAccept((ar) => {
                 var accepted = this.socket.EndAccept(ar);
-                this.listener?.SocketDidAccept(new TCPSocket(accepted));
+                this.listener?.SocketDidAccept(new TcpSocket(accepted));
             }, null);
         }
 
@@ -116,15 +115,15 @@ namespace GameNetworking.Sockets {
         public void Receive() {
             var buffer = this.bufferPool.Rent();
 
-            this.socket.BeginReceive(buffer, 0, bufferSize, SocketFlags.None, (ar) => {
+            this.socket.BeginReceive(buffer, 0, Consts.bufferSize, SocketFlags.None, (ar) => {
                 var count = this.socket.EndReceive(ar);
                 this.listener?.SocketDidReadBytes(buffer, count);
                 this.bufferPool.Pay(buffer);
             }, this);
         }
 
-        public void Send(byte[] bytes) {
-            this.socket.BeginSend(bytes, 0, bytes.Length, SocketFlags.None, (ar) => {
+        public void Send(byte[] bytes, int count) {
+            this.socket.BeginSend(bytes, 0, count, SocketFlags.None, (ar) => {
                 int written = this.socket.EndSend(ar);
                 this.listener?.SocketDidWriteBytes(written);
             }, this);
@@ -144,7 +143,6 @@ namespace GameNetworking.Sockets {
     #region UDP
 
     public sealed class UDPSocket : ISocket<ISocketListener> {
-        private const int bufferSize = 8 * 1024;
         private const int SIO_UDP_CONNRESET = -1744830452;
 
         private readonly ObjectPool<byte[]> bufferPool;
@@ -158,13 +156,13 @@ namespace GameNetworking.Sockets {
 
         public UDPSocket() => this.bufferPool = new ObjectPool<byte[]>(NewBuffer);
 
-        private byte[] NewBuffer() => new byte[bufferSize];
+        private byte[] NewBuffer() => new byte[Consts.bufferSize];
 
         public void Bind(NetEndPoint endPoint) {
             var boundEndPoint = this.From(endPoint);
             this.socket = new Socket(boundEndPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp) {
-                ReceiveBufferSize = bufferSize,
-                SendBufferSize = bufferSize
+                ReceiveBufferSize = Consts.bufferSize,
+                SendBufferSize = Consts.bufferSize
             };
             this.socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             try { this.socket.DontFragment = true; } catch (Exception) { Logger.Log("DontFragment not supported."); }
@@ -193,20 +191,20 @@ namespace GameNetworking.Sockets {
 
             var buffer = this.bufferPool.Rent();
             EndPoint endPoint = new IPEndPoint(IPAddress.Any, 0);
-            this.socket.BeginReceiveFrom(buffer, 0, bufferSize, SocketFlags.None, ref endPoint, ar => {
+            this.socket.BeginReceiveFrom(buffer, 0, Consts.bufferSize, SocketFlags.None, ref endPoint, ar => {
                 var readBytes = this.socket.EndReceiveFrom(ar, ref endPoint);
                 this.listener?.SocketDidReadBytes(buffer, readBytes);
                 this.bufferPool.Pay(buffer);
             }, null);
         }
 
-        public void Send(byte[] bytes) {
+        public void Send(byte[] bytes, int count) {
             if (bytes.Length == 0 || this.socket == null) {
                 this.listener?.SocketDidWriteBytes(0);
                 return;
             }
 
-            this.socket.BeginSendTo(bytes, 0, bytes.Length, SocketFlags.None, this.remoteEndPoint, ar => {
+            this.socket.BeginSendTo(bytes, 0, count, SocketFlags.None, this.remoteEndPoint, ar => {
                 var writtenCount = this.socket.EndSendTo(ar);
                 this.listener?.SocketDidWriteBytes(writtenCount);
             }, null);

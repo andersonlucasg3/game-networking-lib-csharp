@@ -1,7 +1,7 @@
 ﻿using System;
 using GameNetworking.Commons;
 using GameNetworking.Messages.Client;
-using Messages.Models;
+using GameNetworking.Messages.Models;
 
 namespace GameNetworking {
     public interface IUnreliableClientMessageSender {

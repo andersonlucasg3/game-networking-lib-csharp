@@ -5,11 +5,11 @@ using System.Collections.Generic;
 using GameNetworking;
 using GameNetworking.Commons;
 using GameNetworking.Commons.Server;
+using GameNetworking.Messages.Coders;
+using GameNetworking.Messages.Models;
 using GameNetworking.Networking;
 using GameNetworking.Networking.Models;
 using Logging;
-using Messages.Coders;
-using Messages.Models;
 using Networking.Models;
 using Networking.Sockets;
 

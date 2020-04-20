@@ -39,7 +39,7 @@ namespace Networking {
 
         public void Start(string host, int port) {
             this.port = port;
-            this.socket.Bind(new NetEndPoint(host, port));
+            this.socket.Bind(new GameNetworking.Sockets.NetEndPoint(host, port));
             this.socket.Listen(10);
         }
 
@@ -69,7 +69,7 @@ namespace Networking {
 
         public void Connect(string host, int port) {
             ReliableNetClient client = this.CreateNetClient(this.socket);
-            NetEndPoint ep = new NetEndPoint(host, port);
+            GameNetworking.Sockets.NetEndPoint ep = new GameNetworking.Sockets.NetEndPoint(host, port);
             client.Connect(ep, () => {
                 if (client.isConnected) {
                     this.listener?.NetworkingDidConnect(client);

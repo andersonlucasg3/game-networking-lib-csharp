@@ -3,8 +3,8 @@ using GameNetworking.Commons.Models.Client;
 using GameNetworking.Executors;
 using GameNetworking.Executors.Client;
 using GameNetworking.Messages;
+using GameNetworking.Messages.Models;
 using GameNetworking.Messages.Server;
-using Messages.Models;
 using Networking.Commons.Models;
 using Networking.Commons.Sockets;
 

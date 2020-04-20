@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using Messages.Commons;
-using Networking.Commons.Models;
+using GameNetworking.Commons;
 using Networking.Commons.Sockets;
 
 namespace Networking.Sockets {
@@ -20,7 +19,7 @@ namespace Networking.Sockets {
 
         #region Client
 
-        void Connect(NetEndPoint endPoint, Action callback);
+        void Connect(GameNetworking.Sockets.NetEndPoint endPoint, Action callback);
         void Disconnect(Action callback);
 
         void Read(Action<byte[], int> callback);
@@ -70,7 +69,7 @@ namespace Networking.Sockets {
             }, null);
         }
 
-        public void Bind(NetEndPoint endPoint) {
+        public void Bind(GameNetworking.Sockets.NetEndPoint endPoint) {
             this.socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.ReuseAddress, true);
             this.socket.Bind(this.From(endPoint));
         }
@@ -83,7 +82,7 @@ namespace Networking.Sockets {
 
         #region Client
 
-        public void Connect(NetEndPoint endPoint, Action connectAction) {
+        public void Connect(GameNetworking.Sockets.NetEndPoint endPoint, Action connectAction) {
             this.socket.BeginConnect(this.From(endPoint), (ar) => {
                 this.socket.EndConnect(ar);
                 connectAction?.Invoke();
@@ -132,7 +131,7 @@ namespace Networking.Sockets {
 
         #region Private Methods
 
-        private IPEndPoint From(NetEndPoint ep) {
+        private IPEndPoint From(GameNetworking.Sockets.NetEndPoint ep) {
             return new IPEndPoint(IPAddress.Parse(ep.host), ep.port);
         }
 

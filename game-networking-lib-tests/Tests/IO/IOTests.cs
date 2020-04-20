@@ -1,15 +1,15 @@
 #if !UNITY_64
 
 using NUnit.Framework;
-using Messages.Coders;
-using Messages.Coders.Binary;
-using Messages.Models;
-using Messages.Streams;
 using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Runtime.Serialization.Formatters.Binary;
 using Logging;
+using GameNetworking.Messages.Coders.Binary;
+using GameNetworking.Messages.Models;
+using GameNetworking.Messages.Coders;
+using GameNetworking.Messages.Streams;
 
 namespace Tests.IO {
     public class IOTests {

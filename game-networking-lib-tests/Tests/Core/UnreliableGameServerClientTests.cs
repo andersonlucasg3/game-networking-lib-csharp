@@ -3,11 +3,10 @@
 using System.Collections.Generic;
 using System.Threading;
 using GameNetworking;
-using GameNetworking.Commons.Client;
 using GameNetworking.Messages;
+using GameNetworking.Messages.Models;
 using GameNetworking.Networking;
 using GameNetworking.Networking.Models;
-using Messages.Models;
 using Networking.Models;
 using Networking.Sockets;
 using NUnit.Framework;

@@ -1,5 +1,5 @@
-using Messages.Coders;
-using Messages.Models;
+using GameNetworking.Messages.Coders;
+using GameNetworking.Messages.Models;
 
 namespace GameNetworking.Messages.Server {
     internal class PingRequestMessage : ITypedMessage {

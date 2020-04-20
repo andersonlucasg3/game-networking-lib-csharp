@@ -3,8 +3,6 @@
 using System;
 using System.Collections.Generic;
 using Networking.Sockets;
-using Networking.Commons.Models;
-using System.Linq;
 
 namespace Tests.Core.Model {
     class ReliableSocketMock : ITCPSocket {
@@ -19,7 +17,7 @@ namespace Tests.Core.Model {
 
         public bool isCommunicable => this.isConnected;
 
-        public void Bind(NetEndPoint endPoint) {
+        public void Bind(GameNetworking.Sockets.NetEndPoint endPoint) {
             this.isBound = true;
         }
 
@@ -40,7 +38,7 @@ namespace Tests.Core.Model {
             this.isConnected = false;
         }
 
-        public void Connect(NetEndPoint endPoint, Action connectAction) {
+        public void Connect(GameNetworking.Sockets.NetEndPoint endPoint, Action connectAction) {
             this.serverCounterPart = new ReliableSocketMock() {
                 isConnected = true,
                 serverCounterPart = this

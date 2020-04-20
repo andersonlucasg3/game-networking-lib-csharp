@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using GameNetworking.Commons.Models;
 using GameNetworking.Messages.Models;
+using GameNetworking.Messages.Streams;
 using Networking.Commons;
 using Networking.Commons.Models;
 using Networking.Commons.Sockets;

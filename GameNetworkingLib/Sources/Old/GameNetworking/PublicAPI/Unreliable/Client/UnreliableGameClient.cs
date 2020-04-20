@@ -1,10 +1,10 @@
 ﻿using GameNetworking.Commons;
 using GameNetworking.Commons.Client;
 using GameNetworking.Commons.Models.Client;
+using GameNetworking.Messages.Models;
 using GameNetworking.Networking;
 using GameNetworking.Networking.Commons;
 using GameNetworking.Networking.Models;
-using Messages.Models;
 using Networking.Models;
 using Networking.Sockets;
 

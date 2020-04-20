@@ -1,8 +1,8 @@
 ﻿using GameNetworking.Commons;
+using GameNetworking.Messages.Models;
+using GameNetworking.Messages.Streams;
 using GameNetworking.Networking.Commons;
 using GameNetworking.Networking.Models;
-using Messages.Models;
-using Messages.Streams;
 using Networking.Models;
 using Networking.Sockets;
 

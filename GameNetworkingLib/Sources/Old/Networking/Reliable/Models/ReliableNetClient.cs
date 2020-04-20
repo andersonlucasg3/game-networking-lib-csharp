@@ -1,10 +1,9 @@
 using System;
+using Networking.Commons.IO;
+using Networking.Commons.Models;
+using Networking.Sockets;
 
 namespace Networking.Models {
-    using Commons.IO;
-    using Commons.Models;
-    using Sockets;
-
     public interface IReliableNetClient<TSocket, TDerived> : INetClient<TSocket, TDerived>
         where TDerived : IReliableNetClient<TSocket, TDerived>
         where TSocket : ITCPSocket {
@@ -13,7 +12,7 @@ namespace Networking.Models {
         IReader reader { get; }
         IWriter writer { get; }
 
-        void Connect(NetEndPoint endPoint, Action connectAction);
+        void Connect(GameNetworking.Sockets.NetEndPoint endPoint, Action connectAction);
         void Disconnect(Action disconnectAction);
     }
 
@@ -30,7 +29,7 @@ namespace Networking.Models {
 
         public bool isConnected { get { return this.socket.isConnected; } }
 
-        public void Connect(NetEndPoint endPoint, Action connectAction) {
+        public void Connect(GameNetworking.Sockets.NetEndPoint endPoint, Action connectAction) {
             this.socket.Connect(endPoint, () => connectAction?.Invoke());
         }
 

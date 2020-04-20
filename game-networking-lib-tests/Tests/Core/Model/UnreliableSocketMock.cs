@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
-using Networking.Commons.Models;
+using GameNetworking.Sockets;
 using Networking.Sockets;
 
 namespace Test.Core.Model {

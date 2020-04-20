@@ -1,5 +1,5 @@
 ﻿using GameNetworking.Commons.Models;
-using Messages.Streams;
+using GameNetworking.Messages.Streams;
 using Networking.Models;
 using Networking.Sockets;
 

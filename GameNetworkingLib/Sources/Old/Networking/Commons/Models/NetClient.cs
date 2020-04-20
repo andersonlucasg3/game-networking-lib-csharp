@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Net.Sockets;
+using Networking.Commons.IO;
+using Networking.Commons.Sockets;
 
 namespace Networking.Commons.Models {
-    using IO;
-    using Sockets;
-
     public interface INetClientListener<TSocket, TNetClientDerived>
         where TSocket : ISocket
         where TNetClientDerived : INetClient<TSocket, TNetClientDerived> {

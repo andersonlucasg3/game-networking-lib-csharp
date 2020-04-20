@@ -26,14 +26,14 @@ namespace Networking.Sockets {
 
         public void Start(string host, int port) {
             this.port = port;
-            this.socket.Bind(new NetEndPoint(host, port));
+            this.socket.Bind(new GameNetworking.Sockets.NetEndPoint(host, port));
         }
 
         public void Stop() {
             this.socket.Close();
         }
 
-        public void BindToRemote(NetEndPoint endPoint) {
+        public void BindToRemote(GameNetworking.Sockets.NetEndPoint endPoint) {
             this.socket.BindToRemote(endPoint);
         }
 

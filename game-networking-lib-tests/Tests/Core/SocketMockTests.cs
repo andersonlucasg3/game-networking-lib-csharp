@@ -1,6 +1,6 @@
 ﻿#if !UNITY_64
 
-using Networking.Commons.Models;
+using GameNetworking.Sockets;
 using NUnit.Framework;
 using Test.Core.Model;
 using Tests.Core.Model;

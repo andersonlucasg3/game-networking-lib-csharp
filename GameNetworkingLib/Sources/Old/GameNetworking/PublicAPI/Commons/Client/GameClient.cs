@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using GameNetworking.Commons.Models;
 using GameNetworking.Commons.Models.Client;
-using GameNetworking.Messages.Client;
+using GameNetworking.Messages.Models;
 using GameNetworking.Networking.Commons;
-using Messages.Models;
 using Networking.Commons.Models;
 using Networking.Commons.Sockets;
 

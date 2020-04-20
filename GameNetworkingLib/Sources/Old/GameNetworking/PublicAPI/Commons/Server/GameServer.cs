@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using GameNetworking.Commons.Models;
 using GameNetworking.Commons.Models.Server;
+using GameNetworking.Messages.Models;
 using GameNetworking.Networking.Commons;
-using Messages.Models;
 using Networking.Commons.Models;
 using Networking.Commons.Sockets;
 

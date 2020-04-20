@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using GameNetworking.Commons;
+using GameNetworking.Sockets;
 using Logging;
-using Messages.Commons;
-using Networking.Commons.Models;
 using Networking.Commons.Sockets;
 
 namespace Networking.Sockets {

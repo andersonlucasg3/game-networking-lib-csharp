@@ -1,7 +1,6 @@
 ﻿#if !UNITY_64
 
 using NUnit.Framework;
-using Messages.Models;
 using System.Collections.Generic;
 using GameNetworking.Commons;
 using System;
@@ -14,6 +13,7 @@ using Networking.Commons.Models;
 using Test.Core.Model;
 using System.Threading;
 using System.Linq;
+using GameNetworking.Messages.Models;
 
 namespace Tests.Core {
     public interface IClientListener<TPlayer, TSocket, TClient, TNetClient> : IGameClientListener<TPlayer, TSocket, TClient, TNetClient>

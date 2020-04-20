@@ -1,5 +1,5 @@
-﻿using Messages.Coders;
-using Messages.Models;
+﻿using GameNetworking.Messages.Coders;
+using GameNetworking.Messages.Models;
 
 namespace GameNetworking.Messages.Client {
     public class UnreliableDisconnectMessage : ITypedMessage {

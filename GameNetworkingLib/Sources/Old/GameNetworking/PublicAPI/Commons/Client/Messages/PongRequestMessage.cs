@@ -1,11 +1,9 @@
-using Messages.Coders;
-using Messages.Models;
+using GameNetworking.Messages.Coders;
+using GameNetworking.Messages.Models;
 
 namespace GameNetworking.Messages.Client {
     internal class PongRequestMessage : ITypedMessage {
-        public static int Type { get { return (int)MessageType.pong; } }
-
-        int ITypedMessage.type { get { return PongRequestMessage.Type; } }
+        int ITypedMessage.type { get { return (int)MessageType.pong; } }
 
         public void Encode(IEncoder encoder) { }
 

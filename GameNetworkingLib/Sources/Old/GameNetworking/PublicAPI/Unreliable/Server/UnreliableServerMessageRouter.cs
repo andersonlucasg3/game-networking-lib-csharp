@@ -2,9 +2,9 @@
 using GameNetworking.Executors;
 using GameNetworking.Executors.Server;
 using GameNetworking.Messages;
+using GameNetworking.Messages.Models;
 using GameNetworking.Networking;
 using GameNetworking.Networking.Models;
-using Messages.Models;
 
 namespace GameNetworking {
     public class UnreliableServerMessageRouter {

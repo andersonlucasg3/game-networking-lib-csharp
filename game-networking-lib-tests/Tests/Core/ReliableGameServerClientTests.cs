@@ -1,14 +1,12 @@
 ﻿#if !UNITY_64
 
 using System.Collections.Generic;
-using System.Threading;
 using GameNetworking;
 using GameNetworking.Commons.Client;
 using GameNetworking.Commons.Server;
+using GameNetworking.Messages.Models;
 using GameNetworking.Networking;
 using GameNetworking.Networking.Models;
-using Logging;
-using Messages.Models;
 using Networking;
 using Networking.Models;
 using Networking.Sockets;

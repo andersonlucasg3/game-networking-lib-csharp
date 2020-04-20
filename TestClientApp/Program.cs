@@ -2,15 +2,14 @@
 
 using System;
 using System.Collections.Generic;
-using System.Net;
 using GameNetworking;
 using GameNetworking.Commons;
 using GameNetworking.Commons.Client;
+using GameNetworking.Messages.Coders;
+using GameNetworking.Messages.Models;
 using GameNetworking.Networking;
 using GameNetworking.Networking.Models;
 using Logging;
-using Messages.Coders;
-using Messages.Models;
 using Networking.Models;
 using Networking.Sockets;
 

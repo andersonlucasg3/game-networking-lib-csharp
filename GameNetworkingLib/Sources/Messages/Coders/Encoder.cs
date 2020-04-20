@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace Messages.Coders {
+namespace GameNetworking.Messages.Coders {
     internal sealed class Encoder : IEncoder, IDisposable {
         internal BinaryWriter writer;
 

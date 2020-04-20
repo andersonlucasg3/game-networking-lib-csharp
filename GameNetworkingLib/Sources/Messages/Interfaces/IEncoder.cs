@@ -1,4 +1,4 @@
-﻿namespace Messages.Coders {
+﻿namespace GameNetworking.Messages.Coders {
     public interface IEncoder {
         void Encode(int value);
         void Encode(short value);

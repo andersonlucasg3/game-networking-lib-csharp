@@ -1,4 +1,4 @@
-namespace Messages.Models {
+namespace GameNetworking.Messages.Models {
     using Coders;
 
     public interface ITypedMessage : ICodable {

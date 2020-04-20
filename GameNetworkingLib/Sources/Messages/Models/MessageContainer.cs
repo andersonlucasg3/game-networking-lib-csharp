@@ -1,7 +1,7 @@
 ﻿using Messages.Coders;
 using Messages.Commons;
 
-namespace Messages.Models {
+namespace GameNetworking.Messages.Models {
     public sealed class MessageContainer {
         private byte[] messageBytes;
 

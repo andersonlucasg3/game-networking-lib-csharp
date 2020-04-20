@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace Messages.Coders {
+namespace GameNetworking.Messages.Coders {
     internal sealed class Decoder : IDecoder, System.IDisposable {
         internal BinaryReader reader;
 

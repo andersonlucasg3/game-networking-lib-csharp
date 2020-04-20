@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Messages.Coders {
+namespace GameNetworking.Messages.Coders {
     internal static class CoderHelper {
         internal static byte[] delimiter = Encoding.UTF8.GetBytes("\r\r\r");
         internal static string typePrefix = "com.medievalgame";

@@ -1,4 +1,4 @@
-﻿namespace Messages.Coders {
+﻿namespace GameNetworking.Messages.Coders {
     public interface IDecoder {
         int GetInt();
         short GetShort();

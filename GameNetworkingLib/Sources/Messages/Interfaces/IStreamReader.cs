@@ -1,4 +1,4 @@
-﻿namespace Messages.Streams {
+﻿namespace GameNetworking.Messages.Streams {
     using Models;
 
     public interface IStreamReader {

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Messages.Streams {
+namespace GameNetworking.Messages.Streams {
     using Coders;
     using Models;
 

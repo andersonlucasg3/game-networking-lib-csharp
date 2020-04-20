@@ -121,9 +121,12 @@ namespace Tests.IO {
 
             var encoder = new MessageStreamWriter();
             List<byte> data = new List<byte>();
-            data.AddRange(encoder.Write(loginRequest));
-            data.AddRange(encoder.Write(matchRequest));
-            data.AddRange(encoder.Write(connectRequest));
+            encoder.Write(loginRequest, out byte[] buffer);
+            data.AddRange(buffer);
+            encoder.Write(matchRequest, out buffer);
+            data.AddRange(buffer);
+            encoder.Write(connectRequest, out buffer);
+            data.AddRange(buffer);
 
             var decoder = new MessageStreamReader();
 

@@ -10,11 +10,10 @@ namespace GameNetworking.Sockets {
         void SocketDidWriteBytes(int count);
     }
 
-    public interface ISocket<TListener>
-        where TListener : ISocketListener {
+    public interface ISocket {
         bool isConnected { get; }
 
-        TListener listener { get; set; }
+        ISocketListener listener { get; set; }
 
         void Bind(NetEndPoint endPoint);
 
@@ -26,7 +25,7 @@ namespace GameNetworking.Sockets {
 
     #region TCP
 
-    public interface ITCPSocketListener : ISocketListener {
+    public interface ITcpSocketListener {
         void SocketDidConnect();
         void SocketDidTimeout();
         void SocketDidDisconnect();
@@ -34,7 +33,9 @@ namespace GameNetworking.Sockets {
         void SocketDidAccept(TcpSocket socket);
     }
 
-    public interface ITCPSocket : ISocket<ITCPSocketListener> {
+    public interface ITCPSocket : ISocket {
+        ITcpSocketListener tcpListener { get; set; }
+
         void Accept();
 
         void Disconnect();
@@ -47,7 +48,8 @@ namespace GameNetworking.Sockets {
         public bool isConnected => this.socket.Connected;
         public bool isBound => this.socket.IsBound;
 
-        public ITCPSocketListener listener { get; set; }
+        public ISocketListener listener { get; set; }
+        public ITcpSocketListener tcpListener { get; set; }
 
         public TcpSocket() {
             this.bufferPool = new ObjectPool<byte[]>(() => new byte[Consts.bufferSize]);
@@ -72,7 +74,7 @@ namespace GameNetworking.Sockets {
         public void Accept() {
             this.socket.BeginAccept((ar) => {
                 var accepted = this.socket.EndAccept(ar);
-                this.listener?.SocketDidAccept(new TcpSocket(accepted));
+                this.tcpListener?.SocketDidAccept(new TcpSocket(accepted));
             }, null);
         }
 
@@ -92,22 +94,21 @@ namespace GameNetworking.Sockets {
         public void Connect(NetEndPoint endPoint) {
             this.socket.BeginConnect(this.From(endPoint), (ar) => {
                 this.socket.EndConnect(ar);
-                this.listener?.SocketDidConnect();
+                this.tcpListener?.SocketDidConnect();
             }, null);
         }
 
         public void Disconnect() {
             this.socket.BeginDisconnect(false, (ar) => {
                 this.socket.EndDisconnect(ar);
-                this.listener?.SocketDidDisconnect();
+                this.tcpListener?.SocketDidDisconnect();
             }, null);
         }
 
         #endregion
 
         public void Close() {
-            try { this.socket.Shutdown(SocketShutdown.Both); }
-            finally { this.socket.Close(); }
+            try { this.socket.Shutdown(SocketShutdown.Both); } finally { this.socket.Close(); }
         }
 
         #region Read & Write
@@ -142,7 +143,7 @@ namespace GameNetworking.Sockets {
 
     #region UDP
 
-    public sealed class UDPSocket : ISocket<ISocketListener> {
+    public sealed class UdpSocket : ISocket {
         private const int SIO_UDP_CONNRESET = -1744830452;
 
         private readonly ObjectPool<byte[]> bufferPool;
@@ -154,7 +155,7 @@ namespace GameNetworking.Sockets {
 
         public ISocketListener listener { get; set; }
 
-        public UDPSocket() => this.bufferPool = new ObjectPool<byte[]>(NewBuffer);
+        public UdpSocket() => this.bufferPool = new ObjectPool<byte[]>(NewBuffer);
 
         private byte[] NewBuffer() => new byte[Consts.bufferSize];
 
@@ -166,8 +167,7 @@ namespace GameNetworking.Sockets {
             };
             this.socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             try { this.socket.DontFragment = true; } catch (Exception) { Logger.Log("DontFragment not supported."); }
-            try { this.socket.IOControl((IOControlCode)SIO_UDP_CONNRESET, new byte[] { 0, 0, 0, 0 }, null); }
-            catch (Exception) { Logger.Log("Error setting SIO_UDP_CONNRESET. Maybe not running on Windows."); }
+            try { this.socket.IOControl((IOControlCode)SIO_UDP_CONNRESET, new byte[] { 0, 0, 0, 0 }, null); } catch (Exception) { Logger.Log("Error setting SIO_UDP_CONNRESET. Maybe not running on Windows."); }
             this.socket.Bind(boundEndPoint);
         }
 
@@ -178,8 +178,7 @@ namespace GameNetworking.Sockets {
 
         public void Close() {
             if (this.socket == null) { return; }
-            try { this.socket.Shutdown(SocketShutdown.Both); }
-            finally { this.socket.Close(); }
+            try { this.socket.Shutdown(SocketShutdown.Both); } finally { this.socket.Close(); }
             this.socket = null;
         }
 
@@ -219,7 +218,7 @@ namespace GameNetworking.Sockets {
         public bool Equals(IPEndPoint endPoint) => this.remoteEndPoint.Equals(endPoint);
 
         public override bool Equals(object obj) {
-            if (obj is UDPSocket other) {
+            if (obj is UdpSocket other) {
                 return this.Equals(other.remoteEndPoint);
             }
             return base.Equals(obj);

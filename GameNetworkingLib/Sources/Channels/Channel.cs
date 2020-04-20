@@ -14,9 +14,8 @@ namespace GameNetworking.Channels {
         void Send(ITypedMessage message);
     }
 
-    public abstract class Channel<TSocket, TSocketListener> : IChannel, ISocketListener
-        where TSocket : ISocket<TSocketListener>
-        where TSocketListener : ISocketListener {
+    public abstract class Channel<TSocket> : IChannel, ISocketListener
+        where TSocket : ISocket {
         private readonly TSocket socket;
 
         private readonly MessageStreamReader reader;
@@ -26,6 +25,7 @@ namespace GameNetworking.Channels {
 
         public Channel(TSocket socket) {
             this.socket = socket;
+            this.socket.listener = this;
 
             this.reader = new MessageStreamReader();
             this.writer = new MessageStreamWriter();
@@ -40,34 +40,28 @@ namespace GameNetworking.Channels {
 
         void ISocketListener.SocketDidReadBytes(byte[] bytes, int count) {
             this.reader.Add(bytes, count);
+
             MessageContainer container;
-            while ((container = this.reader.Decode()) != null) {
-                this.listener?.ChannelDidReceiveMessage(container);
-            }
+            while ((container = this.reader.Decode()) != null)
+                { this.listener?.ChannelDidReceiveMessage(container); }
         }
 
         void ISocketListener.SocketDidWriteBytes(int count) => this.writer.DidWrite(count);
     }
 
-    public class ReliableChannel : Channel<TcpSocket, ITCPSocketListener>, ITCPSocketListener {
-        public ReliableChannel(TcpSocket socket) : base(socket) {
-            socket.listener = this;
-        }
+    #region Reliable
 
-        void ITCPSocketListener.SocketDidAccept(TcpSocket socket) {
-            
-        }
-
-        void ITCPSocketListener.SocketDidConnect() {
-            throw new System.NotImplementedException();
-        }
-
-        void ITCPSocketListener.SocketDidDisconnect() {
-            throw new System.NotImplementedException();
-        }
-
-        void ITCPSocketListener.SocketDidTimeout() {
-            throw new System.NotImplementedException();
-        }
+    public class ReliableChannel : Channel<TcpSocket> {
+        public ReliableChannel(TcpSocket socket) : base(socket) { }
     }
+
+    #endregion
+
+    #region Unreliable
+
+    public class UnreliableChannel: Channel<UdpSocket> {
+        public UnreliableChannel(UdpSocket socket) : base(socket) { }
+    }
+
+    #endregion
 }

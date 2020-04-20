@@ -16,12 +16,10 @@
     <OutputPath></OutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <Folder Include="Sources\Old\" />
-    <Folder Include="Sources\Old\GameNetworking\" />
-    <Folder Include="Sources\Old\Networking\" />
     <Folder Include="Sources\Sockets\" />
     <Folder Include="Sources\Commons\" />
     <Folder Include="Sources\Channels\" />
+    <Folder Include="Old\" />
   </ItemGroup>
 </Project>
 

@@ -94,7 +94,7 @@ namespace GameNetworking.Networking.Commons {
 
         public void SendBroadcast(ITypedMessage encodable, List<TClient> clients) {
             var writer = new MessageStreamWriter();
-            var buffer = writer.Write(encodable);
+            writer.Write(encodable, out byte[] buffer);
             for (int i = 0; i < clients.Count; i++) {
                 this.networking.Send(clients[i].client, buffer);
             }

@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using GameNetworking.Commons;
-using GameNetworking.Sockets;
 using Logging;
 using Networking.Commons.Sockets;
 
 namespace Networking.Sockets {
     public interface IUDPSocket : ISocket, IEquatable<IPEndPoint> {
-        void BindToRemote(NetEndPoint endPoint);
+        void BindToRemote(GameNetworking.Sockets.NetEndPoint endPoint);
         void Unbind();
 
         void Close();
@@ -54,7 +53,7 @@ namespace Networking.Sockets {
             this.socket = null;
         }
 
-        public void Bind(NetEndPoint endPoint) {
+        public void Bind(GameNetworking.Sockets.NetEndPoint endPoint) {
             this.boundEndPoint = this.From(endPoint);
             this.socket = new Socket(this.boundEndPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp) {
                 ReceiveBufferSize = bufferSize,
@@ -67,7 +66,7 @@ namespace Networking.Sockets {
             this.isCommunicable = true;
         }
 
-        public void BindToRemote(NetEndPoint endPoint) {
+        public void BindToRemote(GameNetworking.Sockets.NetEndPoint endPoint) {
             Logger.Log($"Connected to {endPoint}");
             this.remoteEndPoint = this.From(endPoint);
             this.isCommunicable = true;
@@ -138,7 +137,7 @@ namespace Networking.Sockets {
 
         #region Private Methods
 
-        private IPEndPoint From(NetEndPoint ep) {
+        private IPEndPoint From(GameNetworking.Sockets.NetEndPoint ep) {
             return new IPEndPoint(IPAddress.Parse(ep.host), ep.port);
         }
 

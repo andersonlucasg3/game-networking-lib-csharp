@@ -36,7 +36,8 @@ namespace GameNetworking.Commons.Models {
         public void Write<TMessage>(TMessage message) where TMessage : ITypedMessage {
             if (!this.client.socket.isCommunicable) { return; }
 
-            this.client.Write(this.writer.Write(message));
+            this.writer.Write(message, out byte[] buffer);
+            this.client.Write(buffer);
         }
 
         public override bool Equals(object obj) {

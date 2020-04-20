@@ -1,5 +1,5 @@
-﻿using Messages.Coders;
-using Messages.Commons;
+﻿using GameNetworking.Commons;
+using GameNetworking.Messages.Coders;
 
 namespace GameNetworking.Messages.Models {
     public sealed class MessageContainer {

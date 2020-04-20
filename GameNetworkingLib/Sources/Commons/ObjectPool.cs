@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 
-namespace GameNetworking.Messages.Commons {
+namespace GameNetworking.Commons {
     public class ObjectPool<T> {
         private readonly ConcurrentBag<T> bag;
         private readonly Func<T> factory;

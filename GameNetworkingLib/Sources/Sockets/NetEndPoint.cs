@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Networking.Commons.Models {
+namespace GameNetworking.Sockets {
     public struct NetEndPoint : IEquatable<NetEndPoint> {
         public string host { get; }
         public int port { get; }

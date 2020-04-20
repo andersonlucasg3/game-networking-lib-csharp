@@ -16,7 +16,9 @@
     <OutputPath></OutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <Folder Include="Sources\GameNetworking\Commons\Interfaces\" />
+    <Folder Include="Sources\Old\" />
+    <Folder Include="Sources\Old\GameNetworking\" />
+    <Folder Include="Sources\Old\Networking\" />
   </ItemGroup>
 </Project>
 

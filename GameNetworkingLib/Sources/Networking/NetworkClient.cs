@@ -24,14 +24,14 @@ namespace GameNetworking.Networking {
 
     public class NetworkClient : INetworkClient, ITcpClientListener, IChannelListener {
         private readonly ITcpSocket tcpSocket;
-        private readonly ISocket udpSocket;
+        private readonly IUdpSocket udpSocket;
 
         private readonly ReliableChannel reliableChannel;
         private readonly UnreliableChannel unreliableChannel;
 
         public INetworkClientListener listener { get; set; }
 
-        public NetworkClient(ITcpSocket tcpSocket, ISocket udpSocket) {
+        public NetworkClient(ITcpSocket tcpSocket, IUdpSocket udpSocket) {
             this.tcpSocket = tcpSocket;
             this.udpSocket = udpSocket;
 
@@ -66,9 +66,9 @@ namespace GameNetworking.Networking {
 
         private IChannel GetChannel(Channel channel) {
             switch (channel) {
-            case Channel.reliable: return this.reliableChannel;
-            case Channel.unreliable: return this.unreliableChannel;
-            default: return null;
+                case Channel.reliable: return this.reliableChannel;
+                case Channel.unreliable: return this.unreliableChannel;
+                default: return null;
             }
         }
 

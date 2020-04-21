@@ -4,7 +4,7 @@ using GameNetworking.Sockets;
 
 namespace GameNetworking.Networking {
     public interface INetworkServerListener {
-        void NetworkServerDidAcceptPlayer(ReliableChannel channel);
+        void NetworkServerDidAcceptPlayer(ReliableChannel reliable, UnreliableChannel unreliable);
         void NetworkServerPlayerDidDisconnect(ReliableChannel channel);
     }
 
@@ -22,7 +22,7 @@ namespace GameNetworking.Networking {
 
     public class NetworkServer : INetworkServer, ITcpServerListener {
         private readonly ITcpSocket tcpSocket;
-        private readonly ISocket udpSocket;
+        private readonly IUdpSocket udpSocket;
 
         private readonly ConcurrentDictionary<ITcpSocket, ReliableChannel> socketCollection;
 
@@ -33,7 +33,7 @@ namespace GameNetworking.Networking {
 
         public INetworkServerListener listener { get; set; }
 
-        public NetworkServer(ITcpSocket tcpSocket, ISocket udpSocket) {
+        public NetworkServer(ITcpSocket tcpSocket, IUdpSocket udpSocket) {
             this.tcpSocket = tcpSocket;
             this.udpSocket = udpSocket;
 
@@ -67,7 +67,7 @@ namespace GameNetworking.Networking {
         }
 
         public void Accept() {
-            lock(this) {
+            lock (this) {
                 if (this.isAccepting) { return; }
                 this.isAccepting = true;
             }
@@ -77,11 +77,15 @@ namespace GameNetworking.Networking {
 
         void ITcpServerListener.SocketDidAccept(ITcpSocket socket) {
             socket.serverListener = this;
-            var channel = new ReliableChannel(socket);
-            this.socketCollection[socket] = channel;
-            this.listener?.NetworkServerDidAcceptPlayer(channel);
 
-            lock(this) { this.isAccepting = false; }
+            var reliable = new ReliableChannel(socket);
+            var unreliable = new UnreliableChannel(new UdpSocket((UdpSocket)this.udpSocket, socket.remoteEndPoint));
+            this.unreliableChannel.Register(socket.remoteEndPoint, unreliable);
+
+            this.socketCollection[socket] = reliable;
+            this.listener?.NetworkServerDidAcceptPlayer(reliable, unreliable);
+
+            lock (this) { this.isAccepting = false; }
         }
 
         void ITcpServerListener.SocketDidDisconnect(ITcpSocket socket) {

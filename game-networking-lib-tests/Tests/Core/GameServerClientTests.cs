@@ -99,6 +99,8 @@ namespace Tests.Core {
 
             server.Start(5000);
 
+            server.Update();
+
             client.Connect(hostIp, 5000);
 
             server.Update();

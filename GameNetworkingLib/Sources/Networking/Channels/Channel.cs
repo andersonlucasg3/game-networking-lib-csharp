@@ -36,6 +36,8 @@ namespace GameNetworking.Channels {
         }
 
         public void Receive() {
+            if (!this.socket.isConnected) { return; }
+
             lock(this.reader) {
                 if (this.isReceiving) { return; }
                 this.isReceiving = true;

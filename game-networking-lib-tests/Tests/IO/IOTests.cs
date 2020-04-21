@@ -10,6 +10,7 @@ using GameNetworking.Messages.Coders.Binary;
 using GameNetworking.Messages.Models;
 using GameNetworking.Messages.Coders;
 using GameNetworking.Messages.Streams;
+using GameNetworking.Commons;
 
 namespace Tests.IO {
     public class IOTests {
@@ -121,12 +122,15 @@ namespace Tests.IO {
 
             var encoder = new MessageStreamWriter();
             List<byte> data = new List<byte>();
-            encoder.Write(loginRequest, out byte[] buffer);
-            data.AddRange(buffer);
-            encoder.Write(matchRequest, out buffer);
-            data.AddRange(buffer);
-            encoder.Write(connectRequest, out buffer);
-            data.AddRange(buffer);
+            encoder.Write(loginRequest);
+            var count = encoder.Put(out byte[] buffer);
+            data.AddRange(buffer, count);
+            encoder.Write(matchRequest);
+            count = encoder.Put(out buffer);
+            data.AddRange(buffer, count);
+            encoder.Write(connectRequest);
+            count = encoder.Put(out buffer);
+            data.AddRange(buffer, count);
 
             var decoder = new MessageStreamReader();
 

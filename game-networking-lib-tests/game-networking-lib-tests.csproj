@@ -17,6 +17,7 @@
     </ItemGroup>
     <ItemGroup>
         <Folder Include="Tests\IO\" />
+        <Folder Include="Tests\Core\Model\" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\GameNetworkingLib\GameNetworkingLib.csproj" />

@@ -16,10 +16,18 @@
     <OutputPath></OutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <Folder Include="Sources\Sockets\" />
     <Folder Include="Sources\Commons\" />
-    <Folder Include="Sources\Channels\" />
-    <Folder Include="Old\" />
+    <Folder Include="Sources\GameNetworking\" />
+    <Folder Include="Sources\GameNetworking\Client\" />
+    <Folder Include="Sources\GameNetworking\Server\" />
+    <Folder Include="Sources\GameNetworking\Client\Executors\" />
+    <Folder Include="Sources\GameNetworking\Client\Messages\" />
+    <Folder Include="Sources\GameNetworking\Server\Executors\" />
+    <Folder Include="Sources\GameNetworking\Server\Messages\" />
+    <Folder Include="Sources\Networking\" />
+    <Folder Include="Sources\Networking\Channels\" />
+    <Folder Include="Sources\Networking\Sockets\" />
+    <Folder Include="Sources\Networking\Messages\" />
   </ItemGroup>
 </Project>
 

@@ -1,4 +1,5 @@
-﻿using GameNetworking.Messages.Models;
+﻿using System.Collections.Generic;
+using GameNetworking.Messages.Models;
 using GameNetworking.Messages.Streams;
 using GameNetworking.Sockets;
 
@@ -91,8 +92,28 @@ namespace GameNetworking.Channels {
 
     #region Unreliable
 
-    public class UnreliableChannel: Channel<ISocket> {
-        public UnreliableChannel(ISocket socket) : base(socket) { }
+    public interface IUnreliableChannelIdentifiedReceiveListener {
+        void ChannelDidReceiveBytes(byte[] bytes, int count);
+    }
+
+    public class UnreliableChannel: Channel<IUdpSocket>, IUdpSocketListener, IUnreliableChannelIdentifiedReceiveListener {
+        private readonly Dictionary<NetEndPoint, IUnreliableChannelIdentifiedReceiveListener> receiverCollection
+            = new Dictionary<NetEndPoint, IUnreliableChannelIdentifiedReceiveListener>();
+
+        public UnreliableChannel(IUdpSocket socket) : base(socket) => socket.udpListener = this;
+
+        public void Register(NetEndPoint endPoint, IUnreliableChannelIdentifiedReceiveListener listener) => this.receiverCollection[endPoint] = listener;
+        public void Unregister(NetEndPoint endPoint) => this.receiverCollection.Remove(endPoint);
+
+        void IUnreliableChannelIdentifiedReceiveListener.ChannelDidReceiveBytes(byte[] bytes, int count) {
+            ((ISocketListener)this).SocketDidReceiveBytes(bytes, count);
+        }
+
+        void IUdpSocketListener.UdpSocketDidReceiveBytes(byte[] bytes, int count, NetEndPoint from) {
+            if (this.receiverCollection.TryGetValue(from, out IUnreliableChannelIdentifiedReceiveListener listener)) {
+                listener?.ChannelDidReceiveBytes(bytes, count);
+            }
+        }
     }
 
     #endregion

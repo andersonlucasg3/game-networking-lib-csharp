@@ -2,31 +2,27 @@
 
 using System;
 using System.Collections.Generic;
-using GameNetworking;
+using GameNetworking.Channels;
+using GameNetworking.Client;
 using GameNetworking.Commons;
 using GameNetworking.Commons.Client;
 using GameNetworking.Messages.Coders;
 using GameNetworking.Messages.Models;
 using GameNetworking.Networking;
-using GameNetworking.Networking.Models;
+using GameNetworking.Sockets;
 using Logging;
-using Networking.Models;
-using Networking.Sockets;
-
-using UnreliablePlayer = GameNetworking.Commons.Models.Client.NetworkPlayer<Networking.Sockets.IUDPSocket, GameNetworking.Networking.Models.UnreliableNetworkClient, Networking.Models.UnreliableNetClient>;
 
 namespace TestClientApp {
-    class Program : IMainThreadDispatcher, IGameClientListener<UnreliablePlayer, IUDPSocket, UnreliableNetworkClient, UnreliableNetClient> {
+    class Program : IMainThreadDispatcher, IGameClientListener<Player> {
         private readonly List<Action> actions = new List<Action>();
 
-        private UnreliableGameClient<UnreliablePlayer> client;
+        private GameClient<Player> client;
         private int counter = 0;
 
         static void Main(string[] _) {
             var program = new Program();
-            program.client = new UnreliableGameClient<UnreliablePlayer>(new UnreliableNetworkingClient(new UnreliableSocket(new UDPSocket())), program);
+            program.client = new GameClient<Player>(new NetworkClient(new TcpSocket(), new UdpSocket()), new GameClientMessageRouter<Player>(program));
 
-            program.client.Start("0.0.0.0", 63000);
             program.client.Connect("127.0.0.1", 64000);
 
             program.client.listener = program;
@@ -56,12 +52,16 @@ namespace TestClientApp {
             Logger.Log("GameClientDidDisconnect");
         }
 
-        public void GameClientDidIdentifyLocalPlayer(UnreliablePlayer player) {
+        public void GameClientDidIdentifyLocalPlayer(Player player) {
             Logger.Log("GameClientDidIdentifyLocalPlayer");
             this.Send();
         }
 
-        public void GameClientNetworkPlayerDidDisconnect(UnreliablePlayer player) {
+        public void GameClientPlayerDidConnect(Player player) {
+            Logger.Log("GameClientNetworkPlayerDidConnect");
+        }
+
+        public void GameClientPlayerDidDisconnect(Player player) {
             Logger.Log("GameClientNetworkPlayerDidDisconnect");
         }
 
@@ -73,10 +73,10 @@ namespace TestClientApp {
         }
 
         private void Send() {
-            this.client.Send(new Message());
+            this.client.Send(new Message(), Channel.unreliable);
             Logger.Log($"Send message! {counter++}");
             if (this.client.localPlayer == null) { return; }
-            var ping = this.client.GetPing(this.client.localPlayer.playerId);
+            var ping = this.client.localPlayer.mostRecentPingValue;
             Logger.Log($"Player ping {ping}");
         }
     }

@@ -70,6 +70,8 @@ namespace Tests.Core {
     }
 
     public class GameServerClientTests {
+        private const string hostIp = "127.0.0.1";
+
         private NetworkClient NewClient() => new NetworkClient(new TcpSocket(), new UdpSocket());
         private NetworkServer NewServer() => new NetworkServer(new TcpSocket(), new UdpSocket());
 
@@ -92,12 +94,12 @@ namespace Tests.Core {
 
         [Test] 
         public void TestConnectDisconnect() {
-            this.NewClient(out GameClient<ClientPlayer> client, out ClientListener clientListener);
             this.NewServer(out GameServer<ServerPlayer> server, out ServerListener serverListener);
+            this.NewClient(out GameClient<ClientPlayer> client, out ClientListener clientListener);
 
             server.Start(5000);
 
-            client.Connect("0.0.0.0", 5000);
+            client.Connect(hostIp, 5000);
 
             server.Update();
             client.Update();
@@ -147,9 +149,9 @@ namespace Tests.Core {
 
             server.Start(5000);
 
-            client1.Connect("0.0.0.0", 5000);
-            client2.Connect("0.0.0.0", 5000);
-            client3.Connect("0.0.0.0", 5000);
+            client1.Connect(hostIp, 5000);
+            client2.Connect(hostIp, 5000);
+            client3.Connect(hostIp, 5000);
 
             UpdateAction();
 
@@ -226,8 +228,8 @@ namespace Tests.Core {
 
             server.Start(5000);
 
-            client1.Connect("0.0.0.0", 5000);
-            client2.Connect("0.0.0.0", 5000);
+            client1.Connect(hostIp, 5000);
+            client2.Connect(hostIp, 5000);
 
             Update();
 
@@ -243,7 +245,7 @@ namespace Tests.Core {
             Assert.IsNull(server.playerCollection.FindPlayer(player2.playerId));
             this.NewClient(out client2, out ClientListener listener2_c);
 
-            client2.Connect("0.0.0.0", 5000);
+            client2.Connect(hostIp, 5000);
 
             Update();
 
@@ -270,8 +272,8 @@ namespace Tests.Core {
 
             server.Start(5000);
 
-            client1.Connect("0.0.0.0", 1);
-            client2.Connect("0.0.0.0", 5000);
+            client1.Connect(hostIp, 1);
+            client2.Connect(hostIp, 5000);
 
             Update();
 
@@ -309,7 +311,7 @@ namespace Tests.Core {
 
             server.Start(5000);
 
-            client1.Connect("0.0.0.0", 1);
+            client1.Connect(hostIp, 1);
 
             server.Update();
             client1.Update();
@@ -342,7 +344,7 @@ namespace Tests.Core {
             server.timeOutDelay = 1F;
 
             server.Start(5000);
-            client1.Connect("0.0.0.0", 1);
+            client1.Connect(hostIp, 1);
 
             server.Update();
             client1.Update();
@@ -356,7 +358,7 @@ namespace Tests.Core {
 
             this.NewClient(out client1, out clientListener);
 
-            client1.Connect("0.0.0.0", 1);
+            client1.Connect(hostIp, 1);
 
             server.Update();
             client1.Update();

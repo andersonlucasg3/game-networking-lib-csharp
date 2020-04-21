@@ -64,8 +64,8 @@ namespace GameNetworking.Sockets {
         public bool isConnected => this.socket.Connected;
         public bool isBound => this.socket.IsBound;
 
-        public NetEndPoint localEndPoint { get; private set; }
-        public NetEndPoint remoteEndPoint { get; private set; }
+        public NetEndPoint localEndPoint { get; private set; } = new NetEndPoint();
+        public NetEndPoint remoteEndPoint { get; private set; } = new NetEndPoint();
 
         public ISocketListener listener { get; set; }
         public ITcpServerListener serverListener { get; set; }
@@ -81,6 +81,13 @@ namespace GameNetworking.Sockets {
             this.socket.Blocking = false;
             this.socket.SendTimeout = 2000;
             this.socket.ReceiveTimeout = 2000;
+
+            if (this.socket.LocalEndPoint != null) {
+                this.localEndPoint.From(this.socket.LocalEndPoint);
+            }
+            if (this.socket.RemoteEndPoint != null) {
+                this.remoteEndPoint.From(this.socket.RemoteEndPoint);
+            }
         }
 
         #region Server
@@ -123,6 +130,8 @@ namespace GameNetworking.Sockets {
             this.socket.BeginConnect(ipep, (ar) => {
                 if (this.socket.Connected) {
                     this.socket.EndConnect(ar);
+                    this.localEndPoint.From(this.socket.LocalEndPoint);
+                    this.remoteEndPoint.From(this.socket.RemoteEndPoint);
                     this.clientListener?.SocketDidConnect();
                 } else {
                     this.clientListener?.SocketDidTimeout();
@@ -218,7 +227,7 @@ namespace GameNetworking.Sockets {
         public bool isBound => this.socket.IsBound;
         public bool isConnected => this.remoteEndPoint != null;
 
-        public NetEndPoint remoteEndPoint { get; private set; }
+        public NetEndPoint remoteEndPoint { get; private set; } = new NetEndPoint();
 
         public ISocketListener listener { get; set; }
         public IUdpSocketListener udpListener { get; set; }

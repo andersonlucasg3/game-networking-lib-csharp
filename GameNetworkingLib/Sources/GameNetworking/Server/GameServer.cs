@@ -83,11 +83,11 @@ namespace GameNetworking.Server {
             this._playerCollection.ForEach((player) => { if (predicate(player)) { player.Send(message, channel); } });
         }
 
-        void INetworkServerListener.NetworkServerDidAcceptPlayer(ReliableChannel channel) {
+        void INetworkServerListener.NetworkServerDidAcceptPlayer(ReliableChannel reliable, UnreliableChannel unreliable) {
             var player = new TPlayer();
-            player.Configure(channel, this.networkServer.unreliableChannel);
+            player.Configure(reliable, unreliable);
 
-            this.channelCollection[channel] = player;
+            this.channelCollection[reliable] = player;
 
             this.clientAcceptor.AcceptClient(player);
         }

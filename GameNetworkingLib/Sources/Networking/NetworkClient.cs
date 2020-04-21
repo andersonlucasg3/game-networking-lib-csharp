@@ -35,6 +35,8 @@ namespace GameNetworking.Networking {
             this.tcpSocket = tcpSocket;
             this.udpSocket = udpSocket;
 
+            this.tcpSocket.clientListener = this;
+
             this.reliableChannel = new ReliableChannel(this.tcpSocket);
             this.unreliableChannel = new UnreliableChannel(this.udpSocket);
 

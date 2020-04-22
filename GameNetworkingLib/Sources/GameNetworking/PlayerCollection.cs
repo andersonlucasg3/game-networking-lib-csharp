@@ -12,7 +12,7 @@ namespace GameNetworking {
 
     public interface IReadOnlyPlayerCollection<TKey, TPlayer> : IEnumerable<TPlayer>
         where TKey : IEquatable<TKey>
-        where TPlayer : class { 
+        where TPlayer : class {
         TPlayer this[TKey key] { get; }
         int count { get; }
 
@@ -56,7 +56,7 @@ namespace GameNetworking {
         }
 
         public TPlayer Remove(TKey key) {
-            if (this.playersCollection.Remove(key, out TPlayer player)) {
+            if (this.playersCollection.TryRemove(key, out TPlayer player)) {
                 this._values.Remove(player);
 
                 for (int i = 0; i < this.listeners.Count; i++) {

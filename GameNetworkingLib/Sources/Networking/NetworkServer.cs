@@ -1,7 +1,5 @@
 ﻿using System.Collections.Concurrent;
-using System.Collections.Generic;
 using GameNetworking.Channels;
-using GameNetworking.Messages.Models;
 using GameNetworking.Sockets;
 
 namespace GameNetworking.Networking {

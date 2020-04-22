@@ -36,7 +36,7 @@ namespace GameNetworking.Channels {
         }
 
         public virtual void Receive() {
-            lock(this.reader) {
+            lock (this.reader) {
                 if (this.isReceiving) { return; }
                 this.isReceiving = true;
             }
@@ -50,7 +50,7 @@ namespace GameNetworking.Channels {
         }
 
         public void Flush() {
-            lock(this.writer) {
+            lock (this.writer) {
                 if (this.isSending || !this.writer.hasBytesToWrite) { return; }
                 this.isSending = true;
 
@@ -63,16 +63,15 @@ namespace GameNetworking.Channels {
             this.reader.Add(bytes, count);
 
             MessageContainer container;
-            while ((container = this.reader.Decode()) != null)
-                { this.listener?.ChannelDidReceiveMessage(container); }
+            while ((container = this.reader.Decode()) != null) { this.listener?.ChannelDidReceiveMessage(container); }
 
-            lock(this.reader) { this.isReceiving = false; }
+            lock (this.reader) { this.isReceiving = false; }
         }
 
         void ISocketListener.SocketDidSendBytes(int count) {
             this.writer.DidWrite(count);
 
-            lock(this.writer) { this.isSending = false; }
+            lock (this.writer) { this.isSending = false; }
         }
     }
 
@@ -96,7 +95,7 @@ namespace GameNetworking.Channels {
         void ChannelDidReceiveBytes(byte[] bytes, int count);
     }
 
-    public class UnreliableChannel: Channel<IUdpSocket>, IUdpSocketListener, IUnreliableChannelIdentifiedReceiveListener {
+    public class UnreliableChannel : Channel<IUdpSocket>, IUdpSocketListener, IUnreliableChannelIdentifiedReceiveListener {
         private readonly Dictionary<NetEndPoint, IUnreliableChannelIdentifiedReceiveListener> receiverCollection
             = new Dictionary<NetEndPoint, IUnreliableChannelIdentifiedReceiveListener>();
 

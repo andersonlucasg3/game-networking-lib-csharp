@@ -17,7 +17,7 @@ namespace GameNetworking.Client {
     }
 
     public interface IGameClient<TPlayer>
-        where TPlayer : class, IPlayer {
+        where TPlayer : Player {
         IReadOnlyPlayerCollection<int, TPlayer> playerCollection { get; }
         TPlayer localPlayer { get; }
 
@@ -37,7 +37,7 @@ namespace GameNetworking.Client {
     }
 
     public class GameClient<TPlayer> : IGameClient<TPlayer>, IRemoteClientListener, INetworkClientListener
-        where TPlayer : Player, new() { 
+        where TPlayer : Player, new() {
         private readonly INetworkClient networkClient;
         private readonly GameClientMessageRouter<TPlayer> router;
         private readonly PlayerCollection<int, TPlayer> _playerCollection = new PlayerCollection<int, TPlayer>();

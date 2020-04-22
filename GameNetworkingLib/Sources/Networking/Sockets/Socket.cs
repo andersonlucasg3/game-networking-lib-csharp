@@ -360,7 +360,7 @@ namespace GameNetworking.Sockets {
         }
 
         public void Send(byte[] bytes, int count) {
-            if (bytes.Length == 0 || this.socket == null || this.isConnected) {
+            if (count == 0 || this.socket == null || !this.isConnected) {
                 this.listener?.SocketDidSendBytes(0);
                 return;
             }

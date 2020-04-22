@@ -169,14 +169,10 @@ namespace GameNetworking.Sockets {
         #endregion
 
         private void CheckClosed() {
-            if (!this.isClosed) { this.Close(); }
-        }
-
-        public void Close() {
+            if (this.isClosed) { return; }
             lock (this) {
-                if (this.socket == null) { return; }
                 try {
-                    if (this.isConnected) {
+                    if (!this.CheckDisconnected()) {
                         this.socket.Shutdown(SocketShutdown.Both);
                     }
                 } finally {
@@ -186,6 +182,10 @@ namespace GameNetworking.Sockets {
                 this.isClosed = true;
             }
             this.hasBeenConnected = false;
+        }
+
+        public void Close() {
+            this.CheckClosed();
         }
 
         #region Read & Write

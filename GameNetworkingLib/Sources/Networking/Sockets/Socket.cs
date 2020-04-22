@@ -111,7 +111,7 @@ namespace GameNetworking.Sockets {
                         accepted = this.socket.EndAccept(ar);
                     }
                 }
-                
+
                 if (accepted == null) {
                     this.serverListener?.SocketDidAccept(null);
                     return;
@@ -248,7 +248,7 @@ namespace GameNetworking.Sockets {
 
         private bool IsConnected() {
             try {
-                lock(this) {
+                lock (this) {
                     if (this.socket == null) { return false; }
                     return !(this.socket.Poll(1, SelectMode.SelectRead) && socket.Available == 0);
                 }

@@ -8,9 +8,9 @@ namespace GameNetworking {
         public interface IPlayer : IEquatable<IPlayer> {
             int playerId { get; }
             float mostRecentPingValue { get; }
-            
+
             void Send(ITypedMessage message, Channel channel);
-            
+
             void Disconnect();
         }
 
@@ -85,9 +85,9 @@ namespace GameNetworking {
 
             private IChannel GetChannel(Channel channel) {
                 switch (channel) {
-                case Channel.reliable: return this.reliableChannel;
-                case Channel.unreliable: return this.unreliableChannel;
-                default: return null;
+                    case Channel.reliable: return this.reliableChannel;
+                    case Channel.unreliable: return this.unreliableChannel;
+                    default: return null;
                 }
             }
 

@@ -12,7 +12,7 @@ namespace GameNetworking {
 
     public interface IReadOnlyPlayerCollection<TKey, TPlayer> : IEnumerable<TPlayer>
         where TKey : IEquatable<TKey>
-        where TPlayer : class { 
+        where TPlayer : class {
         TPlayer this[TKey key] { get; }
         int count { get; }
 

@@ -42,7 +42,7 @@ namespace Tests.Core {
         public bool disconnectCalled { get; private set; }
         public ClientPlayer localPlayer { get; private set; }
 
-        #region IGameClientListener
+#region IGameClientListener
 
         void IGameClientListener<ClientPlayer>.GameClientDidConnect() => this.connectedCalled = true;
         void IGameClientListener<ClientPlayer>.GameClientConnectDidTimeout() => this.connectTimeoutCalled = true;
@@ -52,7 +52,7 @@ namespace Tests.Core {
         void IGameClientListener<ClientPlayer>.GameClientPlayerDidConnect(ClientPlayer player) => this.connectedPlayers.Add(player);
         void IGameClientListener<ClientPlayer>.GameClientPlayerDidDisconnect(ClientPlayer player) => this.disconnectedPlayers.Add(player);
 
-        #endregion
+#endregion
     }
 
     public class ServerListener : IServerListener {
@@ -62,13 +62,13 @@ namespace Tests.Core {
         public List<ServerPlayer> connectedPlayers { get; } = new List<ServerPlayer>();
         public List<ServerPlayer> disconnectedPlayers { get; } = new List<ServerPlayer>();
 
-        #region IGameServerListener
+#region IGameServerListener
 
         void IGameServerListener<ServerPlayer>.GameServerPlayerDidConnect(ServerPlayer player) => connectedPlayers.Add(player);
         void IGameServerListener<ServerPlayer>.GameServerPlayerDidDisconnect(ServerPlayer player) => disconnectedPlayers.Add(player);
         void IGameServerListener<ServerPlayer>.GameServerDidReceiveClientMessage(MessageContainer container, ServerPlayer player) => Assert.NotNull(player);
 
-        #endregion
+#endregion
     }
 
     public class GameServerClientTests {

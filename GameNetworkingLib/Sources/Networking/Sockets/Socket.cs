@@ -100,12 +100,23 @@ namespace GameNetworking.Sockets {
         }
 
         public void Stop() {
-            try { this.socket.Shutdown(SocketShutdown.Both); } finally { this.socket.Close(); }
+            this.CheckClosed();
         }
 
         public void Accept() {
             this.socket.BeginAccept((ar) => {
-                var accepted = this.socket.EndAccept(ar);
+                Socket accepted = null;
+                lock (this) {
+                    if (this.socket != null) {
+                        accepted = this.socket.EndAccept(ar);
+                    }
+                }
+                
+                if (accepted == null) {
+                    this.serverListener?.SocketDidAccept(null);
+                    return;
+                }
+
                 var socket = new TcpSocket(accepted) { hasBeenConnected = true };
                 this.serverListener?.SocketDidAccept(socket);
             }, null);
@@ -163,7 +174,9 @@ namespace GameNetworking.Sockets {
             lock (this) {
                 if (this.socket == null) { return; }
                 try {
-                    this.socket.Shutdown(SocketShutdown.Both);
+                    if (this.isConnected) {
+                        this.socket.Shutdown(SocketShutdown.Both);
+                    }
                 } finally {
                     this.socket.Close();
                 }
@@ -183,7 +196,7 @@ namespace GameNetworking.Sockets {
                 return;
             }
 
-            if (this.socket == null) {
+            if (!this.isConnected) {
                 this.listener?.SocketDidReceiveBytes(null, 0);
                 return;
             }
@@ -209,7 +222,7 @@ namespace GameNetworking.Sockets {
                 return;
             }
 
-            if (this.socket == null) {
+            if (!this.isConnected) {
                 this.listener?.SocketDidSendBytes(0);
                 return;
             }
@@ -235,7 +248,10 @@ namespace GameNetworking.Sockets {
 
         private bool IsConnected() {
             try {
-                return !(this.socket.Poll(1, SelectMode.SelectRead) && socket.Available == 0);
+                lock(this) {
+                    if (this.socket == null) { return false; }
+                    return !(this.socket.Poll(1, SelectMode.SelectRead) && socket.Available == 0);
+                }
             } catch (SocketException) { return false; }
         }
 
@@ -249,7 +265,7 @@ namespace GameNetworking.Sockets {
         #region IEquatable
 
         bool IEquatable<TcpSocket>.Equals(TcpSocket other) {
-            return this.socket.Equals(other.socket);
+            return this.remoteEndPoint.Equals(other.remoteEndPoint);
         }
 
         #endregion

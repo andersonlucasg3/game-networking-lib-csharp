@@ -152,6 +152,10 @@ namespace Tests.Core {
             Assert.AreEqual(player.playerId, serverListener.disconnectedPlayers[0].playerId);
 
             Assert.AreEqual(0, clientListener.disconnectedPlayers.Count);
+
+            server.Stop();
+
+            Thread.Sleep(2000);
         }
 
         [Test] 
@@ -163,17 +167,33 @@ namespace Tests.Core {
 
             void UpdateAction() {
                 server.Update();
-                server.Update();
-                server.Update();
                 client1.Update();
+
+                MainThreadDispatcher.Execute();
+
+                server.Update();
                 client2.Update();
+
+                MainThreadDispatcher.Execute();
+
+                server.Update();
                 client3.Update();
+
+                MainThreadDispatcher.Execute();
             }
 
             server.Start(5000);
 
+            UpdateAction();
+
             client1.Connect(hostIp, 5000);
+
+            UpdateAction();
+
             client2.Connect(hostIp, 5000);
+
+            UpdateAction();
+
             client3.Connect(hostIp, 5000);
 
             UpdateAction();
@@ -206,6 +226,8 @@ namespace Tests.Core {
             Assert.IsNotNull(serverPlayer2);
             Assert.IsNotNull(serverPlayer3);
 
+            UpdateAction();
+
             client3.Disconnect();
 
             UpdateAction();
@@ -234,6 +256,10 @@ namespace Tests.Core {
             Assert.AreEqual(1, client1.playerCollection.values.FindAll(p => p.isLocalPlayer).Count);
             Assert.AreEqual(1, client2.playerCollection.values.FindAll(p => p.isLocalPlayer).Count);
             Assert.AreEqual(0, client3.playerCollection.values.FindAll(p => p.isLocalPlayer).Count);
+
+            server.Stop();
+
+            Thread.Sleep(2000);
         }
 
         [Test]
@@ -244,17 +270,25 @@ namespace Tests.Core {
 
             void Update() {
                 server.Update();
-                server.Update();
                 client1.Update();
+
+                MainThreadDispatcher.Execute();
+
+                server.Update();
                 client2.Update();
+
+                MainThreadDispatcher.Execute();
             }
 
             server.Start(5000);
 
+            Update();
+
             client1.Connect(hostIp, 5000);
-            client2.Connect(hostIp, 5000);
 
             Update();
+
+            client2.Connect(hostIp, 5000);
 
             Update();
 
@@ -272,12 +306,14 @@ namespace Tests.Core {
 
             Update();
 
-            Update();
-
             Assert.AreEqual(1, listener1_c.disconnectedPlayers.Count);
             Assert.AreEqual(0, listener2_c.disconnectedPlayers.Count);
 
             Assert.AreEqual(disconnectedPlayerId, listener1_c.disconnectedPlayers[0].playerId);
+
+            server.Stop();
+
+            Thread.Sleep(2000);
         }
 
         [Test]
@@ -288,14 +324,24 @@ namespace Tests.Core {
 
             void Update() {
                 server.Update();
-                server.Update();
                 client1.Update();
+
+                MainThreadDispatcher.Execute();
+
+                server.Update();
                 client2.Update();
+
+                MainThreadDispatcher.Execute();
             }
 
             server.Start(5000);
 
-            client1.Connect(hostIp, 1);
+            Update();
+
+            client1.Connect(hostIp, 5000);
+            
+            Update();
+
             client2.Connect(hostIp, 5000);
 
             Update();
@@ -322,66 +368,49 @@ namespace Tests.Core {
 
             Assert.Less(MathF.Abs(player1.mostRecentPingValue - client2client1Ping), 0.02F);
             Assert.Less(MathF.Abs(player2.mostRecentPingValue - client1client2Ping), 0.02F);
+
+            server.Stop();
+
+            Thread.Sleep(2000);
         }
-
-        // TODO: review the need of a time out test
-        //[Test]
-        //public void TestConnectionTimeOutClient() {
-        //    this.NewClient(out GameClient<ClientPlayer> client1, out ClientListener clientListener);
-        //    this.NewServer(out GameServer<ServerPlayer> server, out ServerListener serverListener, out NetworkServer networkServer);
-
-        //    server.Start(5000);
-
-        //    client1.Connect(hostIp, 1);
-
-        //    server.Update();
-        //    client1.Update();
-
-        //    var localPlayer = client1.localPlayer;
-        //    var serverPlayer = server.playerCollection.FindPlayer(localPlayer.playerId);
-
-        //    //Thread.Sleep((int)(client1.timeOutDelay * 1000));
-
-        //    client1.Update();
-
-        //    Assert.IsTrue(clientListener.disconnectCalled);
-
-        //    server.Update();
-
-        //    Assert.AreEqual(localPlayer.playerId, serverListener.disconnectedPlayers.First().playerId);
-
-        //    server.Update();
-
-        //    //Assert.IsFalse(networkServer.clients.Contains(serverPlayer.client));
-        //    // TODO: see how to replace this assertion.
-        //}
 
         [Test]
         public void TestOneClientDisconnectAndReconnect() {
             this.NewClient(out GameClient<ClientPlayer> client1, out ClientListener clientListener);
             this.NewServer(out GameServer<ServerPlayer> server, out ServerListener _);
 
+            void Update() {
+                server.Update();
+                client1.Update();
+
+                MainThreadDispatcher.Execute();
+            }
+
             server.Start(5000);
-            client1.Connect(hostIp, 1);
 
-            server.Update();
-            client1.Update();
+            Update();
 
+            client1.Connect(hostIp, 5000);
+
+            Update();
+            
             Assert.IsTrue(clientListener.localPlayer.playerId == 0);
 
             client1.Disconnect();
 
-            server.Update();
-            client1.Update();
+            Update();
 
             this.NewClient(out client1, out clientListener);
 
-            client1.Connect(hostIp, 1);
+            client1.Connect(hostIp, 5000);
 
-            server.Update();
-            client1.Update();
+            Update();
 
             Assert.IsTrue(clientListener.localPlayer.playerId == 1);
+
+            server.Stop();
+
+            Thread.Sleep(2000);
         }
     }
 
@@ -393,11 +422,9 @@ namespace Tests.Core {
         }
 
         public static void Execute() {
-            Thread.Sleep(1000);
+            Thread.Sleep(250);
 
-            while (actions.TryDequeue(out Action action)) {
-                action.Invoke();
-            }
+            while (actions.TryDequeue(out Action action)) { action.Invoke(); }
         }
     }
 }

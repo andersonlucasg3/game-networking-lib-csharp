@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using GameNetworking.Channels;
 using GameNetworking.Messages.Models;
 using GameNetworking.Sockets;
@@ -26,6 +27,7 @@ namespace GameNetworking.Networking {
         private readonly IUdpSocket udpSocket;
 
         private readonly PlayerCollection<TcpSocket, ReliableChannel> socketCollection;
+        private readonly ConcurrentQueue<TcpSocket> socketsToRemove = new ConcurrentQueue<TcpSocket>();
 
         private bool isAccepting = false;
 
@@ -64,6 +66,7 @@ namespace GameNetworking.Networking {
                 this.unreliableChannel.Receive();
                 this.unreliableChannel.Flush();
             }
+            this.RemoveSockets();
         }
 
         public void Stop() {
@@ -84,7 +87,18 @@ namespace GameNetworking.Networking {
             this.tcpSocket.Accept();
         }
 
+        private void RemoveSockets() {
+            while (this.socketsToRemove.TryDequeue(out TcpSocket socket)) {
+                ReliableChannel channel = this.socketCollection.Remove(socket);
+                if (channel == null) { return; }
+                this.unreliableChannel.Unregister(socket.remoteEndPoint);
+                this.listener?.NetworkServerPlayerDidDisconnect(channel);
+            }
+        }
+
         void ITcpServerListener<TcpSocket>.SocketDidAccept(TcpSocket socket) {
+            if (socket == null) { return; }
+
             socket.serverListener = this;
 
             var reliable = new ReliableChannel(socket);
@@ -98,10 +112,7 @@ namespace GameNetworking.Networking {
         }
 
         void ITcpServerListener<TcpSocket>.SocketDidDisconnect(TcpSocket socket) {
-            ReliableChannel channel = this.socketCollection.Remove(socket);
-            if (channel == null) { return; }
-            this.unreliableChannel.Unregister(socket.remoteEndPoint);
-            this.listener?.NetworkServerPlayerDidDisconnect(channel);
+            this.socketsToRemove.Enqueue(socket);
         }
     }
 }

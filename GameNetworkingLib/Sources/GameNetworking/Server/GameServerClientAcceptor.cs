@@ -26,10 +26,9 @@ namespace GameNetworking.Server {
 
             this.listener.ClientAcceptorPlayerDidConnect(player);
 
-            var players = this.listener.playerCollection;
-            TPlayer each;
-            for (int i = 0; i < players.count; i++) {
-                each = players[i];
+            var players = this.listener.playerCollection.values;
+            for (int i = 0; i < players.Count; i++) {
+                TPlayer each = players[i];
 
                 // Sends the connected player message to all players
                 var connectedAll = new ConnectedPlayerMessage {

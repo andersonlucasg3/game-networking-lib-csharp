@@ -41,6 +41,7 @@ namespace GameNetworking.Sockets {
         }
 
         public static bool operator ==(NetEndPoint left, NetEndPoint right) {
+            if (left == null) { return false; }
             return left.Equals(right);
         }
 

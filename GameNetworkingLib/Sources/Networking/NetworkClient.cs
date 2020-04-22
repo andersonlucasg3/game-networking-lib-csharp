@@ -23,15 +23,15 @@ namespace GameNetworking.Networking {
     }
 
     public class NetworkClient : INetworkClient, ITcpClientListener, IChannelListener {
-        private readonly ITcpSocket tcpSocket;
-        private readonly IUdpSocket udpSocket;
+        private readonly TcpSocket tcpSocket;
+        private readonly UdpSocket udpSocket;
 
         private readonly ReliableChannel reliableChannel;
         private readonly UnreliableChannel unreliableChannel;
 
         public INetworkClientListener listener { get; set; }
 
-        public NetworkClient(ITcpSocket tcpSocket, IUdpSocket udpSocket) {
+        public NetworkClient(TcpSocket tcpSocket, UdpSocket udpSocket) {
             this.tcpSocket = tcpSocket;
             this.udpSocket = udpSocket;
 

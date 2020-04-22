@@ -35,9 +35,7 @@ namespace GameNetworking.Channels {
             this.writer = new MessageStreamWriter();
         }
 
-        public void Receive() {
-            if (!this.socket.isConnected) { return; }
-
+        public virtual void Receive() {
             lock(this.reader) {
                 if (this.isReceiving) { return; }
                 this.isReceiving = true;
@@ -84,8 +82,8 @@ namespace GameNetworking.Channels {
 
     #region Reliable
 
-    public class ReliableChannel : Channel<ITcpSocket> {
-        public ReliableChannel(ITcpSocket socket) : base(socket) { }
+    public class ReliableChannel : Channel<TcpSocket> {
+        public ReliableChannel(TcpSocket socket) : base(socket) { }
 
         public void CloseChannel() => this.socket.Disconnect();
     }

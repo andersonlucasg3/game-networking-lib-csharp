@@ -20,7 +20,6 @@ namespace GameNetworking.Client {
         where TPlayer : class, IPlayer {
         IReadOnlyPlayerCollection<int, TPlayer> playerCollection { get; }
         TPlayer localPlayer { get; }
-        double timeOutDelay { get; set; }
 
         IGameClientListener<TPlayer> listener { get; set; }
 
@@ -38,23 +37,19 @@ namespace GameNetworking.Client {
     }
 
     public class GameClient<TPlayer> : IGameClient<TPlayer>, IRemoteClientListener, INetworkClientListener
-        where TPlayer : class, IPlayer, new() { 
+        where TPlayer : Player, new() { 
         private readonly INetworkClient networkClient;
         private readonly GameClientMessageRouter<TPlayer> router;
-
-        internal readonly PlayerCollection<int, TPlayer> _playerCollection;
+        private readonly PlayerCollection<int, TPlayer> _playerCollection = new PlayerCollection<int, TPlayer>();
 
         public IReadOnlyPlayerCollection<int, TPlayer> playerCollection => this._playerCollection;
         public TPlayer localPlayer { get; private set; }
-        public double timeOutDelay { get; set; } = 10F;
 
         public IGameClientListener<TPlayer> listener { get; set; }
 
         public GameClient(INetworkClient networkClient, GameClientMessageRouter<TPlayer> router) {
             this.networkClient = networkClient;
             this.networkClient.listener = this;
-
-            this._playerCollection = new PlayerCollection<int, TPlayer>();
 
             this.router = router;
             this.router.Configure(this);
@@ -79,15 +74,15 @@ namespace GameNetworking.Client {
             this.localPlayer = null;
         }
 
-
         void IRemoteClientListener.RemoteClientDidConnect(int playerId, bool isLocalPlayer) {
             var player = new TPlayer();
             player.Configure(playerId, isLocalPlayer);
+
             this._playerCollection.Add(playerId, player);
 
             this.listener?.GameClientPlayerDidConnect(player);
-
             if (player.isLocalPlayer) {
+                this.localPlayer = player;
                 this.listener?.GameClientDidIdentifyLocalPlayer(player);
             }
         }

@@ -27,9 +27,10 @@ namespace GameNetworking.Sockets {
 
     #region TCP
 
-    public interface ITcpServerListener {
-        void SocketDidAccept(ITcpSocket socket);
-        void SocketDidDisconnect(ITcpSocket socket);
+    public interface ITcpServerListener<TDerived>
+        where TDerived : ITcpSocket<TDerived> {
+        void SocketDidAccept(TDerived socket);
+        void SocketDidDisconnect(TDerived socket);
     }
 
     public interface ITcpClientListener {
@@ -38,11 +39,12 @@ namespace GameNetworking.Sockets {
         void SocketDidDisconnect();
     }
 
-    public interface ITcpSocket : ISocket {
+    public interface ITcpSocket<TDerived> : ISocket, IEquatable<TDerived>
+        where TDerived : ITcpSocket<TDerived> {
         NetEndPoint localEndPoint { get; }
         NetEndPoint remoteEndPoint { get; }
 
-        ITcpServerListener serverListener { get; set; }
+        ITcpServerListener<TDerived> serverListener { get; set; }
         ITcpClientListener clientListener { get; set; }
 
         void Start();
@@ -53,22 +55,23 @@ namespace GameNetworking.Sockets {
         void Disconnect();
     }
 
-    public sealed class TcpSocket : ITcpSocket {
+    public sealed class TcpSocket : ITcpSocket<TcpSocket> {
         private readonly ObjectPool<byte[]> bufferPool;
         private readonly ObjectPool<IPEndPoint> ipEndPointPool;
 
         private bool isClosed = false;
+        private bool hasBeenConnected = false;
 
         internal Socket socket;
 
-        public bool isConnected => this.socket.Connected;
-        public bool isBound => this.socket.IsBound;
+        public bool isConnected => this.socket?.Connected ?? false;
+        public bool isBound => this.socket?.IsBound ?? false;
 
         public NetEndPoint localEndPoint { get; private set; } = new NetEndPoint();
         public NetEndPoint remoteEndPoint { get; private set; } = new NetEndPoint();
 
         public ISocketListener listener { get; set; }
-        public ITcpServerListener serverListener { get; set; }
+        public ITcpServerListener<TcpSocket> serverListener { get; set; }
         public ITcpClientListener clientListener { get; set; }
 
         public TcpSocket() : this(new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)) { }
@@ -103,7 +106,8 @@ namespace GameNetworking.Sockets {
         public void Accept() {
             this.socket.BeginAccept((ar) => {
                 var accepted = this.socket.EndAccept(ar);
-                this.serverListener?.SocketDidAccept(new TcpSocket(accepted));
+                var socket = new TcpSocket(accepted) { hasBeenConnected = true };
+                this.serverListener?.SocketDidAccept(socket);
             }, null);
         }
 
@@ -133,6 +137,7 @@ namespace GameNetworking.Sockets {
                     this.localEndPoint.From(this.socket.LocalEndPoint);
                     this.remoteEndPoint.From(this.socket.RemoteEndPoint);
                     this.clientListener?.SocketDidConnect();
+                    this.hasBeenConnected = true;
                 } else {
                     this.clientListener?.SocketDidTimeout();
                     this.CheckClosed();
@@ -163,19 +168,25 @@ namespace GameNetworking.Sockets {
             }
             this.socket = null;
             this.isClosed = true;
+            this.hasBeenConnected = false;
         }
 
         #region Read & Write
 
         public void Receive() {
-            var buffer = this.bufferPool.Rent();
-
-            if (!this.socket.Connected) {
-                this.serverListener.SocketDidDisconnect(this);
+            if (this.CheckDisconnected()) {
+                this.serverListener?.SocketDidDisconnect(this);
+                this.clientListener?.SocketDidDisconnect();
                 this.CheckClosed();
                 return;
             }
 
+            if (this.socket == null) {
+                this.listener?.SocketDidReceiveBytes(null, 0);
+                return;
+            }
+
+            var buffer = this.bufferPool.Rent();
             this.socket.BeginReceive(buffer, 0, Consts.bufferSize, SocketFlags.None, (ar) => {
                 var count = this.socket.EndReceive(ar);
                 this.listener?.SocketDidReceiveBytes(buffer, count);
@@ -184,6 +195,18 @@ namespace GameNetworking.Sockets {
         }
 
         public void Send(byte[] bytes, int count) {
+            if (this.CheckDisconnected()) {
+                this.serverListener?.SocketDidDisconnect(this);
+                this.clientListener?.SocketDidDisconnect();
+                this.CheckClosed();
+                return;
+            }
+
+            if (this.socket == null) {
+                this.listener?.SocketDidSendBytes(0);
+                return;
+            }
+
             this.socket.BeginSend(bytes, 0, count, SocketFlags.None, (ar) => {
                 int written = this.socket.EndSend(ar);
                 this.listener?.SocketDidSendBytes(written);
@@ -194,9 +217,27 @@ namespace GameNetworking.Sockets {
 
         #region Private Methods
 
+        private bool CheckDisconnected() {
+            return this.hasBeenConnected && (!this.isConnected || !this.IsConnected());
+        }
+
+        private bool IsConnected() {
+            try {
+                return !(this.socket.Poll(1, SelectMode.SelectRead) && socket.Available == 0);
+            } catch (SocketException) { return false; }
+        }
+
         private void From(NetEndPoint ep, ref IPEndPoint endPoint) {
             endPoint.Address = IPAddress.Parse(ep.host);
             endPoint.Port = ep.port;
+        }
+
+        #endregion
+
+        #region IEquatable
+
+        bool IEquatable<TcpSocket>.Equals(TcpSocket other) {
+            return this.socket.Equals(other.socket);
         }
 
         #endregion
@@ -270,7 +311,7 @@ namespace GameNetworking.Sockets {
         }
 
         public void Receive() {
-            if (this.socket == null) {
+            if (this.socket == null || !this.isBound) {
                 this.listener?.SocketDidReceiveBytes(null, 0);
                 return;
             }
@@ -291,7 +332,7 @@ namespace GameNetworking.Sockets {
         }
 
         public void Send(byte[] bytes, int count) {
-            if (bytes.Length == 0 || this.socket == null) {
+            if (bytes.Length == 0 || this.socket == null || this.isConnected) {
                 this.listener?.SocketDidSendBytes(0);
                 return;
             }

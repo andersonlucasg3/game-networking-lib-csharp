@@ -5,7 +5,7 @@ using GameNetworking.Messages;
 using GameNetworking.Messages.Models;
 
 namespace GameNetworking.Server {
-    public class GameServerMessageRouter<TPlayer>
+    public class GameServerMessageRouter<TPlayer> : IPlayerMessageListener
         where TPlayer : class, IPlayer {
 
         private readonly IMainThreadDispatcher dispatcher;
@@ -24,7 +24,7 @@ namespace GameNetworking.Server {
             dispatcher.Enqueue(executor.Execute);
         }
 
-        public virtual void Route(MessageContainer container, TPlayer player) {
+        protected virtual void Route(MessageContainer container, TPlayer player) {
             if (container == null) { return; }
 
             var type = (MessageType)container.type;
@@ -33,6 +33,10 @@ namespace GameNetworking.Server {
                 case MessageType.pong: Execute(new PongRequestExecutor<TPlayer>(this.server, player)); break;
                 default: this.server.listener?.GameServerDidReceiveClientMessage(container, player); break;
             }
+        }
+
+        void IPlayerMessageListener.PlayerDidReceiveMessage(MessageContainer container, IPlayer from) {
+            this.Route(container, from as TPlayer);
         }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Net;
 using GameNetworking.Channels;
 using GameNetworking.Messages.Models;
@@ -20,8 +19,6 @@ namespace GameNetworking.Server {
         IGameServerPingController<TPlayer> pingController { get; }
         IReadOnlyPlayerCollection<int, TPlayer> playerCollection { get; }
 
-        double timeOutDelay { get; set; }
-
         IGameServerListener<TPlayer> listener { get; set; }
 
         void Start(int port);
@@ -33,33 +30,30 @@ namespace GameNetworking.Server {
         void SendBroadcast(ITypedMessage message, Predicate<TPlayer> predicate, Channel channel);
     }
 
-    public class GameServer<TPlayer> : IGameServer<TPlayer>, INetworkServerListener, IGameServerClientAcceptorListener<TPlayer>
-        where TPlayer : class, IPlayer, new() {
+    public class GameServer<TPlayer> : IGameServer<TPlayer>, IGameServerClientAcceptorListener<TPlayer>
+        where TPlayer : Player, new() {
         private readonly GameServerMessageRouter<TPlayer> router;
         private readonly GameServerClientAcceptor<TPlayer> clientAcceptor;
-        private readonly ConcurrentDictionary<IChannel, TPlayer> channelCollection;
 
         internal readonly PlayerCollection<int, TPlayer> _playerCollection;
 
         public NetworkServer networkServer { get; private set; }
         public IReadOnlyPlayerCollection<int, TPlayer> playerCollection => this._playerCollection;
         public IGameServerPingController<TPlayer> pingController { get; }
-        public double timeOutDelay { get; set; } = 10F;
 
         public IGameServerListener<TPlayer> listener { get; set; }
 
         public GameServer(NetworkServer networkServer, GameServerMessageRouter<TPlayer> router) {
-            this.networkServer = networkServer;
-            this.networkServer.listener = this;
+            this.clientAcceptor = new GameServerClientAcceptor<TPlayer>() { listener = this };
 
-            this.channelCollection = new ConcurrentDictionary<IChannel, TPlayer>();
+            this.networkServer = networkServer;
+            this.networkServer.listener = this.clientAcceptor;
+
             this._playerCollection = new PlayerCollection<int, TPlayer>();
             this.pingController = new GameServerPingController<TPlayer>(this._playerCollection);
 
             this.router = router;
             this.router.Configure(this);
-
-            this.clientAcceptor = new GameServerClientAcceptor<TPlayer>() { listener = this };
         }
 
         public void Start(int port) {
@@ -83,26 +77,15 @@ namespace GameNetworking.Server {
             this._playerCollection.ForEach((player) => { if (predicate(player)) { player.Send(message, channel); } });
         }
 
-        void INetworkServerListener.NetworkServerDidAcceptPlayer(ReliableChannel reliable, UnreliableChannel unreliable) {
-            var player = new TPlayer();
-            player.Configure(reliable, unreliable);
-
-            this.channelCollection[reliable] = player;
-
-            this.clientAcceptor.AcceptClient(player);
-        }
-
-        void INetworkServerListener.NetworkServerPlayerDidDisconnect(ReliableChannel channel) {
-            if (this.channelCollection.TryRemove(channel, out TPlayer player)) {
-                this.clientAcceptor.Disconnect(player);
-            }
-        }
-
         void IGameServerClientAcceptorListener<TPlayer>.ClientAcceptorPlayerDidConnect(TPlayer player) {
+            player.listener = this.router;
+            this._playerCollection.Add(player.playerId, player);
             this.listener?.GameServerPlayerDidConnect(player);
         }
 
         void IGameServerClientAcceptorListener<TPlayer>.ClientAcceptorPlayerDidDisconnect(TPlayer player) {
+            player.listener = null;
+            this._playerCollection.Remove(player.playerId);
             this.listener?.GameServerPlayerDidDisconnect(player);
         }
     }

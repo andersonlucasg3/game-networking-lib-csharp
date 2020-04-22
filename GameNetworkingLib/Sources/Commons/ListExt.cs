@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace GameNetworking.Commons {
     public static class ListExt {
@@ -10,6 +11,15 @@ namespace GameNetworking.Commons {
                 list.Add(enumerator.Current);
                 index++;
             }
+        }
+
+        public static List<T> FindAll<T>(this IReadOnlyList<T> list, Predicate<T> predicate) {
+            List<T> values = new List<T>();
+            for (int index = 0; index < list.Count; index++) {
+                T value = list[index];
+                if (predicate.Invoke(value)) { values.Add(value); }
+            }
+            return values;
         }
     }
 }

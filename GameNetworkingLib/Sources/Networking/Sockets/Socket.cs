@@ -287,7 +287,6 @@ namespace GameNetworking.Sockets {
         private const int SIO_UDP_CONNRESET = -1744830452;
 
         private readonly ObjectPool<byte[]> bufferPool;
-        private readonly ObjectPool<NetEndPoint> endPointPool;
         private readonly ObjectPool<IPEndPoint> ipEndPointPool;
         private Socket socket;
 
@@ -300,7 +299,6 @@ namespace GameNetworking.Sockets {
 
         public UdpSocket() {
             this.bufferPool = new ObjectPool<byte[]>(() => new byte[Consts.bufferSize]);
-            this.endPointPool = new ObjectPool<NetEndPoint>(() => new NetEndPoint());
             this.ipEndPointPool = new ObjectPool<IPEndPoint>(() => new IPEndPoint(IPAddress.Any, 0));
         }
 

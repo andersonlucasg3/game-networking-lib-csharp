@@ -24,7 +24,7 @@ namespace GameNetworking.Sockets {
             if (obj is NetEndPoint other) {
                 return this.Equals(other);
             }
-            return base.Equals(obj);
+            return object.Equals(this, obj);
         }
 
         public bool Equals(NetEndPoint other) {
@@ -38,15 +38,6 @@ namespace GameNetworking.Sockets {
 #else
             return host.GetHashCode() + port.GetHashCode();
 #endif
-        }
-
-        public static bool operator ==(NetEndPoint left, NetEndPoint right) {
-            if (left == null) { return false; }
-            return left.Equals(right);
-        }
-
-        public static bool operator !=(NetEndPoint left, NetEndPoint right) {
-            return !(left == right);
         }
 
         public override string ToString() {

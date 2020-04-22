@@ -160,14 +160,16 @@ namespace GameNetworking.Sockets {
         }
 
         public void Close() {
-            if (this.socket == null) { return; }
-            try {
-                this.socket.Shutdown(SocketShutdown.Both);
-            } finally {
-                this.socket.Close();
+            lock (this) {
+                if (this.socket == null) { return; }
+                try {
+                    this.socket.Shutdown(SocketShutdown.Both);
+                } finally {
+                    this.socket.Close();
+                }
+                this.socket = null;
+                this.isClosed = true;
             }
-            this.socket = null;
-            this.isClosed = true;
             this.hasBeenConnected = false;
         }
 
@@ -188,7 +190,12 @@ namespace GameNetworking.Sockets {
 
             var buffer = this.bufferPool.Rent();
             this.socket.BeginReceive(buffer, 0, Consts.bufferSize, SocketFlags.None, (ar) => {
-                var count = this.socket.EndReceive(ar);
+                int count = 0;
+                lock (this) {
+                    if (this.socket != null) {
+                        count = this.socket.EndReceive(ar);
+                    }
+                }
                 this.listener?.SocketDidReceiveBytes(buffer, count);
                 this.bufferPool.Pay(buffer);
             }, this);
@@ -208,7 +215,12 @@ namespace GameNetworking.Sockets {
             }
 
             this.socket.BeginSend(bytes, 0, count, SocketFlags.None, (ar) => {
-                int written = this.socket.EndSend(ar);
+                int written = 0;
+                lock (this) {
+                    if (this.socket != null) {
+                        written = this.socket.EndSend(ar);
+                    }
+                }
                 this.listener?.SocketDidSendBytes(written);
             }, this);
         }

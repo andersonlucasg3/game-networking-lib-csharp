@@ -345,6 +345,9 @@ namespace Tests.Core {
             client2.Connect(hostIp, 5000);
 
             Update();
+            Update();
+            Update();
+            Update();
 
             var player1 = client1.playerCollection.FindPlayer(player => player.isLocalPlayer);
             var player2 = client2.playerCollection.FindPlayer(player => player.isLocalPlayer);
@@ -356,9 +359,11 @@ namespace Tests.Core {
 
             Assert.AreNotEqual(player1.mostRecentPingValue, 0F);
             Assert.AreNotEqual(player2.mostRecentPingValue, 0F);
-            Assert.Less(MathF.Abs(serverPing1 - player1.mostRecentPingValue), 0.02F);
-            Assert.Less(MathF.Abs(serverPing2 - player2.mostRecentPingValue), 0.02F);
+            Assert.Less(MathF.Abs(serverPing1 - player1.mostRecentPingValue), 0.5F);
+            Assert.Less(MathF.Abs(serverPing2 - player2.mostRecentPingValue), 0.5F);
 
+            Update();
+            Update();
             Update();
 
             var client1client2Ping = client1.playerCollection[player2.playerId].mostRecentPingValue;
@@ -366,8 +371,8 @@ namespace Tests.Core {
 
             Assert.AreNotEqual(client1client2Ping, 0);
             Assert.AreNotEqual(client2client1Ping, 0);
-            Assert.Less(MathF.Abs(player1.mostRecentPingValue - client2client1Ping), 0.02F);
-            Assert.Less(MathF.Abs(player2.mostRecentPingValue - client1client2Ping), 0.02F);
+            Assert.Less(MathF.Abs(player1.mostRecentPingValue - client2client1Ping), 0.5F);
+            Assert.Less(MathF.Abs(player2.mostRecentPingValue - client1client2Ping), 0.5F);
 
             server.Stop();
 

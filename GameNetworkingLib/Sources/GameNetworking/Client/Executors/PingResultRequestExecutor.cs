@@ -1,14 +1,14 @@
 ﻿using GameNetworking.Client;
-using GameNetworking.Commons;
 using GameNetworking.Messages.Server;
 
 namespace GameNetworking.Executors.Client {
-    internal class PingResultRequestExecutor<TPlayer> : BaseExecutor<IGameClient<TPlayer>, PingResultRequestMessage>
-        where TPlayer : class, IPlayer {
+    internal class PingResultRequestExecutor<TPlayer> : Commons.BaseExecutor<IGameClient<TPlayer>, PingResultRequestMessage>
+        where TPlayer : GameNetworking.Client.Player {
         internal PingResultRequestExecutor(IGameClient<TPlayer> client, PingResultRequestMessage message) : base(client, message) { }
 
         public override void Execute() {
-            if (!(this.instance.playerCollection.FindPlayer(this.message.playerId) is Player player)) { return; }
+            var player = this.instance.playerCollection.FindPlayer(this.message.playerId);
+            if (player == null) { return; }
             player.mostRecentPingValue = this.message.pingValue;
         }
     }

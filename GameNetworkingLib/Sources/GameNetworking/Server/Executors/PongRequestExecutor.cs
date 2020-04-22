@@ -1,12 +1,11 @@
 using GameNetworking.Channels;
-using GameNetworking.Commons;
 using GameNetworking.Messages.Client;
 using GameNetworking.Messages.Server;
 using GameNetworking.Server;
 
 namespace GameNetworking.Executors.Server {
-    internal class PongRequestExecutor<TPlayer> : BaseExecutor<IGameServer<TPlayer>, PongRequestMessage>
-        where TPlayer : class, IPlayer {
+    internal class PongRequestExecutor<TPlayer> : Commons.BaseExecutor<IGameServer<TPlayer>, PongRequestMessage>
+        where TPlayer : class, GameNetworking.Server.IPlayer {
         private readonly TPlayer player;
 
         public PongRequestExecutor(IGameServer<TPlayer> server, TPlayer player) : base(server, null) {

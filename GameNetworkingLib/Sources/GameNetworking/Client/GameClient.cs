@@ -17,7 +17,7 @@ namespace GameNetworking.Client {
     }
 
     public interface IGameClient<TPlayer>
-        where TPlayer : class, IPlayer {
+        where TPlayer : Player {
         IReadOnlyPlayerCollection<int, TPlayer> playerCollection { get; }
         TPlayer localPlayer { get; }
 

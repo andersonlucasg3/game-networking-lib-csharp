@@ -15,8 +15,8 @@ namespace GameNetworking.Executors.Server {
         public override void Execute() {
             this.instance.pingController.PongReceived(this.player);
 
-            var players = this.instance.playerCollection;
-            for (int index = 0; index < players.count; index++) {
+            var players = this.instance.playerCollection.values;
+            for (int index = 0; index < players.Count; index++) {
                 TPlayer player = players[index];
                 PingResultRequestMessage message = new PingResultRequestMessage(player.playerId, player.mostRecentPingValue);
                 this.player.Send(message, Channel.unreliable);

@@ -10,7 +10,9 @@ namespace GameNetworking.Executors.Client {
         public PingRequestExecutor(IGameClient<TPlayer> client) : base(client, null) { }
 
         public override void Execute() {
-            this.instance.localPlayer.lastReceivedPingRequest = TimeUtils.CurrentTime();
+            if (this.instance.localPlayer != null) {
+                this.instance.localPlayer.lastReceivedPingRequest = TimeUtils.CurrentTime();
+            }
 
             this.instance.Send(new PongRequestMessage(), Channel.unreliable);
         }

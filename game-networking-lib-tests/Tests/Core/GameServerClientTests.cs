@@ -1,108 +1,150 @@
 ﻿#if !UNITY_64
 
 using NUnit.Framework;
-using Messages.Models;
 using System.Collections.Generic;
 using GameNetworking.Commons;
 using System;
-using GameNetworking.Commons.Client;
-using GameNetworking.Commons.Server;
-using GameNetworking.Networking.Commons;
-using Networking.Commons.Sockets;
-using GameNetworking.Commons.Models;
-using Networking.Commons.Models;
-using Test.Core.Model;
 using System.Threading;
 using System.Linq;
+using GameNetworking.Messages.Models;
+using GameNetworking.Client;
+using GameNetworking.Networking;
+using GameNetworking.Sockets;
+using GameNetworking.Server;
+
+using ServerPlayer = GameNetworking.Server.Player;
+using ClientPlayer = GameNetworking.Client.Player;
+using GameNetworking.Commons.Client;
+using System.Runtime.CompilerServices;
+using System.Collections.Concurrent;
 
 namespace Tests.Core {
-    public interface IClientListener<TPlayer, TSocket, TClient, TNetClient> : IGameClientListener<TPlayer, TSocket, TClient, TNetClient>
-        where TPlayer : class, GameNetworking.Commons.Models.Client.INetworkPlayer<TSocket, TClient, TNetClient>, new()
-        where TSocket : ISocket
-        where TClient : INetworkClient<TSocket, TNetClient>
-        where TNetClient : INetClient<TSocket, TNetClient> {
-        
+    public interface IClientListener : IGameClientListener<ClientPlayer> {
         List<MessageContainer> receivedMessages { get; }
-        List<TPlayer> disconnectedPlayers { get; }
+        List<ClientPlayer> disconnectedPlayers { get; }
         bool connectedCalled { get; }
         bool connectTimeoutCalled { get; }
         bool disconnectCalled { get; }
-        TPlayer localPlayer { get; }
+        ClientPlayer localPlayer { get; }
     }
 
-    public interface IServerListener<TPlayer, TSocket, TClient, TNetClient> : IGameServerListener<TPlayer, TSocket, TClient, TNetClient>
-        where TPlayer : class, GameNetworking.Commons.Models.Server.INetworkPlayer<TSocket, TClient, TNetClient>, new()
-        where TSocket : ISocket
-        where TClient : INetworkClient<TSocket, TNetClient>
-        where TNetClient : INetClient<TSocket, TNetClient> {
-        
-        List<TPlayer> connectedPlayers { get; }
-        List<TPlayer> disconnectedPlayers { get; }
+    public interface IServerListener : IGameServerListener<ServerPlayer> {
+        List<ServerPlayer> connectedPlayers { get; }
+        List<ServerPlayer> disconnectedPlayers { get; }
     }
 
-    public abstract class GameServerClientTests<TNetworkingServer, TNetworkingClient, TGameServer, TGameClient, TServerPlayer, TClientPlayer, TSocket, TClient, TNetClient, TClientAcceptor, TServerListener, TClientListener>
-        where TNetworkingServer : INetworkingServer<TSocket, TClient, TNetClient>
-        where TNetworkingClient : INetworkingClient<TSocket, TClient, TNetClient>
-        where TGameServer : IGameServer<TNetworkingServer, TServerPlayer, TSocket, TClient, TNetClient>
-        where TGameClient : IGameClient<TClientPlayer, TSocket, TClient, TNetClient>
-        where TServerPlayer : class, GameNetworking.Commons.Models.Server.INetworkPlayer<TSocket, TClient, TNetClient>, new()
-        where TClientPlayer : class, GameNetworking.Commons.Models.Client.INetworkPlayer<TSocket, TClient, TNetClient>, new()
-        where TSocket : ISocket
-        where TClient : INetworkClient<TSocket, TNetClient>
-        where TNetClient : INetClient<TSocket, TNetClient>
-        where TClientAcceptor : GameServerClientAcceptor<TGameServer, TNetworkingServer, TServerPlayer, TSocket, TClient, TNetClient>, new()
-        where TServerListener : IServerListener<TServerPlayer, TSocket, TClient, TNetClient>
-        where TClientListener : IClientListener<TClientPlayer, TSocket, TClient, TNetClient> {
+    public class ClientListener : IClientListener {
+        public List<MessageContainer> receivedMessages { get; } = new List<MessageContainer>();
+        public List<ClientPlayer> connectedPlayers { get; } = new List<ClientPlayer>();
+        public List<ClientPlayer> disconnectedPlayers { get; } = new List<ClientPlayer>();
+        public bool connectedCalled { get; private set; }
+        public bool connectTimeoutCalled { get; private set; }
+        public bool disconnectCalled { get; private set; }
+        public ClientPlayer localPlayer { get; private set; }
 
-        [SetUp]
-        public void SetUp() {
-            UnreliableSocketMock.Setup();
+        #region IGameClientListener
+
+        void IGameClientListener<ClientPlayer>.GameClientDidConnect() => this.connectedCalled = true;
+        void IGameClientListener<ClientPlayer>.GameClientConnectDidTimeout() => this.connectTimeoutCalled = true;
+        void IGameClientListener<ClientPlayer>.GameClientDidDisconnect() => this.disconnectCalled = true;
+        void IGameClientListener<ClientPlayer>.GameClientDidIdentifyLocalPlayer(ClientPlayer player) => this.localPlayer = player;
+        void IGameClientListener<ClientPlayer>.GameClientDidReceiveMessage(MessageContainer container) => this.receivedMessages.Add(container);
+        void IGameClientListener<ClientPlayer>.GameClientPlayerDidConnect(ClientPlayer player) => this.connectedPlayers.Add(player);
+        void IGameClientListener<ClientPlayer>.GameClientPlayerDidDisconnect(ClientPlayer player) => this.disconnectedPlayers.Add(player);
+
+        #endregion
+    }
+
+    public class ServerListener : IServerListener {
+        public ServerListener() {
         }
 
-        protected abstract TNetworkingServer NewServer();
-        protected abstract TNetworkingClient NewClient();
-        protected abstract void NewServer(out TGameServer server, out TServerListener listener);
-        protected abstract void NewServer(out TGameServer server, out TServerListener listener, out TNetworkingServer networkingServer);
-        protected abstract void NewClient(out TGameClient client, out TClientListener listener);
+        public List<ServerPlayer> connectedPlayers { get; } = new List<ServerPlayer>();
+        public List<ServerPlayer> disconnectedPlayers { get; } = new List<ServerPlayer>();
 
-        protected void Update(TGameServer server) {
-            server.Update();
+        #region IGameServerListener
+
+        void IGameServerListener<ServerPlayer>.GameServerPlayerDidConnect(ServerPlayer player) => connectedPlayers.Add(player);
+        void IGameServerListener<ServerPlayer>.GameServerPlayerDidDisconnect(ServerPlayer player) => disconnectedPlayers.Add(player);
+        void IGameServerListener<ServerPlayer>.GameServerDidReceiveClientMessage(MessageContainer container, ServerPlayer player) => Assert.NotNull(player);
+
+        #endregion
+    }
+
+    public class GameServerClientTests {
+        private const string hostIp = "127.0.0.1";
+
+        private NetworkClient NewClient() => new NetworkClient(new TcpSocket(), new UdpSocket());
+        private NetworkServer NewServer() => new NetworkServer(new TcpSocket(), new UdpSocket());
+
+        private void NewServer(out GameServer<ServerPlayer> server, out ServerListener listener) {
+            this.NewServer(out server, out listener, out _);
         }
 
-        protected void Update(TGameClient client) {
-            client.Update();
+        private void NewServer(out GameServer<ServerPlayer> server, out ServerListener listener, out NetworkServer networkServer) {
+            var newListener = new ServerListener();
+            networkServer = this.NewServer();
+            server = new GameServer<ServerPlayer>(networkServer, new GameServerMessageRouter<ServerPlayer>(new MainThreadDispatcher())) { listener = newListener };
+            listener = newListener;
+        }
+
+        private void NewClient(out GameClient<ClientPlayer> client, out ClientListener listener) {
+            var newListener = new ClientListener();
+            client = new GameClient<ClientPlayer>(this.NewClient(), new GameClientMessageRouter<ClientPlayer>(new MainThreadDispatcher())) { listener = newListener };
+            listener = newListener;
         }
 
         [Test] 
         public void TestConnectDisconnect() {
-            this.NewClient(out TGameClient client, out TClientListener clientListener);
-            this.NewServer(out TGameServer server, out TServerListener serverListener);
+            this.NewServer(out GameServer<ServerPlayer> server, out ServerListener serverListener);
+            this.NewClient(out GameClient<ClientPlayer> client, out ClientListener clientListener);
 
-            server.Start("0.0.0.0", 1);
+            server.Start(5000);
 
-            client.Connect("0.0.0.0", 1);
+            server.Update();
 
-            this.Update(server);
-            this.Update(client);
+            client.Connect(hostIp, 5000);
+
+            server.Update();
+            client.Update();
+
+            MainThreadDispatcher.Execute();
+
+            server.Update();
+            client.Update();
+
+            MainThreadDispatcher.Execute();
+
+            server.Update();
+            client.Update();
+
+            MainThreadDispatcher.Execute();
 
             Assert.IsTrue(clientListener.connectedCalled);
 
+            var player = client.playerCollection.FindPlayer(player => player.isLocalPlayer);
+            Assert.IsNotNull(player);
             Assert.IsNotNull(clientListener.localPlayer);
-            var player = client.FindPlayer(player => player.isLocalPlayer);
             Assert.AreEqual(player.playerId, serverListener.connectedPlayers[0].playerId);
 
             var playerId = player.playerId;
-            var serverPlayer = server.FindPlayer(playerId);
+            var serverPlayer = server.playerCollection.FindPlayer(playerId);
 
             Assert.IsNotNull(serverPlayer);
 
             client.Disconnect();
 
-            this.Update(client);
-            this.Update(server);
-            this.Update(client);
+            client.Update();
+            server.Update();
 
-            var notServerPlayer = server.FindPlayer(playerId);
+            MainThreadDispatcher.Execute();
+
+            client.Update();
+            server.Update();
+
+            MainThreadDispatcher.Execute();
+
+            var notServerPlayer = server.playerCollection.FindPlayer(playerId);
 
             Assert.IsTrue(clientListener.disconnectCalled);
             Assert.IsNull(notServerPlayer);
@@ -110,29 +152,49 @@ namespace Tests.Core {
             Assert.AreEqual(player.playerId, serverListener.disconnectedPlayers[0].playerId);
 
             Assert.AreEqual(0, clientListener.disconnectedPlayers.Count);
+
+            server.Stop();
+
+            Thread.Sleep(2000);
         }
 
         [Test] 
         public void TestMultiPlayerConnectDisconnect() {
-            this.NewClient(out TGameClient client1, out TClientListener clientListener1);
-            this.NewClient(out TGameClient client2, out TClientListener clientListener2);
-            this.NewClient(out TGameClient client3, out TClientListener clientListener3);
-            this.NewServer(out TGameServer server, out TServerListener serverListener);
+            this.NewClient(out GameClient<ClientPlayer> client1, out ClientListener clientListener1);
+            this.NewClient(out GameClient<ClientPlayer> client2, out ClientListener clientListener2);
+            this.NewClient(out GameClient<ClientPlayer> client3, out ClientListener clientListener3);
+            this.NewServer(out GameServer<ServerPlayer> server, out ServerListener serverListener);
 
             void UpdateAction() {
-                this.Update(server);
-                this.Update(server);
-                this.Update(server);
-                this.Update(client1);
-                this.Update(client2);
-                this.Update(client3);
+                server.Update();
+                client1.Update();
+
+                MainThreadDispatcher.Execute();
+
+                server.Update();
+                client2.Update();
+
+                MainThreadDispatcher.Execute();
+
+                server.Update();
+                client3.Update();
+
+                MainThreadDispatcher.Execute();
             }
 
-            server.Start("0.0.0.0", 1);
+            server.Start(5000);
 
-            client1.Connect("0.0.0.0", 1);
-            client2.Connect("0.0.0.0", 1);
-            client3.Connect("0.0.0.0", 1);
+            UpdateAction();
+
+            client1.Connect(hostIp, 5000);
+
+            UpdateAction();
+
+            client2.Connect(hostIp, 5000);
+
+            UpdateAction();
+
+            client3.Connect(hostIp, 5000);
 
             UpdateAction();
 
@@ -144,9 +206,9 @@ namespace Tests.Core {
             Assert.IsNotNull(clientListener2.localPlayer);
             Assert.IsNotNull(clientListener3.localPlayer);
 
-            var player1 = client1.FindPlayer(player => player.isLocalPlayer);
-            var player2 = client2.FindPlayer(player => player.isLocalPlayer);
-            var player3 = client3.FindPlayer(player => player.isLocalPlayer);
+            var player1 = client1.playerCollection.FindPlayer(player => player.isLocalPlayer);
+            var player2 = client2.playerCollection.FindPlayer(player => player.isLocalPlayer);
+            var player3 = client3.playerCollection.FindPlayer(player => player.isLocalPlayer);
 
             Assert.AreEqual(player1.playerId, serverListener.connectedPlayers[0].playerId);
             Assert.AreEqual(player2.playerId, serverListener.connectedPlayers[1].playerId);
@@ -156,21 +218,23 @@ namespace Tests.Core {
             var playerId2 = player2.playerId;
             var playerId3 = player3.playerId;
 
-            var serverPlayer1 = server.FindPlayer(playerId1);
-            var serverPlayer2 = server.FindPlayer(playerId2);
-            var serverPlayer3 = server.FindPlayer(playerId3);
+            var serverPlayer1 = server.playerCollection.FindPlayer(playerId1);
+            var serverPlayer2 = server.playerCollection.FindPlayer(playerId2);
+            var serverPlayer3 = server.playerCollection.FindPlayer(playerId3);
 
             Assert.IsNotNull(serverPlayer1);
             Assert.IsNotNull(serverPlayer2);
             Assert.IsNotNull(serverPlayer3);
 
+            UpdateAction();
+
             client3.Disconnect();
 
             UpdateAction();
 
-            Assert.IsNotNull(server.FindPlayer(playerId1));
-            Assert.IsNotNull(server.FindPlayer(playerId2));
-            Assert.IsNull(server.FindPlayer(playerId3));
+            Assert.IsNotNull(server.playerCollection.FindPlayer(playerId1));
+            Assert.IsNotNull(server.playerCollection.FindPlayer(playerId2));
+            Assert.IsNull(server.playerCollection.FindPlayer(playerId3));
 
             Assert.IsFalse(clientListener1.disconnectCalled);
             Assert.IsFalse(clientListener2.disconnectCalled);
@@ -189,46 +253,56 @@ namespace Tests.Core {
 
             Assert.AreEqual(1, serverListener.disconnectedPlayers.Count);
 
-            Assert.AreEqual(1, client1.AllPlayers().FindAll(p => p.isLocalPlayer).Count);
-            Assert.AreEqual(1, client2.AllPlayers().FindAll(p => p.isLocalPlayer).Count);
-            Assert.AreEqual(0, client3.AllPlayers().FindAll(p => p.isLocalPlayer).Count);
+            Assert.AreEqual(1, client1.playerCollection.values.FindAll(p => p.isLocalPlayer).Count);
+            Assert.AreEqual(1, client2.playerCollection.values.FindAll(p => p.isLocalPlayer).Count);
+            Assert.AreEqual(0, client3.playerCollection.values.FindAll(p => p.isLocalPlayer).Count);
+
+            server.Stop();
+
+            Thread.Sleep(2000);
         }
 
         [Test]
         public void TestClientReconnect() {
-            this.NewClient(out TGameClient client1, out TClientListener listener1_c);
-            this.NewClient(out TGameClient client2, out _);
-            this.NewServer(out TGameServer server, out _);
+            this.NewClient(out GameClient<ClientPlayer> client1, out ClientListener listener1_c);
+            this.NewClient(out GameClient<ClientPlayer> client2, out _);
+            this.NewServer(out GameServer<ServerPlayer> server, out _);
 
             void Update() {
-                this.Update(server);
-                this.Update(server);
-                this.Update(client1);
-                this.Update(client2);
+                server.Update();
+                client1.Update();
+
+                MainThreadDispatcher.Execute();
+
+                server.Update();
+                client2.Update();
+
+                MainThreadDispatcher.Execute();
             }
 
-            server.Start("0.0.0.0", 1);
-
-            client1.Connect("0.0.0.0", 1);
-            client2.Connect("0.0.0.0", 1);
+            server.Start(5000);
 
             Update();
 
+            client1.Connect(hostIp, 5000);
+
             Update();
 
-            var player2 = client2.FindPlayer(player => player.isLocalPlayer);
+            client2.Connect(hostIp, 5000);
+
+            Update();
+
+            var player2 = client2.playerCollection.FindPlayer(player => player.isLocalPlayer);
             var disconnectedPlayerId = player2.playerId;
 
             client2.Disconnect();
 
             Update();
 
-            Assert.IsNull(server.FindPlayer(player2.playerId));
-            this.NewClient(out client2, out TClientListener listener2_c);
+            Assert.IsNull(server.playerCollection.FindPlayer(player2.playerId));
+            this.NewClient(out client2, out ClientListener listener2_c);
 
-            client2.Connect("0.0.0.0", 1);
-
-            Update();
+            client2.Connect(hostIp, 5000);
 
             Update();
 
@@ -236,35 +310,49 @@ namespace Tests.Core {
             Assert.AreEqual(0, listener2_c.disconnectedPlayers.Count);
 
             Assert.AreEqual(disconnectedPlayerId, listener1_c.disconnectedPlayers[0].playerId);
+
+            server.Stop();
+
+            Thread.Sleep(2000);
         }
 
         [Test]
         public void TestClientPingBroadcast() {
-            this.NewClient(out TGameClient client1, out _);
-            this.NewClient(out TGameClient client2, out _);
-            this.NewServer(out TGameServer server, out _);
+            this.NewClient(out GameClient<ClientPlayer> client1, out _);
+            this.NewClient(out GameClient<ClientPlayer> client2, out _);
+            this.NewServer(out GameServer<ServerPlayer> server, out _);
 
             void Update() {
-                this.Update(server);
-                this.Update(server);
-                this.Update(client1);
-                this.Update(client2);
+                server.Update();
+                client1.Update();
+
+                MainThreadDispatcher.Execute();
+
+                server.Update();
+                client2.Update();
+
+                MainThreadDispatcher.Execute();
             }
 
-            server.Start("0.0.0.0", 1);
-
-            client1.Connect("0.0.0.0", 1);
-            client2.Connect("0.0.0.0", 1);
+            server.Start(5000);
 
             Update();
 
-            var player1 = client1.FindPlayer(player => player.isLocalPlayer);
-            var player2 = client2.FindPlayer(player => player.isLocalPlayer);
+            client1.Connect(hostIp, 5000);
+            
+            Update();
+
+            client2.Connect(hostIp, 5000);
+
+            Update();
+
+            var player1 = client1.playerCollection.FindPlayer(player => player.isLocalPlayer);
+            var player2 = client2.playerCollection.FindPlayer(player => player.isLocalPlayer);
             
             Update();
             
-            var serverPlayer1 = server.FindPlayer(player1.playerId);
-            var serverPlayer2 = server.FindPlayer(player2.playerId);
+            var serverPlayer1 = server.playerCollection.FindPlayer(player1.playerId);
+            var serverPlayer2 = server.playerCollection.FindPlayer(player2.playerId);
             var serverPing1 = serverPlayer1.mostRecentPingValue;
             var serverPing2 = serverPlayer2.mostRecentPingValue;
             
@@ -273,84 +361,71 @@ namespace Tests.Core {
             Assert.Less(MathF.Abs(serverPing1 - player1.mostRecentPingValue), 0.02F);
             Assert.Less(MathF.Abs(serverPing2 - player2.mostRecentPingValue), 0.02F);
 
-            var client1client2Ping = client1.GetPing(player2.playerId);
-            var client2client1Ping = client2.GetPing(player1.playerId);
+            var client1client2Ping = client1.playerCollection[player2.playerId].mostRecentPingValue;
+            var client2client1Ping = client2.playerCollection[player1.playerId].mostRecentPingValue;
 
             Update();
 
             Assert.Less(MathF.Abs(player1.mostRecentPingValue - client2client1Ping), 0.02F);
             Assert.Less(MathF.Abs(player2.mostRecentPingValue - client1client2Ping), 0.02F);
-        }
 
-        [Test]
-        public void TestConnectionTimeOutClient() {
-            this.NewClient(out TGameClient client1, out TClientListener clientListener);
-            this.NewServer(out TGameServer server, out TServerListener serverListener, out TNetworkingServer networkingServer);
+            server.Stop();
 
-            client1.timeOutDelay = 1F;
-            server.timeOutDelay = 1F;
-
-            server.Start("0.0.0.0", 1);
-
-            client1.Connect("0.0.0.0", 1);
-
-            server.Update();
-            client1.Update();
-
-            var localPlayer = client1.localPlayer;
-            var serverPlayer = server.FindPlayer(localPlayer.playerId);
-
-            Thread.Sleep((int)(client1.timeOutDelay * 1000));
-
-            client1.Update();
-
-            Assert.IsTrue(clientListener.disconnectCalled);
-
-            server.Update();
-
-            Assert.AreEqual(localPlayer.playerId, serverListener.disconnectedPlayers.First().playerId);
-
-            server.Update();
-
-            Assert.IsFalse(networkingServer.clients.Contains(serverPlayer.client));
+            Thread.Sleep(2000);
         }
 
         [Test]
         public void TestOneClientDisconnectAndReconnect() {
-            this.NewClient(out TGameClient client1, out TClientListener clientListener);
-            this.NewServer(out TGameServer server, out TServerListener _);
+            this.NewClient(out GameClient<ClientPlayer> client1, out ClientListener clientListener);
+            this.NewServer(out GameServer<ServerPlayer> server, out ServerListener _);
 
-            client1.timeOutDelay = 1F;
-            server.timeOutDelay = 1F;
+            void Update() {
+                server.Update();
+                client1.Update();
 
-            server.Start("0.0.0.0", 1);
-            client1.Connect("0.0.0.0", 1);
+                MainThreadDispatcher.Execute();
+            }
 
-            server.Update();
-            client1.Update();
+            server.Start(5000);
 
+            Update();
+
+            client1.Connect(hostIp, 5000);
+
+            Update();
+            Update();
+            
             Assert.IsTrue(clientListener.localPlayer.playerId == 0);
 
             client1.Disconnect();
 
-            server.Update();
-            client1.Update();
+            Update();
 
             this.NewClient(out client1, out clientListener);
 
-            client1.Connect("0.0.0.0", 1);
+            client1.Connect(hostIp, 5000);
 
-            server.Update();
-            client1.Update();
+            Update();
 
             Assert.IsTrue(clientListener.localPlayer.playerId == 1);
+
+            server.Stop();
+
+            Thread.Sleep(2000);
         }
     }
 
     class MainThreadDispatcher : IMainThreadDispatcher {
-        [MTAThread]
-        public void Enqueue(Action action) {
-            action.Invoke();
+        public static readonly ConcurrentQueue<Action> actions = new ConcurrentQueue<Action>();
+
+        void IMainThreadDispatcher.Enqueue(Action action) {
+            actions.Enqueue(action);
+        }
+
+        public static void Execute() {
+            Thread.Sleep(250);
+
+            while (actions.TryDequeue(out Action action)) { action.Invoke(); }
         }
     }
 }

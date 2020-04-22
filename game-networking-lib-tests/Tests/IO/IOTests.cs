@@ -1,23 +1,19 @@
 #if !UNITY_64
 
 using NUnit.Framework;
-using Messages.Coders;
-using Messages.Coders.Binary;
-using Messages.Models;
-using Messages.Streams;
 using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Runtime.Serialization.Formatters.Binary;
 using Logging;
+using GameNetworking.Messages.Coders.Binary;
+using GameNetworking.Messages.Models;
+using GameNetworking.Messages.Coders;
+using GameNetworking.Messages.Streams;
+using GameNetworking.Commons;
 
 namespace Tests.IO {
     public class IOTests {
-        [SetUp]
-        public void Setup() {
-
-        }
-
         void Measure(Action action, string name) {
             DateTime start = DateTime.Now;
             action.Invoke();
@@ -41,7 +37,7 @@ namespace Tests.IO {
 
             Decoder decoder = new Decoder();
             this.Measure(() => {
-                Decoder.Decode<Value>(encoded);
+                Decoder.Decode<Value>(encoded, 0, encoded.Length);
             }, "Decoder");
         }
 
@@ -56,7 +52,7 @@ namespace Tests.IO {
 
                 Logger.Log($"Encoded message size: {encoded.Length}");
 
-                decoded = Decoder.Decode<Value>(encoded);
+                decoded = Decoder.Decode<Value>(encoded, 0, encoded.Length);
             }, "Encoder and Decoder");
 
             Assert.AreEqual(value.intVal, decoded.intVal);
@@ -126,9 +122,15 @@ namespace Tests.IO {
 
             var encoder = new MessageStreamWriter();
             List<byte> data = new List<byte>();
-            data.AddRange(encoder.Write(loginRequest));
-            data.AddRange(encoder.Write(matchRequest));
-            data.AddRange(encoder.Write(connectRequest));
+            encoder.Write(loginRequest);
+            var count = encoder.Put(out byte[] buffer);
+            data.AddRange(buffer, count);
+            encoder.Write(matchRequest);
+            count = encoder.Put(out buffer);
+            data.AddRange(buffer, count);
+            encoder.Write(connectRequest);
+            count = encoder.Put(out buffer);
+            data.AddRange(buffer, count);
 
             var decoder = new MessageStreamReader();
 

@@ -2,31 +2,27 @@
 
 using System;
 using System.Collections.Generic;
-using GameNetworking;
+using GameNetworking.Channels;
 using GameNetworking.Commons;
-using GameNetworking.Commons.Server;
+using GameNetworking.Messages.Coders;
+using GameNetworking.Messages.Models;
 using GameNetworking.Networking;
-using GameNetworking.Networking.Models;
+using GameNetworking.Server;
+using GameNetworking.Sockets;
 using Logging;
-using Messages.Coders;
-using Messages.Models;
-using Networking.Models;
-using Networking.Sockets;
-
-using UnreliablePlayer = GameNetworking.Commons.Models.Server.NetworkPlayer<Networking.Sockets.IUDPSocket, GameNetworking.Networking.Models.UnreliableNetworkClient, Networking.Models.UnreliableNetClient>;
 
 namespace TestServerApp {
-    class Program : IMainThreadDispatcher, IGameServerListener<UnreliablePlayer, IUDPSocket, UnreliableNetworkClient, UnreliableNetClient> {
+    class Program : IMainThreadDispatcher, IGameServerListener<Player> {
         private readonly List<Action> actions = new List<Action>();
 
-        private UnreliableGameServer<UnreliablePlayer> server;
+        private GameServer<Player> server;
         private int counter = 0;
 
         static void Main(string[] _) {
             var program = new Program();
-            program.server = new UnreliableGameServer<UnreliablePlayer>(new UnreliableNetworkingServer(new UnreliableSocket(new UDPSocket()), program), program);
+            program.server = new GameServer<Player>(new NetworkServer(new TcpSocket(), new UdpSocket()), new GameServerMessageRouter<Player>(program));
 
-            program.server.Start("127.0.0.1", 64000);
+            program.server.Start(64000);
 
             program.server.listener = program;
 
@@ -43,23 +39,23 @@ namespace TestServerApp {
             this.actions.Add(action);
         }
 
-        public void GameServerPlayerDidConnect(UnreliablePlayer player) {
+        public void GameServerPlayerDidConnect(Player player) {
             Logger.Log("GameServerPlayerDidConnect");
         }
 
-        public void GameServerPlayerDidDisconnect(UnreliablePlayer player) {
+        public void GameServerPlayerDidDisconnect(Player player) {
             Logger.Log("GameServerPlayerDidDisconnect");
         }
 
-        public void GameServerDidReceiveClientMessage(MessageContainer container, UnreliablePlayer player) {
+        public void GameServerDidReceiveClientMessage(MessageContainer container, Player player) {
             Logger.Log("GameServerDidReceiveClientMessage");
             if (container.type == 1001) {
                 this.Send(player);
             }
         }
 
-        private void Send(UnreliablePlayer player) {
-            this.server.Send(new Message(), player);
+        private void Send(Player player) {
+            player.Send(new Message(), Channel.unreliable);
             Logger.Log($"Send message! {counter++}");
         }
     }

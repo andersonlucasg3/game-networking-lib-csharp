@@ -9,7 +9,7 @@
                 "build",
                 "${workspaceFolder}/game-networking-lib-tests/game-networking-lib-tests.csproj"
             ],
-            "problemMatcher": "$tsc"
+            "problemMatcher": "$msCompile"
         },
         {
             "label": "publish",
@@ -19,7 +19,7 @@
                 "publish",
                 "${workspaceFolder}/game-networking-lib-tests/game-networking-lib-tests.csproj"
             ],
-            "problemMatcher": "$tsc"
+            "problemMatcher": "$msCompile"
         },
         {
             "label": "watch",
@@ -30,7 +30,7 @@
                 "run",
                 "${workspaceFolder}/game-networking-lib-tests/game-networking-lib-tests.csproj"
             ],
-            "problemMatcher": "$tsc"
+            "problemMatcher": "$msCompile"
         },
         {
             "label": "test",
@@ -47,7 +47,7 @@
                 "test",
                 "${workspaceFolder}/game-networking-lib-tests/game-networking-lib-tests.csproj"
             ],
-            "problemMatcher": "$tsc"
+            "problemMatcher": "$msCompile"
         }
     ]
 }

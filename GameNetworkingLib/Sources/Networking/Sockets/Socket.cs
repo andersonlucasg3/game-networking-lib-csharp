@@ -161,10 +161,9 @@ namespace GameNetworking.Sockets {
         }
 
         public void Disconnect() {
-            this.socket.BeginDisconnect(false, (ar) => {
-                this.socket.EndDisconnect(ar);
-                this.clientListener?.SocketDidDisconnect();
-            }, null);
+            this.socket.Disconnect(false);
+            this.Close();
+            this.clientListener?.SocketDidDisconnect();
         }
 
         #endregion

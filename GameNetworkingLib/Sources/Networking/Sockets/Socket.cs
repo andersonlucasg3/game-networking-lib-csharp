@@ -345,8 +345,10 @@ namespace GameNetworking.Sockets {
             this.socket.BeginReceiveFrom(buffer, 0, Consts.bufferSize, SocketFlags.None, ref endPoint, ar => {
                 var readBytes = this.socket.EndReceiveFrom(ar, ref endPoint);
 
-                this.remoteEndPoint.From(endPoint);
-                this.listener?.SocketDidReceiveBytes(this, buffer, readBytes);
+                lock (this) {
+                    this.remoteEndPoint.From(endPoint);
+                    this.listener?.SocketDidReceiveBytes(this, buffer, readBytes);
+                }
 
                 this.bufferPool.Pay(buffer);
                 this.ipEndPointPool.Pay((IPEndPoint)endPoint);

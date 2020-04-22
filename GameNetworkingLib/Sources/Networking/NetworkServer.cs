@@ -22,7 +22,7 @@ namespace GameNetworking.Networking {
 
     public class NetworkServer : INetworkServer, ITcpServerListener<TcpSocket> {
         private readonly TcpSocket tcpSocket;
-        private readonly IUdpSocket udpSocket;
+        private readonly UdpSocket udpSocket;
 
         private readonly PlayerCollection<TcpSocket, ReliableChannel> socketCollection;
         private readonly ConcurrentQueue<TcpSocket> socketsToRemove = new ConcurrentQueue<TcpSocket>();
@@ -34,7 +34,7 @@ namespace GameNetworking.Networking {
 
         public INetworkServerListener listener { get; set; }
 
-        public NetworkServer(TcpSocket tcpSocket, IUdpSocket udpSocket) {
+        public NetworkServer(TcpSocket tcpSocket, UdpSocket udpSocket) {
             this.tcpSocket = tcpSocket;
             this.udpSocket = udpSocket;
 
@@ -100,7 +100,7 @@ namespace GameNetworking.Networking {
             socket.serverListener = this;
 
             var reliable = new ReliableChannel(socket);
-            var unreliable = new UnreliableChannel(new UdpSocket((UdpSocket)this.udpSocket, socket.remoteEndPoint));
+            var unreliable = new UnreliableChannel(new UdpSocket(udpSocket, socket.remoteEndPoint));
             this.unreliableChannel.Register(socket.remoteEndPoint, unreliable);
 
             this.socketCollection.Add(socket, reliable);

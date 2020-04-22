@@ -8,7 +8,7 @@ namespace GameNetworking.Messages.Streams {
     }
 
     public class MessageStreamWriter : IStreamWriter {
-        private readonly byte[] currentBuffer = new byte[1024 * 1024 * 1024]; // 1MB
+        private readonly byte[] currentBuffer = new byte[1024 * 1024]; // 1MB
         private int currentBufferLength;
 
         public bool hasBytesToWrite => this.currentBufferLength > 0;

@@ -393,6 +393,7 @@ namespace Tests.Core {
             client1.Connect(hostIp, 5000);
 
             Update();
+            Update();
             
             Assert.IsTrue(clientListener.localPlayer.playerId == 0);
 

@@ -16,8 +16,8 @@ namespace GameNetworking.Channels {
         void Flush();
     }
 
-    public abstract class Channel<TSocket> : IChannel, ISocketListener
-        where TSocket : ISocket {
+    public abstract class Channel<TSocket> : IChannel, ISocketListener<TSocket>
+        where TSocket : ISocket<TSocket> {
         private readonly MessageStreamReader reader;
         private readonly MessageStreamWriter writer;
         private bool isSending = false;
@@ -59,16 +59,20 @@ namespace GameNetworking.Channels {
             }
         }
 
-        void ISocketListener.SocketDidReceiveBytes(byte[] bytes, int count) {
+        protected virtual void ChannelDidReceiveMessage(MessageContainer container, TSocket from) {
+            this.listener?.ChannelDidReceiveMessage(container);
+        }
+
+        void ISocketListener<TSocket>.SocketDidReceiveBytes(TSocket socket, byte[] bytes, int count) {
             this.reader.Add(bytes, count);
 
             MessageContainer container;
-            while ((container = this.reader.Decode()) != null) { this.listener?.ChannelDidReceiveMessage(container); }
+            while ((container = this.reader.Decode()) != null) { this.ChannelDidReceiveMessage(container, socket); }
 
             lock (this.reader) { this.isReceiving = false; }
         }
 
-        void ISocketListener.SocketDidSendBytes(int count) {
+        void ISocketListener<TSocket>.SocketDidSendBytes(TSocket socket, int count) {
             this.writer.DidWrite(count);
 
             lock (this.writer) { this.isSending = false; }
@@ -92,26 +96,36 @@ namespace GameNetworking.Channels {
     #region Unreliable
 
     public interface IUnreliableChannelIdentifiedReceiveListener {
-        void ChannelDidReceiveBytes(byte[] bytes, int count);
+        void ChannelDidReceiveMessage(MessageContainer container);
     }
 
-    public class UnreliableChannel : Channel<IUdpSocket>, IUdpSocketListener, IUnreliableChannelIdentifiedReceiveListener {
+    public class UnreliableChannel : Channel<UdpSocket>, IUnreliableChannelIdentifiedReceiveListener {
         private readonly Dictionary<NetEndPoint, IUnreliableChannelIdentifiedReceiveListener> receiverCollection
             = new Dictionary<NetEndPoint, IUnreliableChannelIdentifiedReceiveListener>();
+        private bool isServer = false;
 
-        public UnreliableChannel(IUdpSocket socket) : base(socket) => socket.udpListener = this;
+        public UnreliableChannel(UdpSocket socket) : base(socket) { }
 
-        public void Register(NetEndPoint endPoint, IUnreliableChannelIdentifiedReceiveListener listener) => this.receiverCollection[endPoint] = listener;
-        public void Unregister(NetEndPoint endPoint) => this.receiverCollection.Remove(endPoint);
-
-        void IUnreliableChannelIdentifiedReceiveListener.ChannelDidReceiveBytes(byte[] bytes, int count) {
-            ((ISocketListener)this).SocketDidReceiveBytes(bytes, count);
+        public void Register(NetEndPoint endPoint, IUnreliableChannelIdentifiedReceiveListener listener) {
+            this.isServer = true;
+            this.receiverCollection[endPoint] = listener;
         }
 
-        void IUdpSocketListener.UdpSocketDidReceiveBytes(byte[] bytes, int count, NetEndPoint from) {
-            if (this.receiverCollection.TryGetValue(from, out IUnreliableChannelIdentifiedReceiveListener listener)) {
-                listener?.ChannelDidReceiveBytes(bytes, count);
+        public void Unregister(NetEndPoint endPoint) => this.receiverCollection.Remove(endPoint);
+
+        protected override void ChannelDidReceiveMessage(MessageContainer container, UdpSocket from) {
+            if (!this.isServer) {
+                this.listener?.ChannelDidReceiveMessage(container);
+                return;
             }
+
+            if (this.receiverCollection.TryGetValue(from.remoteEndPoint, out IUnreliableChannelIdentifiedReceiveListener listener)) {
+                listener?.ChannelDidReceiveMessage(container);
+            }
+        }
+
+        void IUnreliableChannelIdentifiedReceiveListener.ChannelDidReceiveMessage(MessageContainer container) {
+            this.listener?.ChannelDidReceiveMessage(container);
         }
     }
 

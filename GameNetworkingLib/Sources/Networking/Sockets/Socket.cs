@@ -84,7 +84,6 @@ namespace GameNetworking.Sockets {
             this.socket = socket;
 
             this.socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-            this.socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontLinger, false);
 
             this.socket.NoDelay = true;
             this.socket.Blocking = false;

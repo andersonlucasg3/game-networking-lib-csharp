@@ -82,6 +82,10 @@ namespace GameNetworking.Sockets {
             this.bufferPool = new ObjectPool<byte[]>(() => new byte[Consts.bufferSize]);
             this.ipEndPointPool = new ObjectPool<IPEndPoint>(() => new IPEndPoint(IPAddress.Any, 0));
             this.socket = socket;
+
+            this.socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            this.socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontLinger, false);
+
             this.socket.NoDelay = true;
             this.socket.Blocking = false;
             this.socket.SendTimeout = 2000;
@@ -126,8 +130,6 @@ namespace GameNetworking.Sockets {
 
         public void Bind(NetEndPoint endPoint) {
             this.localEndPoint = endPoint;
-
-            this.socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.ReuseAddress, true);
 
             var ipep = this.ipEndPointPool.Rent();
             this.From(endPoint, ref ipep);

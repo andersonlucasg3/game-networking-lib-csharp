@@ -42,15 +42,6 @@ namespace GameNetworking {
                 this.unreliableChannel.listener = this;
             }
 
-            internal void Receive() {
-                this.reliableChannel.Receive();
-                this.unreliableChannel.Receive();
-            }
-
-            internal void Receive(Channel channel) {
-                this.GetChannel(channel).Receive();
-            }
-
             internal void Flush() {
                 this.reliableChannel.Flush();
                 this.unreliableChannel.Flush();
@@ -85,9 +76,9 @@ namespace GameNetworking {
 
             private IChannel GetChannel(Channel channel) {
                 switch (channel) {
-                    case Channel.reliable: return this.reliableChannel;
-                    case Channel.unreliable: return this.unreliableChannel;
-                    default: return null;
+                case Channel.reliable: return this.reliableChannel;
+                case Channel.unreliable: return this.unreliableChannel;
+                default: return null;
                 }
             }
 

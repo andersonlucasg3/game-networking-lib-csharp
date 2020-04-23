@@ -34,7 +34,7 @@ namespace GameNetworking.Channels {
         }
 
         public void Send(ITypedMessage message) {
-            lock (this.writer) { this.writer.Write(message); }
+            this.writer.Write(message);
             this.Flush();
         }
 

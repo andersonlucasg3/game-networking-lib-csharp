@@ -346,11 +346,6 @@ namespace GameNetworking.Sockets {
         #region Read & Write
 
         private void Receive() {
-            if (this.socket == null || !this.isBound) {
-                this.listener?.SocketDidReceiveBytes(this, null, 0);
-                return;
-            }
-
             var buffer = this.bufferPool.Rent();
             EndPoint endPoint = this.ipEndPointPool.Rent();
             this.socket.BeginReceiveFrom(buffer, 0, Consts.bufferSize, SocketFlags.None, ref endPoint, ar => {

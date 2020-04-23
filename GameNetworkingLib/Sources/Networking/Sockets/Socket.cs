@@ -194,18 +194,6 @@ namespace GameNetworking.Sockets {
         #region Read & Write
 
         private void Receive() {
-            if (this.CheckDisconnected()) {
-                this.serverListener?.SocketDidDisconnect(this);
-                this.clientListener?.SocketDidDisconnect();
-                this.CheckClosed();
-                return;
-            }
-
-            if (!this.isConnected) {
-                this.listener?.SocketDidReceiveBytes(this, null, 0);
-                return;
-            }
-
             var buffer = this.bufferPool.Rent();
             this.socket.BeginReceive(buffer, 0, Consts.bufferSize, SocketFlags.None, (ar) => {
                 int count = 0;
@@ -216,6 +204,13 @@ namespace GameNetworking.Sockets {
                 }
                 this.listener?.SocketDidReceiveBytes(this, buffer, count);
                 this.bufferPool.Pay(buffer);
+
+                if (this.CheckDisconnected()) {
+                    this.serverListener?.SocketDidDisconnect(this);
+                    this.clientListener?.SocketDidDisconnect();
+                    this.CheckClosed();
+                    return;
+                }
 
                 this.Receive();
             }, this);

@@ -60,7 +60,6 @@ namespace GameNetworking.Client {
         public void Send(ITypedMessage message, Channel channel) => this.networkClient.Send(message, channel);
 
         public virtual void Update() {
-            this.networkClient.Receive();
             this.networkClient.Flush();
         }
 

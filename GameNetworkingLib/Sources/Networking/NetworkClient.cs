@@ -17,7 +17,6 @@ namespace GameNetworking.Networking {
         void Connect(string host, int port);
         void Disconnect();
 
-        void Receive();
         void Send(ITypedMessage message, Channel channel);
         void Flush();
     }
@@ -52,11 +51,6 @@ namespace GameNetworking.Networking {
             this.reliableChannel.CloseChannel();
         }
 
-        public void Receive() {
-            this.reliableChannel.Receive();
-            this.unreliableChannel.Receive();
-        }
-
         public void Send(ITypedMessage message, Channel channel) {
             this.GetChannel(channel).Send(message);
         }
@@ -68,9 +62,9 @@ namespace GameNetworking.Networking {
 
         private IChannel GetChannel(Channel channel) {
             switch (channel) {
-                case Channel.reliable: return this.reliableChannel;
-                case Channel.unreliable: return this.unreliableChannel;
-                default: return null;
+            case Channel.reliable: return this.reliableChannel;
+            case Channel.unreliable: return this.unreliableChannel;
+            default: return null;
             }
         }
 

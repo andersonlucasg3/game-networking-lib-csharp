@@ -11,7 +11,6 @@ namespace GameNetworking.Channels {
     public interface IChannel {
         IChannelListener listener { get; set; }
 
-        void Receive();
         void Send(ITypedMessage message);
         void Flush();
     }
@@ -21,7 +20,6 @@ namespace GameNetworking.Channels {
         private readonly MessageStreamReader reader;
         private readonly MessageStreamWriter writer;
         private bool isSending = false;
-        private bool isReceiving = false;
 
         protected readonly TSocket socket;
 
@@ -35,17 +33,8 @@ namespace GameNetworking.Channels {
             this.writer = new MessageStreamWriter();
         }
 
-        public virtual void Receive() {
-            lock (this.reader) {
-                if (this.isReceiving) { return; }
-                this.isReceiving = true;
-            }
-
-            this.socket.Receive();
-        }
-
         public void Send(ITypedMessage message) {
-            lock (this.writer) { this.writer.Write(message); }
+            this.writer.Write(message);
             this.Flush();
         }
 
@@ -63,13 +52,14 @@ namespace GameNetworking.Channels {
             this.listener?.ChannelDidReceiveMessage(container);
         }
 
+        private void Add(byte[] bytes, int count) { lock (this.reader) { this.reader.Add(bytes, count); } }
+        private MessageContainer Decode() { lock (this.reader) { return this.reader.Decode(); } }
+
         void ISocketListener<TSocket>.SocketDidReceiveBytes(TSocket socket, byte[] bytes, int count) {
-            this.reader.Add(bytes, count);
+            this.Add(bytes, count);
 
             MessageContainer container;
-            while ((container = this.reader.Decode()) != null) { this.ChannelDidReceiveMessage(container, socket); }
-
-            lock (this.reader) { this.isReceiving = false; }
+            while ((container = this.Decode()) != null) { this.ChannelDidReceiveMessage(container, socket); }
         }
 
         void ISocketListener<TSocket>.SocketDidSendBytes(TSocket socket, int count) {

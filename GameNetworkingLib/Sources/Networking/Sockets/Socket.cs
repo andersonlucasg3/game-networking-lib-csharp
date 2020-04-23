@@ -22,7 +22,6 @@ namespace GameNetworking.Sockets {
         void Connect(NetEndPoint endPoint);
 
         void Send(byte[] bytes, int count);
-        void Receive();
 
         void Close();
     }
@@ -124,6 +123,8 @@ namespace GameNetworking.Sockets {
 
                 var socket = new TcpSocket(accepted) { hasBeenConnected = true };
                 this.serverListener?.SocketDidAccept(socket);
+
+                socket.Receive();
             }, null);
         }
 
@@ -152,6 +153,8 @@ namespace GameNetworking.Sockets {
                     this.remoteEndPoint.From(this.socket.RemoteEndPoint);
                     this.clientListener?.SocketDidConnect();
                     this.hasBeenConnected = true;
+
+                    this.Receive();
                 } else {
                     this.clientListener?.SocketDidTimeout();
                     this.CheckClosed();
@@ -190,19 +193,7 @@ namespace GameNetworking.Sockets {
 
         #region Read & Write
 
-        public void Receive() {
-            if (this.CheckDisconnected()) {
-                this.serverListener?.SocketDidDisconnect(this);
-                this.clientListener?.SocketDidDisconnect();
-                this.CheckClosed();
-                return;
-            }
-
-            if (!this.isConnected) {
-                this.listener?.SocketDidReceiveBytes(this, null, 0);
-                return;
-            }
-
+        private void Receive() {
             var buffer = this.bufferPool.Rent();
             this.socket.BeginReceive(buffer, 0, Consts.bufferSize, SocketFlags.None, (ar) => {
                 int count = 0;
@@ -213,6 +204,15 @@ namespace GameNetworking.Sockets {
                 }
                 this.listener?.SocketDidReceiveBytes(this, buffer, count);
                 this.bufferPool.Pay(buffer);
+
+                if (this.CheckDisconnected()) {
+                    this.serverListener?.SocketDidDisconnect(this);
+                    this.clientListener?.SocketDidDisconnect();
+                    this.CheckClosed();
+                    return;
+                }
+
+                this.Receive();
             }, this);
         }
 
@@ -322,6 +322,8 @@ namespace GameNetworking.Sockets {
             this.From(endPoint, ref ipep);
             this.Bind(ipep);
             this.ipEndPointPool.Pay(ipep);
+
+            this.Receive();
         }
 
         public void Connect(NetEndPoint endPoint) => this.remoteEndPoint = endPoint;
@@ -332,12 +334,13 @@ namespace GameNetworking.Sockets {
             this.socket = null;
         }
 
-        public void Receive() {
-            if (this.socket == null || !this.isBound) {
-                this.listener?.SocketDidReceiveBytes(this, null, 0);
-                return;
-            }
+        public override string ToString() {
+            return $"{{EndPoint-{this.remoteEndPoint}}}";
+        }
 
+        #region Read & Write
+
+        private void Receive() {
             var buffer = this.bufferPool.Rent();
             EndPoint endPoint = this.ipEndPointPool.Rent();
             this.socket.BeginReceiveFrom(buffer, 0, Consts.bufferSize, SocketFlags.None, ref endPoint, ar => {
@@ -350,6 +353,8 @@ namespace GameNetworking.Sockets {
 
                 this.bufferPool.Pay(buffer);
                 this.ipEndPointPool.Pay((IPEndPoint)endPoint);
+
+                this.Receive();
             }, null);
         }
 
@@ -368,9 +373,7 @@ namespace GameNetworking.Sockets {
             }, null);
         }
 
-        public override string ToString() {
-            return $"{{EndPoint-{this.remoteEndPoint}}}";
-        }
+        #endregion
 
         #region Equatable Methods
 

@@ -58,10 +58,7 @@ namespace GameNetworking.Networking {
 
             var values = this.socketCollection.values;
             for (int index = 0; index < values.Count; index++) {
-                values[index].Receive();
                 values[index].Flush();
-
-                this.unreliableChannel.Receive();
                 this.unreliableChannel.Flush();
             }
             this.RemoveSockets();

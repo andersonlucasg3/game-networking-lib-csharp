@@ -324,6 +324,9 @@ namespace GameNetworking.Sockets {
             this.ipEndPointPool.Pay(ipep);
 
             this.Receive();
+            this.Receive();
+            this.Receive();
+            this.Receive();
         }
 
         public void Connect(NetEndPoint endPoint) => this.remoteEndPoint = endPoint;

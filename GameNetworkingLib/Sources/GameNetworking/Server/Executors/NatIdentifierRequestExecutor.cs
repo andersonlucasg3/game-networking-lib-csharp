@@ -1,6 +1,7 @@
-﻿using GameNetworking.Messages.Client;
+﻿using GameNetworking.Channels;
+using GameNetworking.Messages.Client;
+using GameNetworking.Messages.Server;
 using GameNetworking.Server;
-using GameNetworking.Sockets;
 
 namespace GameNetworking.Executors.Server {
     class NatIdentifierRequestExecutor<TPlayer> : Commons.BaseExecutor<IGameServer<TPlayer>, NatIdentifierRequestMessage>
@@ -12,7 +13,10 @@ namespace GameNetworking.Executors.Server {
         }
 
         public override void Execute() {
-            this.player.NatIdentify(new NetEndPoint(this.message.remote, this.message.port));
+            this.player.NatIdentify(this.message.port);
+            this.instance.listener.GameServerPlayerDidConnect(this.player, Channel.unreliable);
+
+            this.player.Send(new NatIdentifierResponseMessage(), Channel.unreliable);
         }
     }
 }

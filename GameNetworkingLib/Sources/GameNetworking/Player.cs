@@ -14,7 +14,7 @@ namespace GameNetworking {
 
             void Disconnect();
 
-            void NatIdentify(NetEndPoint endPoint);
+            void NatIdentify(int realPort);
         }
 
         internal interface IPlayerMessageListener {
@@ -66,8 +66,8 @@ namespace GameNetworking {
                 this.reliableChannel.CloseChannel();
             }
 
-            public void NatIdentify(NetEndPoint endPoint) {
-                this.unreliableChannel.Register(endPoint.port, this.unreliableChannel);
+            public void NatIdentify(int realPort) {
+                this.unreliableChannel.Register(realPort, this.unreliableChannel);
             }
 
             #endregion

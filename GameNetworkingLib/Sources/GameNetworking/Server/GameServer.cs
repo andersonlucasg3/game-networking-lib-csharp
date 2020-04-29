@@ -8,7 +8,7 @@ using GameNetworking.Sockets;
 namespace GameNetworking.Server {
     public interface IGameServerListener<TPlayer>
         where TPlayer : IPlayer {
-        void GameServerPlayerDidConnect(TPlayer player);
+        void GameServerPlayerDidConnect(TPlayer player, Channel channel);
         void GameServerPlayerDidDisconnect(TPlayer player);
         void GameServerDidReceiveClientMessage(MessageContainer container, TPlayer player);
     }
@@ -80,7 +80,7 @@ namespace GameNetworking.Server {
         void IGameServerClientAcceptorListener<TPlayer>.ClientAcceptorPlayerDidConnect(TPlayer player) {
             player.listener = this.router;
             this._playerCollection.Add(player.playerId, player);
-            this.listener?.GameServerPlayerDidConnect(player);
+            this.listener?.GameServerPlayerDidConnect(player, Channel.reliable);
         }
 
         void IGameServerClientAcceptorListener<TPlayer>.ClientAcceptorPlayerDidDisconnect(TPlayer player) {

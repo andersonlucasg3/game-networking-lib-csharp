@@ -8,7 +8,7 @@ using GameNetworking.Sockets;
 namespace GameNetworking.Client {
     public interface IGameClientListener<TPlayer>
         where TPlayer : IPlayer {
-        void GameClientDidConnect();
+        void GameClientDidConnect(Channel channel);
         void GameClientConnectDidTimeout();
         void GameClientDidDisconnect();
 
@@ -66,9 +66,9 @@ namespace GameNetworking.Client {
         }
 
         void INetworkClientListener.NetworkClientDidConnect(NetEndPoint endPoint) {
-            this.listener?.GameClientDidConnect();
+            this.listener?.GameClientDidConnect(Channel.reliable);
 
-            var natIdentifier = new NatIdentifierRequestMessage { remote = endPoint.host, port = endPoint.port };
+            var natIdentifier = new NatIdentifierRequestMessage { port = endPoint.port };
             this.networkClient.Send(natIdentifier, Channel.reliable);
         }
 

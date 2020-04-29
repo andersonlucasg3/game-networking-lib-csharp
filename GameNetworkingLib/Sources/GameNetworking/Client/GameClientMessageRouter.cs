@@ -32,6 +32,7 @@ namespace GameNetworking.Commons.Client {
                 case MessageType.ping: this.Execute(new PingRequestExecutor<TPlayer>(this.game)); break;
                 case MessageType.pingResult: this.Execute(new PingResultRequestExecutor<TPlayer>(this.game, container.Parse<PingResultRequestMessage>())); break;
                 case MessageType.disconnectedPlayer: this.Execute(new DisconnectedPlayerExecutor(this.game as IRemoteClientListener, container.Parse<DisconnectedPlayerMessage>())); break;
+                case MessageType.natIdentifier: this.Execute(new NatIdentifierResponseExecutor<TPlayer>(this.game, container.Parse<NatIdentifierResponseMessage>())); break;
                 default: this.game?.listener?.GameClientDidReceiveMessage(container); break;
             }
         }

@@ -67,7 +67,7 @@ namespace GameNetworking {
             }
 
             public void NatIdentify(NetEndPoint endPoint) {
-                this.unreliableChannel.Register(endPoint, this.unreliableChannel);
+                this.unreliableChannel.Register(endPoint.port, this.unreliableChannel);
             }
 
             #endregion

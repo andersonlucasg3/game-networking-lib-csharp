@@ -315,6 +315,8 @@ namespace GameNetworking.Sockets {
             try { this.socket.DontFragment = true; } catch (Exception) { Logger.Log("DontFragment not supported."); }
             try { this.socket.IOControl((IOControlCode)SIO_UDP_CONNRESET, new byte[] { 0, 0, 0, 0 }, null); } catch (Exception) { Logger.Log("Error setting SIO_UDP_CONNRESET. Maybe not running on Windows."); }
             this.socket.Bind(endPoint);
+
+            Logger.Log($"Listening on {endPoint}");
         }
 
         public void Bind(NetEndPoint endPoint) {
@@ -348,6 +350,8 @@ namespace GameNetworking.Sockets {
             EndPoint endPoint = this.ipEndPointPool.Rent();
             this.socket.BeginReceiveFrom(buffer, 0, Consts.bufferSize, SocketFlags.None, ref endPoint, ar => {
                 var readBytes = this.socket.EndReceiveFrom(ar, ref endPoint);
+
+                Logger.Log($"Received message from {endPoint}");
 
                 lock (this) {
                     this.remoteEndPoint.From(endPoint);

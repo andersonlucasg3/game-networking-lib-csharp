@@ -2,6 +2,7 @@
 using GameNetworking.Channels;
 using GameNetworking.Commons;
 using GameNetworking.Messages.Models;
+using GameNetworking.Sockets;
 
 namespace GameNetworking {
     namespace Server {
@@ -12,6 +13,8 @@ namespace GameNetworking {
             void Send(ITypedMessage message, Channel channel);
 
             void Disconnect();
+
+            void NatIdentify(NetEndPoint endPoint);
         }
 
         internal interface IPlayerMessageListener {
@@ -61,6 +64,10 @@ namespace GameNetworking {
 
             public void Disconnect() {
                 this.reliableChannel.CloseChannel();
+            }
+
+            public void NatIdentify(NetEndPoint endPoint) {
+                this.unreliableChannel.Register(endPoint, this.unreliableChannel);
             }
 
             #endregion

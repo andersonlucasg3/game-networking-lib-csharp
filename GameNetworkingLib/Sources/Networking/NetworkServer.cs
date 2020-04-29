@@ -98,8 +98,7 @@ namespace GameNetworking.Networking {
 
             var reliable = new ReliableChannel(socket);
             var unreliable = new UnreliableChannel(new UdpSocket(udpSocket, socket.remoteEndPoint));
-            this.unreliableChannel.Register(socket.remoteEndPoint, unreliable);
-
+            
             this.socketCollection.Add(socket, reliable);
             this.listener?.NetworkServerDidAcceptPlayer(reliable, unreliable);
 

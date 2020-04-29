@@ -6,6 +6,7 @@ namespace GameNetworking.Messages {
         disconnectedPlayer,
         ping,
         pong,
-        pingResult
+        pingResult,
+        natIdentifier
     }
 }

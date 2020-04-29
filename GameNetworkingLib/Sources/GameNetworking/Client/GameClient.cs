@@ -1,7 +1,9 @@
 ﻿using GameNetworking.Channels;
 using GameNetworking.Commons.Client;
+using GameNetworking.Messages.Client;
 using GameNetworking.Messages.Models;
 using GameNetworking.Networking;
+using GameNetworking.Sockets;
 
 namespace GameNetworking.Client {
     public interface IGameClientListener<TPlayer>
@@ -63,7 +65,12 @@ namespace GameNetworking.Client {
             this.networkClient.Flush();
         }
 
-        void INetworkClientListener.NetworkClientDidConnect() => this.listener?.GameClientDidConnect();
+        void INetworkClientListener.NetworkClientDidConnect(NetEndPoint endPoint) {
+            this.listener?.GameClientDidConnect();
+
+            this.Send(new NatIdentifierRequestMessage { remote = endPoint.host, port = endPoint.port }, Channel.reliable);
+        }
+
         void INetworkClientListener.NetworkClientConnectDidTimeout() => this.listener?.GameClientConnectDidTimeout();
         void INetworkClientListener.NetworkClientDidReceiveMessage(MessageContainer container) => this.router.Route(container);
 

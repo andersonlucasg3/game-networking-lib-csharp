@@ -4,7 +4,7 @@ using GameNetworking.Sockets;
 
 namespace GameNetworking.Networking {
     public interface INetworkClientListener {
-        void NetworkClientDidConnect();
+        void NetworkClientDidConnect(NetEndPoint endPoint);
         void NetworkClientConnectDidTimeout();
         void NetworkClientDidDisconnect();
 
@@ -72,7 +72,7 @@ namespace GameNetworking.Networking {
             this.udpSocket.Bind(this.tcpSocket.localEndPoint);
             this.udpSocket.Connect(this.tcpSocket.remoteEndPoint);
 
-            this.listener?.NetworkClientDidConnect();
+            this.listener?.NetworkClientDidConnect(this.tcpSocket.localEndPoint);
         }
 
         void ITcpClientListener.SocketDidTimeout() {

@@ -13,7 +13,7 @@ namespace GameNetworking.Executors.Server {
         }
 
         public override void Execute() {
-            this.player.NatIdentify(this.message.port);
+            this.player.NatIdentify(new Sockets.NetEndPoint(this.message.remoteIp, this.message.port));
             this.instance.listener.GameServerPlayerDidConnect(this.player, Channel.unreliable);
 
             this.player.Send(new NatIdentifierResponseMessage(), Channel.unreliable);

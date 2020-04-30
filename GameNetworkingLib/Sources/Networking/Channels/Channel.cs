@@ -96,9 +96,8 @@ namespace GameNetworking.Channels {
 
         public UnreliableChannel(UdpSocket socket) : base(socket) { }
 
-        public void Register(int remoteRealPort, IUnreliableChannelIdentifiedReceiveListener listener) {
+        public void Register(NetEndPoint remoteEndPoint, IUnreliableChannelIdentifiedReceiveListener listener) {
             this.isServer = true;
-            var remoteEndPoint = new NetEndPoint(this.socket.remoteEndPoint.host, remoteRealPort);
             this.receiverCollection[remoteEndPoint] = listener;
             this.socket.Connect(remoteEndPoint);
         }

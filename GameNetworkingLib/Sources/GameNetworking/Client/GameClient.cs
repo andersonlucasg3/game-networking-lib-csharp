@@ -1,4 +1,6 @@
-﻿using GameNetworking.Channels;
+﻿using System.Linq;
+using System.Net;
+using GameNetworking.Channels;
 using GameNetworking.Commons.Client;
 using GameNetworking.Messages.Client;
 using GameNetworking.Messages.Models;
@@ -68,8 +70,17 @@ namespace GameNetworking.Client {
         void INetworkClientListener.NetworkClientDidConnect(NetEndPoint endPoint) {
             this.listener?.GameClientDidConnect(Channel.reliable);
 
-            var natIdentifier = new NatIdentifierRequestMessage { port = endPoint.port };
-            this.networkClient.Send(natIdentifier, Channel.reliable);
+            Dns.BeginGetHostEntry(Dns.GetHostName(), ar => {
+                var externalEntry = Dns.EndGetHostEntry(ar);
+                if (externalEntry.AddressList.Length > 0) {
+                    var externalIp = externalEntry.AddressList.First();
+                    var natIdentifier = new NatIdentifierRequestMessage { remoteIp = externalIp.ToString(), port = endPoint.port };
+                    this.networkClient.Send(natIdentifier, Channel.reliable);
+                } else {
+                    // TODO: Maybe give the aplication a informative error
+                    this.Disconnect();
+                }
+            }, null);
         }
 
         void INetworkClientListener.NetworkClientConnectDidTimeout() => this.listener?.GameClientConnectDidTimeout();

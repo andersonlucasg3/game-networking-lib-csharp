@@ -11,10 +11,9 @@ namespace GameNetworking {
             float mostRecentPingValue { get; }
 
             void Send(ITypedMessage message, Channel channel);
+            TChannel GetChannel<TChannel>(Channel channel) where TChannel : class, IChannel;
 
             void Disconnect();
-
-            void NatIdentify(NetEndPoint remoteEndPoint);
         }
 
         internal interface IPlayerMessageListener {
@@ -51,7 +50,7 @@ namespace GameNetworking {
             }
 
             internal void Flush(Channel channel) {
-                this.GetChannel(channel).Flush();
+                this.GetChannel<IChannel>(channel).Flush();
             }
 
             #endregion
@@ -59,15 +58,19 @@ namespace GameNetworking {
             #region Public methods
 
             public void Send(ITypedMessage message, Channel channel) {
-                this.GetChannel(channel).Send(message);
+                this.GetChannel<IChannel>(channel).Send(message);
+            }
+
+            public TChannel GetChannel<TChannel>(Channel channel) where TChannel : class, IChannel {
+                switch (channel) {
+                case Channel.reliable: return this.reliableChannel as TChannel;
+                case Channel.unreliable: return this.unreliableChannel as TChannel;
+                default: return null;
+                }
             }
 
             public void Disconnect() {
                 this.reliableChannel.CloseChannel();
-            }
-
-            public void NatIdentify(NetEndPoint remoteEndPoint) {
-                this.unreliableChannel.Register(remoteEndPoint, this.unreliableChannel);
             }
 
             #endregion
@@ -76,18 +79,6 @@ namespace GameNetworking {
 
             bool IEquatable<IPlayer>.Equals(IPlayer other) => this.playerId == other.playerId;
             public override int GetHashCode() => this.playerId.GetHashCode();
-
-            #endregion
-
-            #region Private methods
-
-            private IChannel GetChannel(Channel channel) {
-                switch (channel) {
-                case Channel.reliable: return this.reliableChannel;
-                case Channel.unreliable: return this.unreliableChannel;
-                default: return null;
-                }
-            }
 
             #endregion
 

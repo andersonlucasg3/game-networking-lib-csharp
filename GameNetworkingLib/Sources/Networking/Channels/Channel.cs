@@ -99,10 +99,14 @@ namespace GameNetworking.Channels {
         public void Register(NetEndPoint remoteEndPoint, IUnreliableChannelIdentifiedReceiveListener listener) {
             this.isServer = true;
             this.receiverCollection[remoteEndPoint] = listener;
-            this.socket.Connect(remoteEndPoint);
+            this.receiverCollection[this.socket.remoteEndPoint] = listener;
         }
 
         public void Unregister(NetEndPoint endPoint) => this.receiverCollection.Remove(endPoint);
+
+        public void SetRemote(NetEndPoint endPoint) {
+            this.socket.Connect(endPoint);
+        }
 
         protected override void ChannelDidReceiveMessage(MessageContainer container, UdpSocket from) {
             if (!this.isServer) {

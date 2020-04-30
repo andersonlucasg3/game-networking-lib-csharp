@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using GameNetworking.Channels;
 using GameNetworking.Sockets;
 
@@ -16,6 +17,8 @@ namespace GameNetworking.Networking {
 
         void Start(NetEndPoint endPoint);
         void Stop();
+
+        void NatIdentify(UnreliableChannel channel, NetEndPoint remoteEndPoint);
 
         void Update();
     }
@@ -53,6 +56,19 @@ namespace GameNetworking.Networking {
             this.udpSocket.Bind(endPoint);
         }
 
+        public void Stop() {
+            this.tcpSocket.Stop();
+        }
+
+        public void Close() {
+            this.tcpSocket.Close();
+            this.udpSocket.Close();
+        }
+
+        public void NatIdentify(UnreliableChannel channel, NetEndPoint remoteEndPoint) {
+            this.unreliableChannel.Register(remoteEndPoint, channel);
+        }
+
         public void Update() {
             this.Accept();
 
@@ -62,15 +78,6 @@ namespace GameNetworking.Networking {
                 this.unreliableChannel.Flush();
             }
             this.RemoveSockets();
-        }
-
-        public void Stop() {
-            this.tcpSocket.Stop();
-        }
-
-        public void Close() {
-            this.tcpSocket.Close();
-            this.udpSocket.Close();
         }
 
         public void Accept() {

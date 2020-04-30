@@ -1,5 +1,7 @@
-﻿using System.Linq;
+﻿using System.IO;
+using System.Linq;
 using System.Net;
+using System.Text;
 using GameNetworking.Channels;
 using GameNetworking.Commons.Client;
 using GameNetworking.Messages.Client;
@@ -70,17 +72,14 @@ namespace GameNetworking.Client {
         void INetworkClientListener.NetworkClientDidConnect(NetEndPoint endPoint) {
             this.listener?.GameClientDidConnect(Channel.reliable);
 
-            Dns.BeginGetHostEntry(IPAddress.Any, ar => {
-                var externalEntry = Dns.EndGetHostEntry(ar);
-                if (externalEntry.AddressList.Length > 0) {
-                    var externalIp = externalEntry.AddressList.First();
-                    var natIdentifier = new NatIdentifierRequestMessage { remoteIp = externalIp.ToString(), port = endPoint.port };
-                    this.networkClient.Send(natIdentifier, Channel.reliable);
-                } else {
-                    // TODO: Maybe give the aplication a informative error
-                    this.Disconnect();
-                }
-            }, null);
+            var externalIp = this.GetExternalIpWithTimeout(2000);
+            if (externalIp != null) {
+                var natIdentifier = new NatIdentifierRequestMessage { remoteIp = externalIp.ToString(), port = endPoint.port };
+                this.networkClient.Send(natIdentifier, Channel.reliable);
+            } else {
+                // TODO: Maybe give the aplication a informative error
+                this.Disconnect();
+            }
         }
 
         void INetworkClientListener.NetworkClientConnectDidTimeout() => this.listener?.GameClientConnectDidTimeout();
@@ -108,6 +107,29 @@ namespace GameNetworking.Client {
         void IRemoteClientListener.RemoteClientDidDisconnect(int playerId) {
             var player = this._playerCollection.Remove(playerId);
             this.listener?.GameClientPlayerDidDisconnect(player);
+        }
+
+        private string GetExternalIpWithTimeout(int timeoutMillis) {
+            string[] sites = new string[] {
+                "http://ipinfo.io/ip",
+                "http://icanhazip.com/",
+                "http://ipof.in/txt",
+                "http://ifconfig.me/ip",
+                "http://ipecho.net/plain"
+            };
+            foreach (string site in sites) {
+                try {
+                    HttpWebRequest request = (HttpWebRequest)WebRequest.Create(site);
+                    request.Timeout = timeoutMillis;
+                    using var webResponse = (HttpWebResponse)request.GetResponse();
+                    using Stream responseStream = webResponse.GetResponseStream();
+                    using StreamReader responseReader = new StreamReader(responseStream, Encoding.UTF8);
+                    return responseReader.ReadToEnd().Trim();
+                } catch {
+                    continue;
+                }
+            }
+            return "";
         }
     }
 }

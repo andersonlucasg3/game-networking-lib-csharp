@@ -70,7 +70,7 @@ namespace GameNetworking.Client {
         void INetworkClientListener.NetworkClientDidConnect(NetEndPoint endPoint) {
             this.listener?.GameClientDidConnect(Channel.reliable);
 
-            Dns.BeginGetHostEntry(Dns.GetHostName(), ar => {
+            Dns.BeginGetHostEntry(IPAddress.Any, ar => {
                 var externalEntry = Dns.EndGetHostEntry(ar);
                 if (externalEntry.AddressList.Length > 0) {
                     var externalIp = externalEntry.AddressList.First();

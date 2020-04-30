@@ -69,19 +69,7 @@ namespace GameNetworking.Client {
             this.networkClient.Flush();
         }
 
-        void INetworkClientListener.NetworkClientDidConnect(NetEndPoint endPoint) {
-            this.listener?.GameClientDidConnect(Channel.reliable);
-
-            var externalIp = this.GetExternalIpWithTimeout(2000);
-            if (externalIp != null) {
-                var natIdentifier = new NatIdentifierRequestMessage { remoteIp = externalIp.ToString(), port = endPoint.port };
-                this.networkClient.Send(natIdentifier, Channel.reliable);
-            } else {
-                // TODO: Maybe give the aplication a informative error
-                this.Disconnect();
-            }
-        }
-
+        void INetworkClientListener.NetworkClientDidConnect() => this.listener?.GameClientDidConnect(Channel.reliable);
         void INetworkClientListener.NetworkClientConnectDidTimeout() => this.listener?.GameClientConnectDidTimeout();
         void INetworkClientListener.NetworkClientDidReceiveMessage(MessageContainer container) => this.router.Route(container);
 
@@ -101,35 +89,16 @@ namespace GameNetworking.Client {
             if (player.isLocalPlayer) {
                 this.localPlayer = player;
                 this.listener?.GameClientDidIdentifyLocalPlayer(player);
+
+                var endPoint = this.networkClient.localEndPoint;
+                var natIdentifier = new NatIdentifierRequestMessage { playerId = player.playerId, remoteIp = endPoint.host, port = endPoint.port };
+                this.networkClient.Send(natIdentifier, Channel.unreliable);
             }
         }
 
         void IRemoteClientListener.RemoteClientDidDisconnect(int playerId) {
             var player = this._playerCollection.Remove(playerId);
             this.listener?.GameClientPlayerDidDisconnect(player);
-        }
-
-        private string GetExternalIpWithTimeout(int timeoutMillis) {
-            string[] sites = new string[] {
-                "http://ipinfo.io/ip",
-                "http://icanhazip.com/",
-                "http://ipof.in/txt",
-                "http://ifconfig.me/ip",
-                "http://ipecho.net/plain"
-            };
-            foreach (string site in sites) {
-                try {
-                    HttpWebRequest request = (HttpWebRequest)WebRequest.Create(site);
-                    request.Timeout = timeoutMillis;
-                    using var webResponse = (HttpWebResponse)request.GetResponse();
-                    using Stream responseStream = webResponse.GetResponseStream();
-                    using StreamReader responseReader = new StreamReader(responseStream, Encoding.UTF8);
-                    return responseReader.ReadToEnd().Trim();
-                } catch {
-                    continue;
-                }
-            }
-            return "";
         }
     }
 }

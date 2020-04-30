@@ -85,8 +85,12 @@ namespace GameNetworking.Channels {
 
     #region Unreliable
 
+    public interface IUnreliableChannelListener {
+        void UnreliableChannelDidReceiveMessage(MessageContainer container, NetEndPoint from);
+    }
+
     public interface IUnreliableChannelIdentifiedReceiveListener {
-        void ChannelDidReceiveMessage(MessageContainer container);
+        void ChannelDidReceiveMessage(MessageContainer container, NetEndPoint from);
     }
 
     public class UnreliableChannel : Channel<UdpSocket>, IUnreliableChannelIdentifiedReceiveListener {
@@ -94,12 +98,13 @@ namespace GameNetworking.Channels {
             = new Dictionary<NetEndPoint, IUnreliableChannelIdentifiedReceiveListener>();
         private bool isServer = false;
 
+        public IUnreliableChannelListener serverListener { get; set; }
+
         public UnreliableChannel(UdpSocket socket) : base(socket) { }
 
         public void Register(NetEndPoint remoteEndPoint, IUnreliableChannelIdentifiedReceiveListener listener) {
             this.isServer = true;
             this.receiverCollection[remoteEndPoint] = listener;
-            this.receiverCollection[this.socket.remoteEndPoint] = listener;
         }
 
         public void Unregister(NetEndPoint endPoint) => this.receiverCollection.Remove(endPoint);
@@ -115,11 +120,11 @@ namespace GameNetworking.Channels {
             }
 
             if (this.receiverCollection.TryGetValue(from.remoteEndPoint, out IUnreliableChannelIdentifiedReceiveListener listener)) {
-                listener?.ChannelDidReceiveMessage(container);
+                listener?.ChannelDidReceiveMessage(container, this.socket.remoteEndPoint);
             }
         }
 
-        void IUnreliableChannelIdentifiedReceiveListener.ChannelDidReceiveMessage(MessageContainer container) {
+        void IUnreliableChannelIdentifiedReceiveListener.ChannelDidReceiveMessage(MessageContainer container, NetEndPoint from) {
             this.listener?.ChannelDidReceiveMessage(container);
         }
     }

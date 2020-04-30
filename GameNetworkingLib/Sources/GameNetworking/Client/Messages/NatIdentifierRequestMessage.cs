@@ -5,6 +5,7 @@ namespace GameNetworking.Messages.Client {
     class NatIdentifierRequestMessage : ITypedMessage {
         int ITypedMessage.type => (int)MessageType.natIdentifier;
 
+        public int playerId = 0;
         public string remoteIp = "";
         public int port = 0;
 

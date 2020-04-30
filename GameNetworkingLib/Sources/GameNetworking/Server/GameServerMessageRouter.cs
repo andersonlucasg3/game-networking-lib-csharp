@@ -32,7 +32,6 @@ namespace GameNetworking.Server {
 
             switch (type) {
                 case MessageType.pong: Execute(new PongRequestExecutor<TPlayer>(this.server, player)); break;
-                case MessageType.natIdentifier: this.Execute(new NatIdentifierRequestExecutor<TPlayer>(this.server, player, container.Parse<NatIdentifierRequestMessage>())); break;
                 default: this.server.listener?.GameServerDidReceiveClientMessage(container, player); break;
             }
         }

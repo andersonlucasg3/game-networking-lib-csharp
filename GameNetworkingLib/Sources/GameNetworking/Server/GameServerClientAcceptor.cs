@@ -11,8 +11,7 @@ namespace GameNetworking.Server {
         void ClientAcceptorPlayerDidDisconnect(TPlayer player);
     }
 
-    public sealed class GameServerClientAcceptor<TPlayer> : INetworkServerListener
-        where TPlayer : Player, new() {
+    public sealed class GameServerClientAcceptor<TPlayer> where TPlayer : Player, new() {
         private int playerIdCounter = 0;
 
         private readonly ConcurrentDictionary<IChannel, TPlayer> channelCollection;
@@ -57,7 +56,7 @@ namespace GameNetworking.Server {
             }
         }
 
-        void INetworkServerListener.NetworkServerDidAcceptPlayer(ReliableChannel reliable, UnreliableChannel unreliable) {
+        public void NetworkServerDidAcceptPlayer(ReliableChannel reliable, UnreliableChannel unreliable) {
             var player = new TPlayer();
             player.Configure(this.playerIdCounter++);
             player.Configure(reliable, unreliable);
@@ -67,7 +66,7 @@ namespace GameNetworking.Server {
             this.AcceptClient(player);
         }
 
-        void INetworkServerListener.NetworkServerPlayerDidDisconnect(ReliableChannel channel) {
+        public void NetworkServerPlayerDidDisconnect(ReliableChannel channel) {
             if (this.channelCollection.TryRemove(channel, out TPlayer player)) {
                 this.Disconnect(player);
             }

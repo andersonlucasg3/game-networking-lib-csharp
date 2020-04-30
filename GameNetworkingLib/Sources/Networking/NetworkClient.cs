@@ -4,7 +4,7 @@ using GameNetworking.Sockets;
 
 namespace GameNetworking.Networking {
     public interface INetworkClientListener {
-        void NetworkClientDidConnect(NetEndPoint endPoint);
+        void NetworkClientDidConnect();
         void NetworkClientConnectDidTimeout();
         void NetworkClientDidDisconnect();
 
@@ -13,6 +13,9 @@ namespace GameNetworking.Networking {
 
     public interface INetworkClient {
         INetworkClientListener listener { get; set; }
+
+        NetEndPoint localEndPoint { get; }
+        NetEndPoint remoteEndPoint { get; }
 
         void Connect(string host, int port);
         void Disconnect();
@@ -27,6 +30,9 @@ namespace GameNetworking.Networking {
 
         private readonly ReliableChannel reliableChannel;
         private readonly UnreliableChannel unreliableChannel;
+
+        public NetEndPoint localEndPoint => this.tcpSocket.localEndPoint;
+        public NetEndPoint remoteEndPoint => this.tcpSocket.remoteEndPoint;
 
         public INetworkClientListener listener { get; set; }
 
@@ -72,7 +78,7 @@ namespace GameNetworking.Networking {
             this.udpSocket.Bind(this.tcpSocket.localEndPoint);
             this.udpSocket.Connect(this.tcpSocket.remoteEndPoint);
 
-            this.listener?.NetworkClientDidConnect(this.tcpSocket.localEndPoint);
+            this.listener?.NetworkClientDidConnect();
         }
 
         void ITcpClientListener.SocketDidTimeout() {

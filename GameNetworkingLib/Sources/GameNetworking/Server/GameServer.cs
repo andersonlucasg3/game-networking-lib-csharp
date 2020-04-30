@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Net;
 using GameNetworking.Channels;
+using GameNetworking.Executors.Server;
+using GameNetworking.Messages;
+using GameNetworking.Messages.Client;
 using GameNetworking.Messages.Models;
 using GameNetworking.Networking;
 using GameNetworking.Sockets;
@@ -30,7 +33,7 @@ namespace GameNetworking.Server {
         void SendBroadcast(ITypedMessage message, Predicate<TPlayer> predicate, Channel channel);
     }
 
-    public class GameServer<TPlayer> : IGameServer<TPlayer>, IGameServerClientAcceptorListener<TPlayer>
+    public class GameServer<TPlayer> : IGameServer<TPlayer>, IGameServerClientAcceptorListener<TPlayer>, INetworkServerListener
         where TPlayer : Player, new() {
         private readonly GameServerMessageRouter<TPlayer> router;
         private readonly GameServerClientAcceptor<TPlayer> clientAcceptor;
@@ -47,7 +50,7 @@ namespace GameNetworking.Server {
             this.clientAcceptor = new GameServerClientAcceptor<TPlayer>() { listener = this };
 
             this.networkServer = networkServer;
-            this.networkServer.listener = this.clientAcceptor;
+            this.networkServer.listener = this;
 
             this._playerCollection = new PlayerCollection<int, TPlayer>();
             this.pingController = new GameServerPingController<TPlayer>(this._playerCollection);
@@ -87,6 +90,20 @@ namespace GameNetworking.Server {
             player.listener = null;
             this._playerCollection.Remove(player.playerId);
             this.listener?.GameServerPlayerDidDisconnect(player);
+        }
+
+        void INetworkServerListener.NetworkServerDidAcceptPlayer(ReliableChannel reliable, UnreliableChannel unreliable) {
+            this.clientAcceptor.NetworkServerDidAcceptPlayer(reliable, unreliable);
+        }
+
+        void INetworkServerListener.NetworkServerPlayerDidDisconnect(ReliableChannel channel) {
+            this.clientAcceptor.NetworkServerPlayerDidDisconnect(channel);
+        }
+
+        void INetworkServerListener.NetworkServerDidReceiveUnidentifiedMessage(MessageContainer container, NetEndPoint from) {
+            if (container.Is((int)MessageType.natIdentifier)) {
+                new NatIdentifierRequestExecutor<TPlayer>(this, from, container.Parse<NatIdentifierRequestMessage>()).Execute();
+            }
         }
     }
 }

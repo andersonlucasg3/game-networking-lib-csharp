@@ -7,21 +7,21 @@ using GameNetworking.Sockets;
 namespace GameNetworking.Executors.Server {
     class NatIdentifierRequestExecutor<TPlayer> : Commons.BaseExecutor<IGameServer<TPlayer>, NatIdentifierRequestMessage>
         where TPlayer : class, GameNetworking.Server.IPlayer {
-        private readonly TPlayer player;
+        private readonly NetEndPoint remoteEndPoint;
 
-        public NatIdentifierRequestExecutor(IGameServer<TPlayer> instance, TPlayer player, NatIdentifierRequestMessage message) : base(instance, message) {
-            this.player = player;
+        public NatIdentifierRequestExecutor(IGameServer<TPlayer> instance, NetEndPoint remoteEndPoint, NatIdentifierRequestMessage message) : base(instance, message) {
+            this.remoteEndPoint = remoteEndPoint;
         }
 
         public override void Execute() {
-            var channel = this.player.GetChannel<UnreliableChannel>(Channel.unreliable);
-            var ep = new NetEndPoint(this.message.remoteIp, this.message.port);
-            channel.SetRemote(ep);
+            if (!this.instance.playerCollection.TryGetPlayer(this.message.playerId, out TPlayer player)) { return; }
+            var channel = player.GetChannel<UnreliableChannel>(Channel.unreliable);
+            channel.SetRemote(this.remoteEndPoint);
+            this.instance.networkServer.unreliableChannel.Register(this.remoteEndPoint, channel);
 
-            this.instance.networkServer.NatIdentify(channel, ep);
-            this.instance.listener.GameServerPlayerDidConnect(this.player, Channel.unreliable);
+            this.instance.listener.GameServerPlayerDidConnect(player, Channel.unreliable);
 
-            this.player.Send(new NatIdentifierResponseMessage(), Channel.reliable);
+            player.Send(new NatIdentifierResponseMessage(), Channel.unreliable);
         }
     }
 }

@@ -2,7 +2,6 @@
 using GameNetworking.Channels;
 using GameNetworking.Commons;
 using GameNetworking.Messages.Models;
-using GameNetworking.Sockets;
 
 namespace GameNetworking {
     namespace Server {

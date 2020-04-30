@@ -98,7 +98,9 @@ namespace GameNetworking.Channels {
 
         public void Register(int remoteRealPort, IUnreliableChannelIdentifiedReceiveListener listener) {
             this.isServer = true;
-            this.receiverCollection[new NetEndPoint(this.socket.remoteEndPoint.host, remoteRealPort)] = listener;
+            var remoteEndPoint = new NetEndPoint(this.socket.remoteEndPoint.host, remoteRealPort);
+            this.receiverCollection[remoteEndPoint] = listener;
+            this.socket.Connect(remoteEndPoint);
         }
 
         public void Unregister(NetEndPoint endPoint) => this.receiverCollection.Remove(endPoint);

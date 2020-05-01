@@ -1,13 +1,8 @@
-﻿using System.IO;
-using System.Linq;
-using System.Net;
-using System.Text;
-using GameNetworking.Channels;
+﻿using GameNetworking.Channels;
 using GameNetworking.Commons.Client;
 using GameNetworking.Messages.Client;
 using GameNetworking.Messages.Models;
 using GameNetworking.Networking;
-using GameNetworking.Sockets;
 
 namespace GameNetworking.Client {
     public interface IGameClientListener<TPlayer>
@@ -93,6 +88,8 @@ namespace GameNetworking.Client {
                 var endPoint = this.networkClient.localEndPoint;
                 var natIdentifier = new NatIdentifierRequestMessage { playerId = player.playerId, remoteIp = endPoint.host, port = endPoint.port };
                 this.networkClient.Send(natIdentifier, Channel.unreliable);
+                this.networkClient.Send(natIdentifier, Channel.unreliable);
+                // TODO: Make retry logic to avoid NAT form releasing the port
             }
         }
 

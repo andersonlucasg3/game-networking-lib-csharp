@@ -22,6 +22,8 @@ namespace GameNetworking.Executors.Server {
             this.instance.listener.GameServerPlayerDidConnect(player, Channel.unreliable);
 
             player.Send(new NatIdentifierResponseMessage(), Channel.unreliable);
+            player.Send(new NatIdentifierResponseMessage(), Channel.unreliable);
+            // TODO: Make retry logic to avoid NAT from releasing the port
         }
     }
 }

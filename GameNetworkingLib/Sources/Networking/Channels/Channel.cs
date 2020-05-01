@@ -96,6 +96,8 @@ namespace GameNetworking.Channels {
     public class UnreliableChannel : Channel<UdpSocket>, IUnreliableChannelIdentifiedReceiveListener {
         private readonly Dictionary<NetEndPoint, IUnreliableChannelIdentifiedReceiveListener> receiverCollection
             = new Dictionary<NetEndPoint, IUnreliableChannelIdentifiedReceiveListener>();
+        internal bool isServer = false;
+
         public IUnreliableChannelListener serverListener { get; set; }
 
         public UnreliableChannel(UdpSocket socket) : base(socket) { }
@@ -111,6 +113,11 @@ namespace GameNetworking.Channels {
         }
 
         protected override void ChannelDidReceiveMessage(MessageContainer container, UdpSocket from) {
+            if (!this.isServer) {
+                this.listener?.ChannelDidReceiveMessage(container);
+                return;
+            }
+
             if (this.receiverCollection.TryGetValue(from.remoteEndPoint, out IUnreliableChannelIdentifiedReceiveListener listener)) {
                 listener?.ChannelDidReceiveMessage(container);
             } else {

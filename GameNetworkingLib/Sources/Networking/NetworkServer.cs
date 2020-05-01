@@ -46,7 +46,7 @@ namespace GameNetworking.Networking {
             this.socketCollection = new PlayerCollection<TcpSocket, ReliableChannel>();
 
             this.reliableChannel = new ReliableChannel(this.tcpSocket);
-            this.unreliableChannel = new UnreliableChannel(this.udpSocket) { serverListener = this };
+            this.unreliableChannel = new UnreliableChannel(this.udpSocket) { serverListener = this, isServer = true };
         }
 
         public void Start(NetEndPoint endPoint) {

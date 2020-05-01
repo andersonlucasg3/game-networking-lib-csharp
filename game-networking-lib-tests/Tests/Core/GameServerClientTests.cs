@@ -17,6 +17,7 @@ using ClientPlayer = GameNetworking.Client.Player;
 using GameNetworking.Commons.Client;
 using System.Runtime.CompilerServices;
 using System.Collections.Concurrent;
+using GameNetworking.Channels;
 
 namespace Tests.Core {
     public interface IClientListener : IGameClientListener<ClientPlayer> {
@@ -44,7 +45,7 @@ namespace Tests.Core {
 
 #region IGameClientListener
 
-        void IGameClientListener<ClientPlayer>.GameClientDidConnect() => this.connectedCalled = true;
+        void IGameClientListener<ClientPlayer>.GameClientDidConnect(Channel _) => this.connectedCalled = true;
         void IGameClientListener<ClientPlayer>.GameClientConnectDidTimeout() => this.connectTimeoutCalled = true;
         void IGameClientListener<ClientPlayer>.GameClientDidDisconnect() => this.disconnectCalled = true;
         void IGameClientListener<ClientPlayer>.GameClientDidIdentifyLocalPlayer(ClientPlayer player) => this.localPlayer = player;
@@ -64,7 +65,7 @@ namespace Tests.Core {
 
 #region IGameServerListener
 
-        void IGameServerListener<ServerPlayer>.GameServerPlayerDidConnect(ServerPlayer player) => connectedPlayers.Add(player);
+        void IGameServerListener<ServerPlayer>.GameServerPlayerDidConnect(ServerPlayer player, Channel _) => connectedPlayers.Add(player);
         void IGameServerListener<ServerPlayer>.GameServerPlayerDidDisconnect(ServerPlayer player) => disconnectedPlayers.Add(player);
         void IGameServerListener<ServerPlayer>.GameServerDidReceiveClientMessage(MessageContainer container, ServerPlayer player) => Assert.NotNull(player);
 

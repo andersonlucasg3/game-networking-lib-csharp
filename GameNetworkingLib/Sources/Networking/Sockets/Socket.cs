@@ -315,6 +315,8 @@ namespace GameNetworking.Sockets {
             try { this.socket.DontFragment = true; } catch (Exception) { Logger.Log("DontFragment not supported."); }
             try { this.socket.IOControl((IOControlCode)SIO_UDP_CONNRESET, new byte[] { 0, 0, 0, 0 }, null); } catch (Exception) { Logger.Log("Error setting SIO_UDP_CONNRESET. Maybe not running on Windows."); }
             this.socket.Bind(endPoint);
+
+            Logger.Log($"Listening on {endPoint}");
         }
 
         public void Bind(NetEndPoint endPoint) {

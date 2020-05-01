@@ -2,6 +2,7 @@
 using GameNetworking.Executors;
 using GameNetworking.Executors.Server;
 using GameNetworking.Messages;
+using GameNetworking.Messages.Client;
 using GameNetworking.Messages.Models;
 
 namespace GameNetworking.Server {

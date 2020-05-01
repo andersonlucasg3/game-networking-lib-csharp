@@ -39,8 +39,8 @@ namespace TestServerApp {
             this.actions.Add(action);
         }
 
-        public void GameServerPlayerDidConnect(Player player) {
-            Logger.Log("GameServerPlayerDidConnect");
+        public void GameServerPlayerDidConnect(Player player, Channel channel) {
+            Logger.Log($"GameServerPlayerDidConnect - {channel}");
         }
 
         public void GameServerPlayerDidDisconnect(Player player) {

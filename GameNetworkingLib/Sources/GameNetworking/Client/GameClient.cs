@@ -1,12 +1,13 @@
 ﻿using GameNetworking.Channels;
 using GameNetworking.Commons.Client;
+using GameNetworking.Messages.Client;
 using GameNetworking.Messages.Models;
 using GameNetworking.Networking;
 
 namespace GameNetworking.Client {
     public interface IGameClientListener<TPlayer>
         where TPlayer : IPlayer {
-        void GameClientDidConnect();
+        void GameClientDidConnect(Channel channel);
         void GameClientConnectDidTimeout();
         void GameClientDidDisconnect();
 
@@ -63,7 +64,7 @@ namespace GameNetworking.Client {
             this.networkClient.Flush();
         }
 
-        void INetworkClientListener.NetworkClientDidConnect() => this.listener?.GameClientDidConnect();
+        void INetworkClientListener.NetworkClientDidConnect() => this.listener?.GameClientDidConnect(Channel.reliable);
         void INetworkClientListener.NetworkClientConnectDidTimeout() => this.listener?.GameClientConnectDidTimeout();
         void INetworkClientListener.NetworkClientDidReceiveMessage(MessageContainer container) => this.router.Route(container);
 
@@ -83,6 +84,12 @@ namespace GameNetworking.Client {
             if (player.isLocalPlayer) {
                 this.localPlayer = player;
                 this.listener?.GameClientDidIdentifyLocalPlayer(player);
+
+                var endPoint = this.networkClient.localEndPoint;
+                var natIdentifier = new NatIdentifierRequestMessage { playerId = player.playerId, remoteIp = endPoint.host, port = endPoint.port };
+                this.networkClient.Send(natIdentifier, Channel.unreliable);
+                this.networkClient.Send(natIdentifier, Channel.unreliable);
+                // TODO: Make retry logic to avoid NAT form releasing the port
             }
         }
 

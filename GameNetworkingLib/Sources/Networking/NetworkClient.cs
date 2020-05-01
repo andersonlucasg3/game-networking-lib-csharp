@@ -14,6 +14,9 @@ namespace GameNetworking.Networking {
     public interface INetworkClient {
         INetworkClientListener listener { get; set; }
 
+        NetEndPoint localEndPoint { get; }
+        NetEndPoint remoteEndPoint { get; }
+
         void Connect(string host, int port);
         void Disconnect();
 
@@ -27,6 +30,9 @@ namespace GameNetworking.Networking {
 
         private readonly ReliableChannel reliableChannel;
         private readonly UnreliableChannel unreliableChannel;
+
+        public NetEndPoint localEndPoint => this.tcpSocket.localEndPoint;
+        public NetEndPoint remoteEndPoint => this.tcpSocket.remoteEndPoint;
 
         public INetworkClientListener listener { get; set; }
 

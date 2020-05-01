@@ -1,11 +1,14 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using GameNetworking.Channels;
+using GameNetworking.Messages.Models;
 using GameNetworking.Sockets;
 
 namespace GameNetworking.Networking {
     public interface INetworkServerListener {
         void NetworkServerDidAcceptPlayer(ReliableChannel reliable, UnreliableChannel unreliable);
         void NetworkServerPlayerDidDisconnect(ReliableChannel channel);
+        void NetworkServerDidReceiveUnidentifiedMessage(MessageContainer container, NetEndPoint from);
     }
 
     public interface INetworkServer {
@@ -20,7 +23,7 @@ namespace GameNetworking.Networking {
         void Update();
     }
 
-    public class NetworkServer : INetworkServer, ITcpServerListener<TcpSocket> {
+    public class NetworkServer : INetworkServer, ITcpServerListener<TcpSocket>, IUnreliableChannelListener {
         private readonly TcpSocket tcpSocket;
         private readonly UdpSocket udpSocket;
 
@@ -43,7 +46,7 @@ namespace GameNetworking.Networking {
             this.socketCollection = new PlayerCollection<TcpSocket, ReliableChannel>();
 
             this.reliableChannel = new ReliableChannel(this.tcpSocket);
-            this.unreliableChannel = new UnreliableChannel(this.udpSocket);
+            this.unreliableChannel = new UnreliableChannel(this.udpSocket) { serverListener = this, isServer = true };
         }
 
         public void Start(NetEndPoint endPoint) {
@@ -51,6 +54,15 @@ namespace GameNetworking.Networking {
             this.tcpSocket.Start();
 
             this.udpSocket.Bind(endPoint);
+        }
+
+        public void Stop() {
+            this.tcpSocket.Stop();
+        }
+
+        public void Close() {
+            this.tcpSocket.Close();
+            this.udpSocket.Close();
         }
 
         public void Update() {
@@ -62,15 +74,6 @@ namespace GameNetworking.Networking {
                 this.unreliableChannel.Flush();
             }
             this.RemoveSockets();
-        }
-
-        public void Stop() {
-            this.tcpSocket.Stop();
-        }
-
-        public void Close() {
-            this.tcpSocket.Close();
-            this.udpSocket.Close();
         }
 
         public void Accept() {
@@ -98,7 +101,6 @@ namespace GameNetworking.Networking {
 
             var reliable = new ReliableChannel(socket);
             var unreliable = new UnreliableChannel(new UdpSocket(udpSocket, socket.remoteEndPoint));
-            this.unreliableChannel.Register(socket.remoteEndPoint, unreliable);
 
             this.socketCollection.Add(socket, reliable);
             this.listener?.NetworkServerDidAcceptPlayer(reliable, unreliable);
@@ -108,6 +110,10 @@ namespace GameNetworking.Networking {
 
         void ITcpServerListener<TcpSocket>.SocketDidDisconnect(TcpSocket socket) {
             this.socketsToRemove.Enqueue(socket);
+        }
+
+        void IUnreliableChannelListener.UnreliableChannelDidReceiveMessage(MessageContainer container, NetEndPoint from) {
+            this.listener?.NetworkServerDidReceiveUnidentifiedMessage(container, from);
         }
     }
 }

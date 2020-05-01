@@ -85,6 +85,10 @@ namespace GameNetworking.Channels {
 
     #region Unreliable
 
+    public interface IUnreliableChannelListener {
+        void UnreliableChannelDidReceiveMessage(MessageContainer container, NetEndPoint from);
+    }
+
     public interface IUnreliableChannelIdentifiedReceiveListener {
         void ChannelDidReceiveMessage(MessageContainer container);
     }
@@ -92,16 +96,21 @@ namespace GameNetworking.Channels {
     public class UnreliableChannel : Channel<UdpSocket>, IUnreliableChannelIdentifiedReceiveListener {
         private readonly Dictionary<NetEndPoint, IUnreliableChannelIdentifiedReceiveListener> receiverCollection
             = new Dictionary<NetEndPoint, IUnreliableChannelIdentifiedReceiveListener>();
-        private bool isServer = false;
+        internal bool isServer = false;
+
+        public IUnreliableChannelListener serverListener { get; set; }
 
         public UnreliableChannel(UdpSocket socket) : base(socket) { }
 
-        public void Register(NetEndPoint endPoint, IUnreliableChannelIdentifiedReceiveListener listener) {
-            this.isServer = true;
-            this.receiverCollection[endPoint] = listener;
+        public void Register(NetEndPoint remoteEndPoint, IUnreliableChannelIdentifiedReceiveListener listener) {
+            this.receiverCollection[remoteEndPoint] = listener;
         }
 
         public void Unregister(NetEndPoint endPoint) => this.receiverCollection.Remove(endPoint);
+
+        public void SetRemote(NetEndPoint endPoint) {
+            this.socket.Connect(endPoint);
+        }
 
         protected override void ChannelDidReceiveMessage(MessageContainer container, UdpSocket from) {
             if (!this.isServer) {
@@ -111,6 +120,8 @@ namespace GameNetworking.Channels {
 
             if (this.receiverCollection.TryGetValue(from.remoteEndPoint, out IUnreliableChannelIdentifiedReceiveListener listener)) {
                 listener?.ChannelDidReceiveMessage(container);
+            } else {
+                this.serverListener?.UnreliableChannelDidReceiveMessage(container, from.remoteEndPoint);
             }
         }
 

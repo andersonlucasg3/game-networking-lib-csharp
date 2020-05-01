@@ -40,8 +40,11 @@ namespace TestClientApp {
             this.actions.Add(action);
         }
 
-        public void GameClientDidConnect() {
-            Logger.Log("GameClientDidConnect");
+        public void GameClientDidConnect(Channel channel) {
+            Logger.Log($"GameClientDidConnect - {channel}");
+            if (channel == Channel.unreliable) {
+                this.Send();
+            }
         }
 
         public void GameClientConnectDidTimeout() {
@@ -54,7 +57,6 @@ namespace TestClientApp {
 
         public void GameClientDidIdentifyLocalPlayer(Player player) {
             Logger.Log("GameClientDidIdentifyLocalPlayer");
-            this.Send();
         }
 
         public void GameClientPlayerDidConnect(Player player) {

@@ -351,8 +351,6 @@ namespace GameNetworking.Sockets {
             this.socket.BeginReceiveFrom(buffer, 0, Consts.bufferSize, SocketFlags.None, ref endPoint, ar => {
                 var readBytes = this.socket.EndReceiveFrom(ar, ref endPoint);
 
-                Logger.Log($"Received message from {endPoint}");
-
                 lock (this) {
                     this.remoteEndPoint.From(endPoint);
                     this.listener?.SocketDidReceiveBytes(this, buffer, readBytes);

@@ -90,20 +90,17 @@ namespace GameNetworking.Channels {
     }
 
     public interface IUnreliableChannelIdentifiedReceiveListener {
-        void ChannelDidReceiveMessage(MessageContainer container, NetEndPoint from);
+        void ChannelDidReceiveMessage(MessageContainer container);
     }
 
     public class UnreliableChannel : Channel<UdpSocket>, IUnreliableChannelIdentifiedReceiveListener {
         private readonly Dictionary<NetEndPoint, IUnreliableChannelIdentifiedReceiveListener> receiverCollection
             = new Dictionary<NetEndPoint, IUnreliableChannelIdentifiedReceiveListener>();
-        private bool isServer = false;
-
         public IUnreliableChannelListener serverListener { get; set; }
 
         public UnreliableChannel(UdpSocket socket) : base(socket) { }
 
         public void Register(NetEndPoint remoteEndPoint, IUnreliableChannelIdentifiedReceiveListener listener) {
-            this.isServer = true;
             this.receiverCollection[remoteEndPoint] = listener;
         }
 
@@ -114,17 +111,14 @@ namespace GameNetworking.Channels {
         }
 
         protected override void ChannelDidReceiveMessage(MessageContainer container, UdpSocket from) {
-            if (!this.isServer) {
-                this.listener?.ChannelDidReceiveMessage(container);
-                return;
-            }
-
             if (this.receiverCollection.TryGetValue(from.remoteEndPoint, out IUnreliableChannelIdentifiedReceiveListener listener)) {
-                listener?.ChannelDidReceiveMessage(container, this.socket.remoteEndPoint);
+                listener?.ChannelDidReceiveMessage(container);
+            } else {
+                this.serverListener?.UnreliableChannelDidReceiveMessage(container, from.remoteEndPoint);
             }
         }
 
-        void IUnreliableChannelIdentifiedReceiveListener.ChannelDidReceiveMessage(MessageContainer container, NetEndPoint from) {
+        void IUnreliableChannelIdentifiedReceiveListener.ChannelDidReceiveMessage(MessageContainer container) {
             this.listener?.ChannelDidReceiveMessage(container);
         }
     }

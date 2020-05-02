@@ -30,7 +30,7 @@ namespace TestClientApp {
             while (true) {
                 var copyActions = new List<Action>(program.actions);
                 program.actions.RemoveAll(_ => true);
-                copyActions.ForEach(each => each.Invoke());
+                copyActions.ForEach(each => each?.Invoke());
 
                 program.client.Update();
             }
@@ -60,11 +60,11 @@ namespace TestClientApp {
         }
 
         public void GameClientPlayerDidConnect(Player player) {
-            Logger.Log("GameClientNetworkPlayerDidConnect");
+            Logger.Log($"GameClientPlayerDidConnect player-{player}");
         }
 
         public void GameClientPlayerDidDisconnect(Player player) {
-            Logger.Log("GameClientNetworkPlayerDidDisconnect");
+            Logger.Log($"GameClientPlayerDidDisconnect player-{player}");
         }
 
         public void GameClientDidReceiveMessage(MessageContainer container) {

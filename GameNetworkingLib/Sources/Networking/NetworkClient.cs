@@ -1,17 +1,23 @@
-﻿using GameNetworking.Channels;
+﻿using System.Threading;
+using GameNetworking.Channels;
 using GameNetworking.Messages.Models;
 using GameNetworking.Sockets;
 
 namespace GameNetworking.Networking {
+    public interface IMessageSender {
+        void Send(ITypedMessage message, Channel channel);
+    }
+
     public interface INetworkClientListener {
         void NetworkClientDidConnect();
         void NetworkClientConnectDidTimeout();
         void NetworkClientDidDisconnect();
 
         void NetworkClientDidReceiveMessage(MessageContainer container);
+        void NetworkClientDidReceiveMessage(MessageContainer container, NetEndPoint from);
     }
 
-    public interface INetworkClient {
+    public interface INetworkClient: IMessageSender {
         INetworkClientListener listener { get; set; }
 
         NetEndPoint localEndPoint { get; }
@@ -20,7 +26,6 @@ namespace GameNetworking.Networking {
         void Connect(string host, int port);
         void Disconnect();
 
-        void Send(ITypedMessage message, Channel channel);
         void Flush();
     }
 
@@ -49,9 +54,8 @@ namespace GameNetworking.Networking {
             this.unreliableChannel.listener = this;
         }
 
-        public void Connect(string host, int port) {
-            this.tcpSocket.Connect(new NetEndPoint(host, port));
-        }
+        public void Connect(string host, int port) => this.tcpSocket.Connect(new NetEndPoint(host, port));
+        internal void ReconnectUnreliable(NetEndPoint remote) => this.udpSocket.Connect(remote);
 
         public void Disconnect() {
             this.reliableChannel.CloseChannel();
@@ -93,8 +97,8 @@ namespace GameNetworking.Networking {
             this.tcpSocket.Close();
         }
 
-        void IChannelListener.ChannelDidReceiveMessage(MessageContainer container) {
-            this.listener?.NetworkClientDidReceiveMessage(container);
+        void IChannelListener.ChannelDidReceiveMessage(MessageContainer container, NetEndPoint from) {
+            this.listener?.NetworkClientDidReceiveMessage(container, from);
         }
     }
 }

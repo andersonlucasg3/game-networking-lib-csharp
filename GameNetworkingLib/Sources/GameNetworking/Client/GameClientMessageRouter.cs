@@ -4,9 +4,14 @@ using GameNetworking.Executors.Client;
 using GameNetworking.Messages;
 using GameNetworking.Messages.Models;
 using GameNetworking.Messages.Server;
+using GameNetworking.Sockets;
 
 namespace GameNetworking.Commons.Client {
-    public class GameClientMessageRouter<TPlayer>
+    public interface IClientMessageRouter {
+        void Route(NetEndPoint from, MessageContainer container);
+    }
+
+    public class GameClientMessageRouter<TPlayer>: IClientMessageRouter
         where TPlayer : GameNetworking.Client.Player {
 
         private readonly IMainThreadDispatcher dispatcher;
@@ -16,15 +21,11 @@ namespace GameNetworking.Commons.Client {
             this.dispatcher = dispatcher;
         }
 
-        internal void Configure(IGameClient<TPlayer> game) {
+        public void Configure(IGameClient<TPlayer> game) {
             this.game = game;
         }
 
-        protected void Execute(IExecutor executor) {
-            dispatcher.Enqueue(executor.Execute);
-        }
-
-        internal virtual void Route(MessageContainer container) {
+        public virtual void Route(NetEndPoint from, MessageContainer container) {
             if (container == null) { return; }
 
             switch ((MessageType)container.type) {
@@ -32,9 +33,12 @@ namespace GameNetworking.Commons.Client {
                 case MessageType.ping: this.Execute(new PingRequestExecutor<TPlayer>(this.game)); break;
                 case MessageType.pingResult: this.Execute(new PingResultRequestExecutor<TPlayer>(this.game, container.Parse<PingResultRequestMessage>())); break;
                 case MessageType.disconnectedPlayer: this.Execute(new DisconnectedPlayerExecutor(this.game as IRemoteClientListener, container.Parse<DisconnectedPlayerMessage>())); break;
-                case MessageType.natIdentifier: this.Execute(new NatIdentifierResponseExecutor<TPlayer>(this.game, container.Parse<NatIdentifierResponseMessage>())); break;
                 default: this.game?.listener?.GameClientDidReceiveMessage(container); break;
             }
+        }
+
+        private void Execute(IExecutor executor) {
+            dispatcher.Enqueue(executor.Execute);
         }
     }
 }

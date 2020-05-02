@@ -17,6 +17,8 @@ namespace GameNetworking.Networking {
 
         INetworkServerListener listener { get; set; }
 
+        NetEndPoint listeningOnEndPoint { get; }
+
         void Start(NetEndPoint endPoint);
         void Stop();
 
@@ -34,6 +36,8 @@ namespace GameNetworking.Networking {
 
         public ReliableChannel reliableChannel { get; }
         public UnreliableChannel unreliableChannel { get; }
+
+        public NetEndPoint listeningOnEndPoint { get; private set; }
 
         public INetworkServerListener listener { get; set; }
 
@@ -54,6 +58,8 @@ namespace GameNetworking.Networking {
             this.tcpSocket.Start();
 
             this.udpSocket.Bind(endPoint);
+
+            this.listeningOnEndPoint = endPoint;
         }
 
         public void Stop() {

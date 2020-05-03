@@ -90,7 +90,9 @@ namespace GameNetworking.Channels {
             = new Dictionary<NetEndPoint, IChannelListener>();
         internal bool isServer = false;
 
-        public UnreliableChannel(UdpSocket socket) : base(socket) { }
+        public UnreliableChannel(UdpSocket socket) : base(socket) {
+            this.socket.listener = this;
+        }
 
         public void Register(NetEndPoint remoteEndPoint, IChannelListener listener) {
             this.receiverCollection[remoteEndPoint] = listener;
@@ -100,6 +102,10 @@ namespace GameNetworking.Channels {
 
         public void SetRemote(NetEndPoint endPoint) {
             this.socket.Connect(endPoint);
+        }
+
+        protected override void ChannelDidReceiveMessage(MessageContainer container, UdpSocket from) {
+            ((IChannelListener)this).ChannelDidReceiveMessage(container, from.remoteEndPoint);
         }
 
         void IChannelListener.ChannelDidReceiveMessage(MessageContainer container, NetEndPoint from) {

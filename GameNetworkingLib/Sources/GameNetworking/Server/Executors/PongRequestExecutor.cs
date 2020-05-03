@@ -8,7 +8,7 @@ namespace GameNetworking.Executors.Server {
         where TPlayer : class, GameNetworking.Server.IPlayer {
         private readonly TPlayer player;
 
-        public PongRequestExecutor(IGameServer<TPlayer> server, TPlayer player) : base(server, null) {
+        public PongRequestExecutor(IGameServer<TPlayer> server, TPlayer player, PongRequestMessage message) : base(server, message) {
             this.player = player;
         }
 

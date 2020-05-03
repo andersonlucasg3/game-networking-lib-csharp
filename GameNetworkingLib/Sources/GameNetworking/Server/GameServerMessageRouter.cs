@@ -31,7 +31,7 @@ namespace GameNetworking.Server {
             var type = (MessageType)container.type;
 
             switch (type) {
-                case MessageType.pong: Execute(new PongRequestExecutor<TPlayer>(this.server, player)); break;
+                case MessageType.pong: Execute(new PongRequestExecutor<TPlayer>(this.server, player, container.Parse<PongRequestMessage>())); break;
                 default: this.server.listener?.GameServerDidReceiveClientMessage(container, player); break;
             }
         }

@@ -89,7 +89,7 @@ namespace GameNetworking.Server {
         }
 
         internal void ReceivedPong(long pingRequestId) {
-            if (pingRequestId < this.pingRequestId) { return; }
+            if (pingRequestId < this.pingRequestId - 2) { return; } // allows one packet loss
 
             this.pingSent = false;
 

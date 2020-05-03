@@ -73,11 +73,21 @@ namespace GameNetworking.Server {
         }
 
         public void SendBroadcast(ITypedMessage message, Channel channel) {
-            this._playerCollection.ForEach((player) => player.Send(message, channel));
+            var sendValue = new SendValue() { message = message, channel = channel };
+            this._playerCollection.ForEach(Send, sendValue);
+        }
+
+        private void Send(TPlayer player, SendValue value) {
+            player.Send(value.message, value.channel);
         }
 
         public void SendBroadcast(ITypedMessage message, Predicate<TPlayer> predicate, Channel channel) {
-            this._playerCollection.ForEach((player) => { if (predicate(player)) { player.Send(message, channel); } });
+            var sendValue = new SendValue() { message = message, predicate = predicate, channel = channel };
+            this._playerCollection.ForEach(SendPredicate, sendValue);
+        }
+
+        private void SendPredicate(TPlayer player, SendValue value) {
+            if (value.predicate(player)) { player.Send(value.message, value.channel); }
         }
 
         void IGameServerClientAcceptorListener<TPlayer>.ClientAcceptorPlayerDidConnect(TPlayer player) {
@@ -104,6 +114,12 @@ namespace GameNetworking.Server {
             if (container.Is((int)MessageType.natIdentifier)) {
                 new NatIdentifierRequestExecutor<TPlayer>(this, from, container.Parse<NatIdentifierRequestMessage>()).Execute();
             }
+        }
+
+        private struct SendValue {
+            public ITypedMessage message;
+            public Channel channel;
+            public Predicate<TPlayer> predicate;
         }
     }
 }

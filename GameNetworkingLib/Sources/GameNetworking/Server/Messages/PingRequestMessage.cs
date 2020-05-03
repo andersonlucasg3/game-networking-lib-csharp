@@ -3,16 +3,20 @@ using GameNetworking.Messages.Models;
 
 namespace GameNetworking.Messages.Server {
     internal class PingRequestMessage : ITypedMessage {
-        public static int Type {
-            get { return (int)MessageType.ping; }
+        int ITypedMessage.type => (int)MessageType.ping;
+
+        public long pingRequestId { get; private set; }
+
+        public PingRequestMessage() { }
+
+        public PingRequestMessage(long pingRequestId) => this.pingRequestId = pingRequestId;
+
+        public void Encode(IEncoder encoder) {
+            encoder.Encode(this.pingRequestId);
         }
 
-        int ITypedMessage.type {
-            get { return PingRequestMessage.Type; }
+        public void Decode(IDecoder decoder) {
+            this.pingRequestId = decoder.GetLong();
         }
-
-        public void Encode(IEncoder encoder) { }
-
-        public void Decode(IDecoder decoder) { }
     }
 }

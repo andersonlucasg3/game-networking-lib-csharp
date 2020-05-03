@@ -14,7 +14,7 @@ namespace GameNetworking.Executors.Client {
                 this.instance.localPlayer.lastReceivedPingRequest = TimeUtils.CurrentTime();
             }
 
-            this.instance.Send(new PongRequestMessage(), Channel.unreliable);
+            this.instance.Send(new PongRequestMessage(this.message.pingRequestId), Channel.unreliable);
         }
     }
 }

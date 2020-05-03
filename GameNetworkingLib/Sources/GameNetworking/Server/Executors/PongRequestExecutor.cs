@@ -13,7 +13,7 @@ namespace GameNetworking.Executors.Server {
         }
 
         public override void Execute() {
-            this.instance.pingController.PongReceived(this.player);
+            this.instance.pingController.PongReceived(this.player, this.message.pingRequestId);
 
             var players = this.instance.playerCollection.values;
             for (int index = 0; index < players.Count; index++) {

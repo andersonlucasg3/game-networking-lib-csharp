@@ -13,6 +13,9 @@ namespace GameNetworking.Sockets {
 
     public interface ISocket<TDerived>
         where TDerived : ISocket<TDerived> {
+        NetEndPoint localEndPoint { get; }
+        NetEndPoint remoteEndPoint { get; }
+
         bool isConnected { get; }
 
         ISocketListener<TDerived> listener { get; set; }
@@ -42,9 +45,6 @@ namespace GameNetworking.Sockets {
 
     public interface ITcpSocket<TDerived> : ISocket<TDerived>, IEquatable<TDerived>
         where TDerived : ITcpSocket<TDerived> {
-        NetEndPoint localEndPoint { get; }
-        NetEndPoint remoteEndPoint { get; }
-
         ITcpServerListener<TDerived> serverListener { get; set; }
         ITcpClientListener clientListener { get; set; }
 
@@ -164,7 +164,7 @@ namespace GameNetworking.Sockets {
         }
 
         public void Disconnect() {
-            this.socket.Disconnect(false);
+            this.socket?.Disconnect(false);
             this.Close();
             this.clientListener?.SocketDidDisconnect();
         }
@@ -194,6 +194,7 @@ namespace GameNetworking.Sockets {
         #region Read & Write
 
         private void Receive() {
+            if (this.socket == null) { return; }
             var buffer = this.bufferPool.Rent();
             this.socket.BeginReceive(buffer, 0, Consts.bufferSize, SocketFlags.None, (ar) => {
                 int count = 0;
@@ -278,9 +279,7 @@ namespace GameNetworking.Sockets {
     #region UDP
 
     public interface IUdpSocket<TDerived> : ISocket<TDerived>
-        where TDerived : IUdpSocket<TDerived> {
-        NetEndPoint remoteEndPoint { get; }
-    }
+        where TDerived : IUdpSocket<TDerived> { }
 
     public sealed class UdpSocket : IUdpSocket<UdpSocket> {
         private const int SIO_UDP_CONNRESET = -1744830452;
@@ -292,6 +291,7 @@ namespace GameNetworking.Sockets {
         public bool isBound => this.socket.IsBound;
         public bool isConnected => this.remoteEndPoint != null;
 
+        public NetEndPoint localEndPoint { get; private set; } = new NetEndPoint();
         public NetEndPoint remoteEndPoint { get; private set; } = new NetEndPoint();
 
         public ISocketListener<UdpSocket> listener { get; set; }
@@ -324,6 +324,7 @@ namespace GameNetworking.Sockets {
             this.From(endPoint, ref ipep);
             this.Bind(ipep);
             this.ipEndPointPool.Pay(ipep);
+            this.localEndPoint = endPoint;
 
             this.Receive();
             this.Receive();

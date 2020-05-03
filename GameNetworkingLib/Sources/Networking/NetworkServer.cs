@@ -17,13 +17,15 @@ namespace GameNetworking.Networking {
 
         INetworkServerListener listener { get; set; }
 
+        NetEndPoint listeningOnEndPoint { get; }
+
         void Start(NetEndPoint endPoint);
         void Stop();
 
         void Update();
     }
 
-    public class NetworkServer : INetworkServer, ITcpServerListener<TcpSocket>, IUnreliableChannelListener {
+    public class NetworkServer : INetworkServer, ITcpServerListener<TcpSocket>, IChannelListener {
         private readonly TcpSocket tcpSocket;
         private readonly UdpSocket udpSocket;
 
@@ -34,6 +36,8 @@ namespace GameNetworking.Networking {
 
         public ReliableChannel reliableChannel { get; }
         public UnreliableChannel unreliableChannel { get; }
+
+        public NetEndPoint listeningOnEndPoint { get; private set; }
 
         public INetworkServerListener listener { get; set; }
 
@@ -46,7 +50,7 @@ namespace GameNetworking.Networking {
             this.socketCollection = new PlayerCollection<TcpSocket, ReliableChannel>();
 
             this.reliableChannel = new ReliableChannel(this.tcpSocket);
-            this.unreliableChannel = new UnreliableChannel(this.udpSocket) { serverListener = this, isServer = true };
+            this.unreliableChannel = new UnreliableChannel(this.udpSocket) { listener = this, isServer = true };
         }
 
         public void Start(NetEndPoint endPoint) {
@@ -54,6 +58,8 @@ namespace GameNetworking.Networking {
             this.tcpSocket.Start();
 
             this.udpSocket.Bind(endPoint);
+
+            this.listeningOnEndPoint = this.tcpSocket.localEndPoint;
         }
 
         public void Stop() {
@@ -112,7 +118,7 @@ namespace GameNetworking.Networking {
             this.socketsToRemove.Enqueue(socket);
         }
 
-        void IUnreliableChannelListener.UnreliableChannelDidReceiveMessage(MessageContainer container, NetEndPoint from) {
+        void IChannelListener.ChannelDidReceiveMessage(MessageContainer container, NetEndPoint from) {
             this.listener?.NetworkServerDidReceiveUnidentifiedMessage(container, from);
         }
     }

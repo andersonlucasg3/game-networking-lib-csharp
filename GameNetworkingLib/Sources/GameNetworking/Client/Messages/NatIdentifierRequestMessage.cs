@@ -9,6 +9,14 @@ namespace GameNetworking.Messages.Client {
         public string remoteIp = "";
         public int port = 0;
 
+        public NatIdentifierRequestMessage() { }
+
+        public NatIdentifierRequestMessage(int playerId, string remoteIp, int port) {
+            this.playerId = playerId;
+            this.remoteIp = remoteIp;
+            this.port = port;
+        }
+
         void IDecodable.Decode(IDecoder decoder) {
             this.playerId = decoder.GetInt();
             this.remoteIp = decoder.GetString();

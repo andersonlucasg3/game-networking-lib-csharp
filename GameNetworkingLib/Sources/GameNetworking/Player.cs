@@ -2,6 +2,7 @@
 using GameNetworking.Channels;
 using GameNetworking.Commons;
 using GameNetworking.Messages.Models;
+using GameNetworking.Sockets;
 
 namespace GameNetworking {
     namespace Server {
@@ -81,7 +82,7 @@ namespace GameNetworking {
 
             #endregion
 
-            void IChannelListener.ChannelDidReceiveMessage(MessageContainer container) {
+            void IChannelListener.ChannelDidReceiveMessage(MessageContainer container, NetEndPoint from) {
                 this.listener?.PlayerDidReceiveMessage(container, this);
             }
         }

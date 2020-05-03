@@ -1,8 +1,12 @@
 ﻿using GameNetworking.Channels;
 using GameNetworking.Commons.Client;
+using GameNetworking.Executors.Client;
 using GameNetworking.Messages.Client;
 using GameNetworking.Messages.Models;
+using GameNetworking.Messages.Server;
 using GameNetworking.Networking;
+using GameNetworking.Networking.Commons;
+using GameNetworking.Sockets;
 
 namespace GameNetworking.Client {
     public interface IGameClientListener<TPlayer>
@@ -37,20 +41,25 @@ namespace GameNetworking.Client {
         void RemoteClientDidDisconnect(int playerId);
     }
 
-    public class GameClient<TPlayer> : IGameClient<TPlayer>, IRemoteClientListener, INetworkClientListener
+    public class GameClient<TPlayer> : IGameClient<TPlayer>, IRemoteClientListener, INetworkClientListener, IMessageAckHelperListener<NatIdentifierResponseMessage>
         where TPlayer : Player, new() {
-        private readonly INetworkClient networkClient;
         private readonly GameClientMessageRouter<TPlayer> router;
         private readonly PlayerCollection<int, TPlayer> _playerCollection = new PlayerCollection<int, TPlayer>();
 
+        private MessageAckHelper<NatIdentifierRequestMessage, NatIdentifierResponseMessage> natIdentifierAckHelper;
+
+        public NetworkClient networkClient { get; }
         public IReadOnlyPlayerCollection<int, TPlayer> playerCollection => this._playerCollection;
         public TPlayer localPlayer { get; private set; }
 
         public IGameClientListener<TPlayer> listener { get; set; }
 
-        public GameClient(INetworkClient networkClient, GameClientMessageRouter<TPlayer> router) {
+        public GameClient(NetworkClient networkClient, GameClientMessageRouter<TPlayer> router) {
             this.networkClient = networkClient;
             this.networkClient.listener = this;
+
+            this.natIdentifierAckHelper = new MessageAckHelper<NatIdentifierRequestMessage, NatIdentifierResponseMessage>(this.networkClient, router, 10)
+            { listener = this };
 
             this.router = router;
             this.router.Configure(this);
@@ -61,12 +70,18 @@ namespace GameNetworking.Client {
         public void Send(ITypedMessage message, Channel channel) => this.networkClient.Send(message, channel);
 
         public virtual void Update() {
+            this.natIdentifierAckHelper?.Update();
             this.networkClient.Flush();
         }
 
         void INetworkClientListener.NetworkClientDidConnect() => this.listener?.GameClientDidConnect(Channel.reliable);
         void INetworkClientListener.NetworkClientConnectDidTimeout() => this.listener?.GameClientConnectDidTimeout();
-        void INetworkClientListener.NetworkClientDidReceiveMessage(MessageContainer container) => this.router.Route(container);
+        void INetworkClientListener.NetworkClientDidReceiveMessage(MessageContainer container) => this.router.Route(null, container);
+
+        void INetworkClientListener.NetworkClientDidReceiveMessage(MessageContainer container, NetEndPoint from) {
+            IClientMessageRouter router = (IClientMessageRouter)this.natIdentifierAckHelper ?? this.router;
+            router.Route(from, container);
+        }
 
         void INetworkClientListener.NetworkClientDidDisconnect() {
             this.listener?.GameClientDidDisconnect();
@@ -86,16 +101,23 @@ namespace GameNetworking.Client {
                 this.listener?.GameClientDidIdentifyLocalPlayer(player);
 
                 var endPoint = this.networkClient.localEndPoint;
-                var natIdentifier = new NatIdentifierRequestMessage { playerId = player.playerId, remoteIp = endPoint.host, port = endPoint.port };
-                this.networkClient.Send(natIdentifier, Channel.unreliable);
-                this.networkClient.Send(natIdentifier, Channel.unreliable);
-                // TODO: Make retry logic to avoid NAT form releasing the port
+                this.natIdentifierAckHelper.Start(new NatIdentifierRequestMessage(player.playerId, endPoint.host, endPoint.port));
             }
         }
 
         void IRemoteClientListener.RemoteClientDidDisconnect(int playerId) {
             var player = this._playerCollection.Remove(playerId);
             this.listener?.GameClientPlayerDidDisconnect(player);
+        }
+
+        void IMessageAckHelperListener<NatIdentifierResponseMessage>.MessageAckHelperFailed() {
+            this.Disconnect();
+            this.natIdentifierAckHelper = null;
+        }
+
+        void IMessageAckHelperListener<NatIdentifierResponseMessage>.MessageAckHelperReceivedExpectedResponse(NetEndPoint from, NatIdentifierResponseMessage message) {
+            new NatIdentifierResponseExecutor<TPlayer>(this, from, message).Execute();
+            this.natIdentifierAckHelper = null;
         }
     }
 }

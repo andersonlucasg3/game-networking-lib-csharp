@@ -43,9 +43,9 @@ namespace GameNetworking.Client {
 
     public class GameClient<TPlayer> : IGameClient<TPlayer>, IRemoteClientListener, INetworkClientListener, IMessageAckHelperListener<NatIdentifierResponseMessage>
         where TPlayer : Player, new() {
+        private readonly GameClientMessageRouter<TPlayer> router;
         private readonly PlayerCollection<int, TPlayer> _playerCollection = new PlayerCollection<int, TPlayer>();
 
-        private GameClientMessageRouter<TPlayer> router;
         private MessageAckHelper<NatIdentifierRequestMessage, NatIdentifierResponseMessage> natIdentifierAckHelper;
 
         public NetworkClient networkClient { get; }
@@ -58,7 +58,8 @@ namespace GameNetworking.Client {
             this.networkClient = networkClient;
             this.networkClient.listener = this;
 
-            this.natIdentifierAckHelper = new MessageAckHelper<NatIdentifierRequestMessage, NatIdentifierResponseMessage>(this.networkClient, router) { listener = this };
+            this.natIdentifierAckHelper = new MessageAckHelper<NatIdentifierRequestMessage, NatIdentifierResponseMessage>(this.networkClient, router, 10)
+            { listener = this };
 
             this.router = router;
             this.router.Configure(this);
@@ -75,7 +76,6 @@ namespace GameNetworking.Client {
 
         void INetworkClientListener.NetworkClientDidConnect() => this.listener?.GameClientDidConnect(Channel.reliable);
         void INetworkClientListener.NetworkClientConnectDidTimeout() => this.listener?.GameClientConnectDidTimeout();
-
         void INetworkClientListener.NetworkClientDidReceiveMessage(MessageContainer container) => this.router.Route(null, container);
 
         void INetworkClientListener.NetworkClientDidReceiveMessage(MessageContainer container, NetEndPoint from) {

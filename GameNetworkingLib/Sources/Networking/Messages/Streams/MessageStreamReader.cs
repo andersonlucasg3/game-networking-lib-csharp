@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
+using GameNetworking.Commons;
+using GameNetworking.Messages.Coders;
+using GameNetworking.Messages.Models;
 
 namespace GameNetworking.Messages.Streams {
-    using Coders;
-    using Models;
-
     public class MessageStreamReader : IStreamReader {
+        private readonly ObjectPool<Decoder> _decoderPool = new ObjectPool<Decoder>(() => new Decoder());
         private List<byte> byteList;
 
         public MessageStreamReader() {
@@ -20,10 +21,15 @@ namespace GameNetworking.Messages.Streams {
             var arrayBuffer = this.byteList.ToArray();
             int delimiterIndex = CoderHelper.CheckForDelimiter(arrayBuffer);
             if (delimiterIndex != -1) {
-                byte[] packetBytes = MessageContainer.GetBuffer();
-                CoderHelper.PackageBytes(delimiterIndex, arrayBuffer, packetBytes);
-                var container = new MessageContainer(packetBytes);
+                var packageBuffer = MessageContainer.GetBuffer();
+                CoderHelper.PackageBytes(delimiterIndex, arrayBuffer, packageBuffer);
+
+                var decoder = this._decoderPool.Rent();
+                decoder.SetBuffer(packageBuffer, 0, delimiterIndex);
+                var container = new MessageContainer(decoder, this._decoderPool, packageBuffer);
+
                 CoderHelper.SliceBuffer(delimiterIndex, ref this.byteList);
+
                 return container;
             }
             return null;

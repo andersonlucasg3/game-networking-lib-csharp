@@ -31,6 +31,14 @@ namespace GameNetworking.Messages.Coders.Converters {
                 this._array[3] = this._converter.byte3;
                 return this._array;
             }
+
+            set {
+                this._array = value;
+                this._converter.byte0 = this._array[0];
+                this._converter.byte1 = this._array[1];
+                this._converter.byte2 = this._array[2];
+                this._converter.byte3 = this._array[3];
+            }
         }
 
         public int value { get => this._converter.value; set => this._converter.value = value; }
@@ -53,6 +61,14 @@ namespace GameNetworking.Messages.Coders.Converters {
                 this._array[2] = this._converter.byte2;
                 this._array[3] = this._converter.byte3;
                 return this._array;
+            }
+
+            set {
+                this._array = value;
+                this._converter.byte0 = this._array[0];
+                this._converter.byte1 = this._array[1];
+                this._converter.byte2 = this._array[2];
+                this._converter.byte3 = this._array[3];
             }
         }
 

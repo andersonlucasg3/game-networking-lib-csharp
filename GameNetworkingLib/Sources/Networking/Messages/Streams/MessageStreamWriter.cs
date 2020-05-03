@@ -8,6 +8,7 @@ namespace GameNetworking.Messages.Streams {
     }
 
     public class MessageStreamWriter : IStreamWriter {
+        private Encoder encoder = new Encoder();
         private readonly byte[] currentBuffer = new byte[1024 * 1024]; // 1MB
         private int currentBufferLength;
 
@@ -19,7 +20,9 @@ namespace GameNetworking.Messages.Streams {
             lock (this) {
                 this.currentBufferLength += CoderHelper.WriteHeader(message.type, this.currentBuffer, this.currentBufferLength);
 
-                var messageBytes = Coders.Binary.Encoder.Encode(message);
+                message.Encode(this.encoder);
+                var messageBytes = this.encoder.encodedBytes;
+
                 Array.Copy(messageBytes, 0, this.currentBuffer, this.currentBufferLength, messageBytes.Length);
                 this.currentBufferLength += messageBytes.Length;
 

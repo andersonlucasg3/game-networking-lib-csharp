@@ -71,7 +71,6 @@ namespace GameNetworking.Client {
 
         public virtual void Update() {
             this.natIdentifierAckHelper?.Update();
-            this.networkClient.Flush();
         }
 
         void INetworkClientListener.NetworkClientDidConnect() => this.listener?.GameClientDidConnect(Channel.reliable);

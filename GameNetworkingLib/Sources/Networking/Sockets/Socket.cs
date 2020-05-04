@@ -358,19 +358,15 @@ namespace GameNetworking.Sockets {
         private void ReceiveTask(object stateInfo) {
             var buffer = this.bufferPool.Rent();
             EndPoint endPoint = this.ipEndPointPool.Rent();
-            this.socket.BeginReceiveFrom(buffer, 0, Consts.bufferSize, SocketFlags.None, ref endPoint, ar => {
-                var readBytes = this.socket.EndReceiveFrom(ar, ref endPoint);
+            var readByteCount = this.socket.ReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref endPoint);
 
-                lock (this) {
-                    this.remoteEndPoint.From(endPoint);
-                    this.listener?.SocketDidReceiveBytes(this, buffer, readBytes);
-                }
+            this.remoteEndPoint.From(endPoint);
+            this.listener?.SocketDidReceiveBytes(this, buffer, readByteCount);
 
-                this.bufferPool.Pay(buffer);
-                this.ipEndPointPool.Pay((IPEndPoint)endPoint);
+            this.bufferPool.Pay(buffer);
+            this.ipEndPointPool.Pay((IPEndPoint)endPoint);
 
-                this.Receive();
-            }, null);
+            this.Receive();
         }
 
         private void SendTask(object stateInfo) {
@@ -386,11 +382,10 @@ namespace GameNetworking.Sockets {
             var endPoint = this.ipEndPointPool.Rent();
             this.From(this.remoteEndPoint, ref endPoint);
 
-            this.socket.BeginSendTo(bytes, 0, count, SocketFlags.None, endPoint, ar => {
-                var written = this.socket.EndSendTo(ar);
-                this.listener?.SocketDidSendBytes(this, written);
-                this.ipEndPointPool.Pay(endPoint);
-            }, null);
+            var writtenCount = this.socket.SendTo(bytes, 0, count, SocketFlags.None, endPoint);
+
+            this.listener?.SocketDidSendBytes(this, writtenCount);
+            this.ipEndPointPool.Pay(endPoint);
         }
 
         #endregion

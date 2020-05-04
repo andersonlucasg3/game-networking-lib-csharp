@@ -27,16 +27,16 @@ namespace TestServerApp {
             program.server.listener = program;
 
             while (true) {
-                var copyActions = new List<Action>(program.actions);
-                program.actions.RemoveAll(_ => true);
-                copyActions.ForEach(a => a.Invoke());
-
-                program.server.Update();
+                lock (program) {
+                    program.actions.ForEach(a => a.Invoke());
+                    program.actions.RemoveAll(_ => true);
+                    program.server.Update();
+                }
             }
         }
 
         public void Enqueue(Action action) {
-            this.actions.Add(action);
+            lock (this) { this.actions.Add(action); }
         }
 
         public void GameServerPlayerDidConnect(Player player, Channel channel) {
@@ -49,9 +49,8 @@ namespace TestServerApp {
 
         public void GameServerDidReceiveClientMessage(MessageContainer container, Player player) {
             Logger.Log("GameServerDidReceiveClientMessage");
-            if (container.type == 1001) {
-                this.Send(player);
-            }
+            Logger.Log($"Received message from playerId-{player.playerId}");
+            this.Send(player);
         }
 
         private void Send(Player player) {

@@ -25,8 +25,6 @@ namespace GameNetworking.Networking {
 
         void Connect(string host, int port);
         void Disconnect();
-
-        void Flush();
     }
 
     public class NetworkClient : INetworkClient, ITcpClientListener, IChannelListener {
@@ -63,11 +61,6 @@ namespace GameNetworking.Networking {
 
         public void Send(ITypedMessage message, Channel channel) {
             this.GetChannel(channel).Send(message);
-        }
-
-        public void Flush() {
-            this.reliableChannel.Flush();
-            this.unreliableChannel.Flush();
         }
 
         private IChannel GetChannel(Channel channel) {

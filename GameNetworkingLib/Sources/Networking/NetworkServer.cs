@@ -73,12 +73,6 @@ namespace GameNetworking.Networking {
 
         public void Update() {
             this.Accept();
-
-            var values = this.socketCollection.values;
-            for (int index = 0; index < values.Count; index++) {
-                values[index].Flush();
-                this.unreliableChannel.Flush();
-            }
             this.RemoveSockets();
         }
 

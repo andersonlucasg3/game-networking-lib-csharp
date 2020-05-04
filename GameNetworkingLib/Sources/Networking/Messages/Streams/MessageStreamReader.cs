@@ -22,7 +22,7 @@ namespace GameNetworking.Messages.Streams {
             lock (this) {
                 if (this.currentBufferLength == 0) { return null; }
 
-                int delimiterIndex = CoderHelper.CheckForDelimiter(this.currentBuffer);
+                int delimiterIndex = CoderHelper.CheckForDelimiter(this.currentBuffer, this.currentBufferLength);
                 if (delimiterIndex != -1) {
                     var packageBuffer = MessageContainer.GetBuffer();
                     CoderHelper.PackageBytes(delimiterIndex, this.currentBuffer, packageBuffer);

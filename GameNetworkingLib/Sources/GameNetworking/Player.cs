@@ -44,15 +44,6 @@ namespace GameNetworking {
                 this.unreliableChannel.listener = this;
             }
 
-            internal void Flush() {
-                this.reliableChannel.Flush();
-                this.unreliableChannel.Flush();
-            }
-
-            internal void Flush(Channel channel) {
-                this.GetChannel<IChannel>(channel).Flush();
-            }
-
             #endregion
 
             #region Public methods

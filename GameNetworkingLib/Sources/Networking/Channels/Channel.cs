@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 using GameNetworking.Messages.Models;
 using GameNetworking.Messages.Streams;
 using GameNetworking.Sockets;
@@ -12,14 +13,12 @@ namespace GameNetworking.Channels {
         IChannelListener listener { get; set; }
 
         void Send(ITypedMessage message);
-        void Flush();
     }
 
     public abstract class Channel<TSocket> : IChannel, ISocketListener<TSocket>
         where TSocket : ISocket<TSocket> {
         private readonly MessageStreamReader reader;
         private readonly MessageStreamWriter writer;
-        private bool isSending = false;
 
         protected readonly TSocket socket;
 
@@ -31,41 +30,46 @@ namespace GameNetworking.Channels {
 
             this.reader = new MessageStreamReader();
             this.writer = new MessageStreamWriter();
+
+            this.Flush();
+            this.Flush();
+            this.Flush();
+            this.Flush();
         }
 
         public void Send(ITypedMessage message) {
             this.writer.Write(message);
-            this.Flush();
         }
 
-        public void Flush() {
-            lock (this.writer) {
-                if (this.isSending || !this.writer.hasBytesToWrite) { return; }
-                this.isSending = true;
+        private void Flush() {
+            ThreadPool.QueueUserWorkItem(FlushTask);
+        }
 
-                var count = this.writer.Put(out byte[] buffer);
-                this.socket.Send(buffer, count);
+        private void FlushTask(object flushState) {
+            if (!this.writer.hasBytesToWrite) {
+                this.Flush();
+                return;
             }
+
+            var count = this.writer.Put(out byte[] buffer);
+            this.socket.Send(buffer, count);
         }
 
         protected virtual void ChannelDidReceiveMessage(MessageContainer container, TSocket from) {
             this.listener?.ChannelDidReceiveMessage(container, from.remoteEndPoint);
         }
 
-        private void Add(byte[] bytes, int count) { lock (this.reader) { this.reader.Add(bytes, count); } }
-        private MessageContainer Decode() { lock (this.reader) { return this.reader.Decode(); } }
-
         void ISocketListener<TSocket>.SocketDidReceiveBytes(TSocket socket, byte[] bytes, int count) {
-            this.Add(bytes, count);
+            this.reader.Add(bytes, count);
 
             MessageContainer container;
-            while ((container = this.Decode()) != null) { this.ChannelDidReceiveMessage(container, socket); }
+            while ((container = this.reader.Decode()) != null) { this.ChannelDidReceiveMessage(container, socket); }
         }
 
         void ISocketListener<TSocket>.SocketDidSendBytes(TSocket socket, int count) {
             this.writer.DidWrite(count);
 
-            lock (this.writer) { this.isSending = false; }
+            this.Flush();
         }
     }
 

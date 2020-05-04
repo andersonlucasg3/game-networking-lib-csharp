@@ -8,11 +8,17 @@ namespace GameNetworking.Messages.Streams {
     }
 
     public class MessageStreamWriter : IStreamWriter {
-        private Encoder encoder = new Encoder();
+        private readonly Encoder encoder = new Encoder();
         private readonly byte[] currentBuffer = new byte[1024 * 1024]; // 1MB
         private int currentBufferLength;
 
-        public bool hasBytesToWrite => this.currentBufferLength > 0;
+        public bool hasBytesToWrite {
+            get {
+                lock (this) {
+                    return this.currentBufferLength > 0;
+                }
+            }
+        }
 
         public MessageStreamWriter() { }
 
@@ -31,8 +37,10 @@ namespace GameNetworking.Messages.Streams {
         }
 
         public int Put(out byte[] buffer) {
-            buffer = this.currentBuffer;
-            return this.currentBufferLength;
+            lock (this) {
+                buffer = this.currentBuffer;
+                return this.currentBufferLength;
+            }
         }
 
         public void DidWrite(int count) {

@@ -11,8 +11,8 @@ namespace GameNetworking.Messages.Coders {
             return delimiter.Length;
         }
 
-        internal static int CheckForDelimiter(byte[] buffer) {
-            return ArraySearch.IndexOf(buffer, delimiter);
+        internal static int CheckForDelimiter(byte[] buffer, int length) {
+            return ArraySearch.IndexOf(buffer, delimiter, length);
         }
 
         internal static void PackageBytes(int size, byte[] buffer, byte[] packetBytes) {
@@ -44,23 +44,24 @@ namespace GameNetworking.Messages.Coders {
             }
         }
 
-        internal static int IndexOf(byte[] arrayToSearch, byte[] patternToFind) {
-            if (patternToFind.Length == 0
-              || arrayToSearch.Length == 0
-              || arrayToSearch.Length < patternToFind.Length)
+        internal static int IndexOf(byte[] arrayToSearch, byte[] patternToFind, int length) {
+            if (patternToFind.Length == 0 || length == 0 || length < patternToFind.Length) {
                 return -1;
+            }
 
             List<PartialMatch> partialMatches = new List<PartialMatch>();
 
-            for (int i = 0; i < arrayToSearch.Length; i++) {
+            for (int i = 0; i < length; i++) {
                 for (int j = partialMatches.Count - 1; j >= 0; j--)
                     if (arrayToSearch[i] == patternToFind[partialMatches[j].MatchLength]) {
                         partialMatches[j].MatchLength++;
 
-                        if (partialMatches[j].MatchLength == patternToFind.Length)
+                        if (partialMatches[j].MatchLength == patternToFind.Length) {
                             return partialMatches[j].Index;
-                    } else
+                        }
+                    } else {
                         partialMatches.Remove(partialMatches[j]);
+                    }
 
                 if (arrayToSearch[i] == patternToFind[0]) {
                     if (patternToFind.Length == 1) {

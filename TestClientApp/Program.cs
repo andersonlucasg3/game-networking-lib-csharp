@@ -19,6 +19,8 @@ namespace TestClientApp {
         private GameClient<Player> client;
         private int counter = 0;
 
+        private bool askToSend = false;
+
         static void Main(string[] _) {
             var program = new Program();
             program.client = new GameClient<Player>(new NetworkClient(new TcpSocket(), new UdpSocket()), new GameClientMessageRouter<Player>(program));
@@ -28,22 +30,28 @@ namespace TestClientApp {
             program.client.listener = program;
 
             while (true) {
-                var copyActions = new List<Action>(program.actions);
-                program.actions.RemoveAll(_ => true);
-                copyActions.ForEach(each => each?.Invoke());
+                lock (program) {
+                    program.actions.ForEach(each => each?.Invoke());
+                    program.actions.RemoveAll(_ => true);
+                    program.client.Update();
 
-                program.client.Update();
+                    if (program.askToSend) {
+                        Console.ReadLine();
+                        program.Send();
+                    }
+                }
             }
         }
 
         public void Enqueue(Action action) {
-            this.actions.Add(action);
+            lock (this) { this.actions.Add(action); }
         }
 
         public void GameClientDidConnect(Channel channel) {
             Logger.Log($"GameClientDidConnect - {channel}");
             if (channel == Channel.unreliable) {
                 this.Send();
+                this.askToSend = true;
             }
         }
 
@@ -57,6 +65,8 @@ namespace TestClientApp {
 
         public void GameClientDidIdentifyLocalPlayer(Player player) {
             Logger.Log("GameClientDidIdentifyLocalPlayer");
+            Logger.Log($"Identified as {player.playerId}");
+            Logger.Log($"Is local player {player.isLocalPlayer}");
         }
 
         public void GameClientPlayerDidConnect(Player player) {
@@ -69,9 +79,7 @@ namespace TestClientApp {
 
         public void GameClientDidReceiveMessage(MessageContainer container) {
             Logger.Log("GameClientDidReceiveMessage");
-            if (container.type == 1002) {
-                this.Send();
-            }
+            Logger.Log($"Received message type: {container.type}");
         }
 
         private void Send() {

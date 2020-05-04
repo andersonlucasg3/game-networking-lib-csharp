@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using GameNetworking.Commons;
 using Logging;
 
@@ -347,6 +348,14 @@ namespace GameNetworking.Sockets {
         #region Read & Write
 
         private void Receive() {
+            ThreadPool.QueueUserWorkItem(ReceiveTask, null);
+        }
+
+        public void Send(byte[] bytes, int count) {
+            ThreadPool.QueueUserWorkItem(SendTask, new SendInfo { bytes = bytes, count = count });
+        }
+
+        private void ReceiveTask(object stateInfo) {
             var buffer = this.bufferPool.Rent();
             EndPoint endPoint = this.ipEndPointPool.Rent();
             this.socket.BeginReceiveFrom(buffer, 0, Consts.bufferSize, SocketFlags.None, ref endPoint, ar => {
@@ -364,7 +373,11 @@ namespace GameNetworking.Sockets {
             }, null);
         }
 
-        public void Send(byte[] bytes, int count) {
+        private void SendTask(object stateInfo) {
+            SendInfo sendInfo = (SendInfo)stateInfo;
+            var count = sendInfo.count;
+            var bytes = sendInfo.bytes;
+
             if (count == 0 || this.socket == null || !this.isConnected) {
                 this.listener?.SocketDidSendBytes(this, 0);
                 return;
@@ -372,6 +385,7 @@ namespace GameNetworking.Sockets {
 
             var endPoint = this.ipEndPointPool.Rent();
             this.From(this.remoteEndPoint, ref endPoint);
+
             this.socket.BeginSendTo(bytes, 0, count, SocketFlags.None, endPoint, ar => {
                 var written = this.socket.EndSendTo(ar);
                 this.listener?.SocketDidSendBytes(this, written);
@@ -404,6 +418,11 @@ namespace GameNetworking.Sockets {
         }
 
         #endregion
+
+        private struct SendInfo {
+            public byte[] bytes;
+            public int count;
+        }
     }
 
     #endregion

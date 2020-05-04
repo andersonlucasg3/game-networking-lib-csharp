@@ -19,8 +19,11 @@ namespace GameNetworking.Messages.Coders {
             Array.Copy(buffer, packetBytes, size);
         }
 
-        internal static void SliceBuffer(int delimiterIndex, ref List<byte> buffer) {
-            buffer.RemoveRange(0, delimiterIndex + 3);
+        internal static int SliceBuffer(int delimiterIndex, byte[] buffer, int count) {
+            var delimiterEndIndex = delimiterIndex + delimiter.Length;
+            var newLength = count - delimiterEndIndex;
+            Array.Copy(buffer, delimiterEndIndex, buffer, 0, newLength);
+            return newLength;
         }
 
         internal static int WriteHeader(int type, byte[] buffer, int index) {
@@ -28,34 +31,9 @@ namespace GameNetworking.Messages.Coders {
             Array.Copy(BitConverter.GetBytes(type), 0, buffer, index, headerSize);
             return headerSize;
         }
-
-        internal static int ReadHeader(byte[] buffer) {
-            return BitConverter.ToInt32(buffer, 0);
-        }
-
-        internal static bool IsType(int type, byte[] buffer) {
-            return type == ReadHeader(buffer);
-        }
     }
 
     internal static class ArraySearch {
-        internal static bool ContentEquals(byte[] one, byte[] other) {
-            if (one == null || other == null) {
-                return false;
-            }
-            if (one.Length != other.Length) {
-                return false;
-            }
-
-            for (var i = 0; i < one.Length; i++) {
-                if (one[i] != other[i]) {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
         private class PartialMatch {
             public int Index { get; private set; }
             public int MatchLength { get; set; }

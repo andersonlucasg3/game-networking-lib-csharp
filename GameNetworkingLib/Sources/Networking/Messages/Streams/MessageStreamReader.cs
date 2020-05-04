@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿using System;
 using GameNetworking.Commons;
 using GameNetworking.Messages.Coders;
 using GameNetworking.Messages.Models;
@@ -6,33 +6,37 @@ using GameNetworking.Messages.Models;
 namespace GameNetworking.Messages.Streams {
     public class MessageStreamReader : IStreamReader {
         private readonly ObjectPool<Decoder> _decoderPool = new ObjectPool<Decoder>(() => new Decoder());
-        private List<byte> byteList;
+        private readonly byte[] currentBuffer = new byte[1024 * 1024]; // 1MB
+        private int currentBufferLength;
 
-        public MessageStreamReader() {
-            this.byteList = new List<byte>();
-        }
+        public MessageStreamReader() { }
 
         public void Add(byte[] buffer, int count) {
-            if (count == 0) { return; }
-            for (int index = 0; index < count; index++) { this.byteList.Add(buffer[index]); }
+            lock (this) {
+                Array.Copy(buffer, 0, this.currentBuffer, this.currentBufferLength, count);
+                this.currentBufferLength += count;
+            }
         }
 
         public MessageContainer Decode() {
-            var arrayBuffer = this.byteList.ToArray();
-            int delimiterIndex = CoderHelper.CheckForDelimiter(arrayBuffer);
-            if (delimiterIndex != -1) {
-                var packageBuffer = MessageContainer.GetBuffer();
-                CoderHelper.PackageBytes(delimiterIndex, arrayBuffer, packageBuffer);
+            lock (this) {
+                if (this.currentBufferLength == 0) { return null; }
 
-                var decoder = this._decoderPool.Rent();
-                decoder.SetBuffer(packageBuffer, 0, delimiterIndex);
-                var container = new MessageContainer(decoder, this._decoderPool, packageBuffer);
+                int delimiterIndex = CoderHelper.CheckForDelimiter(this.currentBuffer);
+                if (delimiterIndex != -1) {
+                    var packageBuffer = MessageContainer.GetBuffer();
+                    CoderHelper.PackageBytes(delimiterIndex, this.currentBuffer, packageBuffer);
 
-                CoderHelper.SliceBuffer(delimiterIndex, ref this.byteList);
+                    var decoder = this._decoderPool.Rent();
+                    decoder.SetBuffer(packageBuffer, 0, delimiterIndex);
+                    var container = new MessageContainer(decoder, this._decoderPool, packageBuffer);
 
-                return container;
+                    this.currentBufferLength = CoderHelper.SliceBuffer(delimiterIndex, this.currentBuffer, this.currentBufferLength);
+
+                    return container;
+                }
+                return null;
             }
-            return null;
         }
     }
 }

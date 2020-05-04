@@ -384,8 +384,9 @@ namespace GameNetworking.Sockets {
 
             var writtenCount = this.socket.SendTo(bytes, 0, count, SocketFlags.None, endPoint);
 
-            this.listener?.SocketDidSendBytes(this, writtenCount);
             this.ipEndPointPool.Pay(endPoint);
+
+            this.listener?.SocketDidSendBytes(this, writtenCount);
         }
 
         #endregion

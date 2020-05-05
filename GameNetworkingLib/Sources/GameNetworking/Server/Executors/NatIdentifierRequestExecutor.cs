@@ -15,7 +15,6 @@ namespace GameNetworking.Executors.Server {
 
         public override void Execute() {
             if (!this.instance.playerCollection.TryGetPlayer(this.message.playerId, out TPlayer player)) { return; }
-            var channel = player.unreliableChannel;
             player.remoteIdentifiedEndPoint = this.remoteEndPoint;
             this.instance.networkServer.Register(this.remoteEndPoint, player);
 

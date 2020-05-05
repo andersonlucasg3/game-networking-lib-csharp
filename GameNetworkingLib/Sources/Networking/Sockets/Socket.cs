@@ -148,8 +148,8 @@ namespace GameNetworking.Sockets {
                     this.socket.EndConnect(ar);
                     this.localEndPoint.From(this.socket.LocalEndPoint);
                     this.remoteEndPoint.From(this.socket.RemoteEndPoint);
-                    this.hasBeenConnected = true;
                     this.clientListener?.SocketDidConnect();
+                    this.hasBeenConnected = true;
                 } else {
                     this.clientListener?.SocketDidTimeout();
                     this.CheckClosed();
@@ -193,9 +193,9 @@ namespace GameNetworking.Sockets {
             int count = this.socket.Receive(buffer, 0, Consts.bufferSize, SocketFlags.None, out SocketError errorCode);
 
             if (this.CheckDisconnected() || this.CheckSocketError(errorCode)) {
+                this.CheckClosed();
                 this.serverListener?.SocketDidDisconnect(this);
                 this.clientListener?.SocketDidDisconnect();
-                this.CheckClosed();
                 return;
             } else {
                 this.ioListener?.SocketDidReceiveBytes(this, buffer, count);
@@ -348,6 +348,8 @@ namespace GameNetworking.Sockets {
         #region Read & Write
 
         public void Receive() {
+            if (this.socket == null) { return; }
+
             var buffer = this.bufferPool.Rent();
             var netEndPoint = this.netEndPointPool.Rent();
             EndPoint endPoint = this.ipEndPointPool.Rent();
@@ -362,6 +364,8 @@ namespace GameNetworking.Sockets {
         }
 
         public void Send(byte[] bytes, int count, NetEndPoint to) {
+            if (this.socket == null) { return; }
+
             IPEndPoint endPoint = this.ipEndPointPool.Rent();
             endPoint.Address = IPAddress.Parse(to.host);
             endPoint.Port = to.port;

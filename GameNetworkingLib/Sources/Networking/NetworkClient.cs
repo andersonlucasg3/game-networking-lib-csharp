@@ -86,7 +86,7 @@ namespace GameNetworking.Networking {
         }
 
         void IUnreliableChannelListener.ChannelDidReceiveMessage(UnreliableChannel channel, MessageContainer container, NetEndPoint from) {
-            this.listener?.NetworkClientDidReceiveMessage(container);
+            this.listener?.NetworkClientDidReceiveMessage(container, from);
         }
     }
 }

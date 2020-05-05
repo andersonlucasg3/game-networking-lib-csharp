@@ -34,7 +34,7 @@ namespace GameNetworking.Sockets {
 
         public override int GetHashCode() {
 #if !UNITY_64
-            return host.GetHashCode(StringComparison.InvariantCulture) + port.GetHashCode();
+            return HashCode.Combine(host, port);
 #else
             return host.GetHashCode() + port.GetHashCode();
 #endif

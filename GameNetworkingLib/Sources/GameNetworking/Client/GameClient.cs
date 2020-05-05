@@ -59,7 +59,7 @@ namespace GameNetworking.Client {
             this.networkClient.listener = this;
 
             this.natIdentifierAckHelper = new MessageAckHelper<NatIdentifierRequestMessage, NatIdentifierResponseMessage>(
-                this.networkClient.unreliableChannel, router, 10
+                this.networkClient.unreliableChannel, router, 10, 2F
             ) { listener = this };
 
             this.router = router;

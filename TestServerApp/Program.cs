@@ -48,8 +48,10 @@ namespace TestServerApp {
         }
 
         public void GameServerDidReceiveClientMessage(MessageContainer container, Player player) {
-            Logger.Log("GameServerDidReceiveClientMessage");
-            this.Send(player, container.Parse<Message>());
+            Logger.Log($"GameServerDidReceiveClientMessage - type {container.type}");
+            if (container.type == 1001) {
+                this.Send(player, container.Parse<Message>());
+            }
         }
 
         private void Send(Player player, Message message) {

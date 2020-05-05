@@ -78,9 +78,11 @@ namespace TestClientApp {
         }
 
         public void GameClientDidReceiveMessage(MessageContainer container) {
-            Logger.Log("GameClientDidReceiveMessage");
-            var message = container.Parse<Message>();
-            Logger.Log($"Received message to playerId-{message.playerId}, and I'm playerId-{playerId.Value}, with id-{message.messageId}");
+            Logger.Log($"GameClientDidReceiveMessage - type: {container.type}");
+            if (container.type == 1001) {
+                var message = container.Parse<Message>();
+                Logger.Log($"Received message to playerId-{message.playerId}, and I'm playerId-{playerId.Value}, with id-{message.messageId}");
+            }
 
         }
 

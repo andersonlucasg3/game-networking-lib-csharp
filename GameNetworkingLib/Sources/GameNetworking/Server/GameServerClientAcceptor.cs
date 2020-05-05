@@ -14,11 +14,11 @@ namespace GameNetworking.Server {
     public sealed class GameServerClientAcceptor<TPlayer> where TPlayer : Player, new() {
         private int playerIdCounter = 0;
 
-        private readonly ConcurrentDictionary<IChannel, TPlayer> channelCollection;
+        private readonly ConcurrentDictionary<ReliableChannel, TPlayer> channelCollection;
 
         public IGameServerClientAcceptorListener<TPlayer> listener { get; set; }
 
-        public GameServerClientAcceptor() => this.channelCollection = new ConcurrentDictionary<IChannel, TPlayer>();
+        public GameServerClientAcceptor() => this.channelCollection = new ConcurrentDictionary<ReliableChannel, TPlayer>();
 
         public void AcceptClient(TPlayer player) {
             this.listener.ClientAcceptorPlayerDidConnect(player);

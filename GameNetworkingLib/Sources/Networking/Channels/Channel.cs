@@ -1,40 +1,44 @@
-﻿using System;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using GameNetworking.Messages.Models;
 using GameNetworking.Messages.Streams;
 using GameNetworking.Sockets;
+using Logging;
 
 namespace GameNetworking.Channels {
-    public interface IChannelListener {
-        void ChannelDidReceiveMessage(MessageContainer container, NetEndPoint from);
+    public enum Channel {
+        reliable, unreliable
     }
 
-    public interface IChannel {
-        IChannelListener listener { get; set; }
+    #region Reliable
 
-        void Send(ITypedMessage message);
+    public interface IReliableChannelListener {
+        void ChannelDidReceiveMessage(ReliableChannel channel, MessageContainer container);
     }
 
-    public abstract class Channel<TSocket> : IChannel, ISocketListener<TSocket>
-        where TSocket : ISocket<TSocket> {
-        private readonly Object lockToken = new Object();
+    public class ReliableChannel : ITcpSocketIOListener<TcpSocket> {
         private readonly MessageStreamReader reader;
         private readonly MessageStreamWriter writer;
 
-        protected readonly TSocket socket;
+        private readonly TcpSocket socket;
 
-        public IChannelListener listener { get; set; }
+        public IReliableChannelListener listener { get; set; }
 
-        public Channel(TSocket socket) {
+        public ReliableChannel(TcpSocket socket) {
             this.socket = socket;
-            this.socket.listener = this;
+            this.socket.ioListener = this;
 
             this.reader = new MessageStreamReader();
             this.writer = new MessageStreamWriter();
         }
 
-        internal abstract void StartIO();
+        public void CloseChannel() => this.socket.Disconnect();
+
+        internal void StartIO() {
+            this.Receive();
+            this.Flush();
+        }
 
         public void Send(ITypedMessage message) {
             this.writer.Write(message);
@@ -42,110 +46,136 @@ namespace GameNetworking.Channels {
 
         #region Read & Write
 
-        protected virtual void Receive() {
+        private void Receive() {
             ThreadPool.QueueUserWorkItem(ReceiveTask);
         }
 
-        protected virtual void Flush() {
+        private void Flush() {
             ThreadPool.QueueUserWorkItem(FlushTask);
         }
 
         private void ReceiveTask(object stateInfo) {
-            this.socket.Receive();
-
-            this.Receive();
+            while (this.socket.isConnected) { this.socket.Receive(); }
         }
 
         private void FlushTask(object flushState) {
-            var count = this.writer.Put(out byte[] buffer);
-            this.socket.Send(buffer, count);
+            while (this.socket.isConnected) {
+                var count = this.writer.Put(out byte[] buffer);
+                this.socket.Send(buffer, count);
+            }
         }
 
         #endregion
 
-        protected virtual void ChannelDidReceiveMessage(MessageContainer container, TSocket from) {
-            this.listener?.ChannelDidReceiveMessage(container, from.remoteEndPoint);
-        }
-
-        void ISocketListener<TSocket>.SocketDidReceiveBytes(TSocket socket, byte[] bytes, int count) {
+        void ITcpSocketIOListener<TcpSocket>.SocketDidReceiveBytes(TcpSocket socket, byte[] bytes, int count) {
             this.reader.Add(bytes, count);
 
             MessageContainer container;
-            while ((container = this.reader.Decode()) != null) { this.ChannelDidReceiveMessage(container, socket); }
+            while ((container = this.reader.Decode()) != null) {
+                this.listener?.ChannelDidReceiveMessage(this, container);
+            }
         }
 
-        void ISocketListener<TSocket>.SocketDidSendBytes(TSocket socket, int count) {
+        void ITcpSocketIOListener<TcpSocket>.SocketDidSendBytes(TcpSocket socket, int count) {
             this.writer.DidWrite(count);
-
-            this.Flush();
         }
-    }
-
-    public enum Channel {
-        reliable, unreliable
-    }
-
-    #region Reliable
-
-    public class ReliableChannel : Channel<TcpSocket> {
-        public ReliableChannel(TcpSocket socket) : base(socket) { }
-
-        internal override void StartIO() {
-            this.Receive();
-            this.Flush();
-        }
-
-        public void CloseChannel() => this.socket.Disconnect();
     }
 
     #endregion
 
     #region Unreliable
 
-    public class UnreliableChannel : Channel<UdpSocket>, IChannelListener {
-        private readonly Dictionary<NetEndPoint, IChannelListener> receiverCollection
-            = new Dictionary<NetEndPoint, IChannelListener>();
-        internal bool isServer = false;
+    public interface IUnreliableChannelListener {
+        void ChannelDidReceiveMessage(UnreliableChannel channel, MessageContainer container, NetEndPoint from);
+    }
 
-        public UnreliableChannel(UdpSocket socket) : base(socket) {
+    public class UnreliableChannel : IUdpSocketIOListener {
+        private readonly ConcurrentDictionary<NetEndPoint, MessageStreamReader> readerCollection;
+        private readonly ConcurrentDictionary<NetEndPoint, MessageStreamWriter> writerCollection;
+        private readonly List<KeyValuePair<NetEndPoint, MessageStreamWriter>> toWriterCollection;
+
+        private UdpSocket socket;
+
+        public IUnreliableChannelListener listener { get; set; }
+
+        public UnreliableChannel(UdpSocket socket) {
+            this.socket = socket;
             this.socket.listener = this;
+
+            this.readerCollection = new ConcurrentDictionary<NetEndPoint, MessageStreamReader>();
+            this.writerCollection = new ConcurrentDictionary<NetEndPoint, MessageStreamWriter>();
+            this.toWriterCollection = new List<KeyValuePair<NetEndPoint, MessageStreamWriter>>();
         }
 
-        internal override void StartIO() {
-            this.StartIO(true, true, 4);
+        internal void StartIO() {
+            this.Receive();
+            this.Flush();
         }
 
-        internal void StartIO(bool input, bool output, int count) {
-            for (int index = 0; index < count; index++) {
-                if (input) { this.Receive(); }
-                if (output) { this.Flush(); }
+        internal void StopIO() {
+            this.socket.Close();
+            this.socket = null;
+        }
+
+        public void Send(ITypedMessage message, NetEndPoint to) {
+            if (!this.writerCollection.TryGetValue(to, out MessageStreamWriter writer)) {
+                writer = new MessageStreamWriter();
+                this.writerCollection.TryAdd(to, writer);
+                lock (this.toWriterCollection) {
+                    this.toWriterCollection.Add(new KeyValuePair<NetEndPoint, MessageStreamWriter>(to, writer));
+                }
+            }
+            writer.Write(message);
+        }
+
+        #region Read & Write
+
+        private void Receive() {
+            ThreadPool.QueueUserWorkItem(ReceiveTask);
+        }
+
+        private void Flush() {
+            ThreadPool.QueueUserWorkItem(FlushTask);
+        }
+
+        private void ReceiveTask(object stateInfo) {
+            while (this.socket != null) { this.socket.Receive(); }
+        }
+
+        private void FlushTask(object flushState) {
+            while (this.socket != null) {
+                lock (this.toWriterCollection) {
+                    for (int index = 0; index < this.toWriterCollection.Count; index++) {
+                        var keyValue = this.toWriterCollection[index];
+                        var to = keyValue.Key;
+                        var writer = keyValue.Value;
+                        var count = writer.Put(out byte[] buffer);
+                        this.socket.Send(buffer, count, to);
+                    }
+                }
             }
         }
 
-        public void Register(NetEndPoint remoteEndPoint, IChannelListener listener) {
-            this.receiverCollection[remoteEndPoint] = listener;
-        }
+        #endregion
 
-        public void Unregister(NetEndPoint endPoint) => this.receiverCollection.Remove(endPoint);
-
-        public void SetRemote(NetEndPoint endPoint) {
-            this.socket.Connect(endPoint);
-        }
-
-        protected override void ChannelDidReceiveMessage(MessageContainer container, UdpSocket from) {
-            ((IChannelListener)this).ChannelDidReceiveMessage(container, from.remoteEndPoint);
-        }
-
-        void IChannelListener.ChannelDidReceiveMessage(MessageContainer container, NetEndPoint from) {
-            if (!this.isServer) {
-                this.listener?.ChannelDidReceiveMessage(container, from);
-                return;
+        void IUdpSocketIOListener.SocketDidReceiveBytes(UdpSocket socket, byte[] bytes, int count, NetEndPoint from) {
+            if (!this.readerCollection.TryGetValue(from, out MessageStreamReader reader)) {
+                reader = new MessageStreamReader();
+                this.readerCollection.TryAdd(from, reader);
             }
+            reader.Add(bytes, count);
 
-            if (this.receiverCollection.TryGetValue(from, out IChannelListener listener)) {
-                listener?.ChannelDidReceiveMessage(container, from);
+            MessageContainer container;
+            while ((container = reader.Decode()) != null) {
+                this.listener?.ChannelDidReceiveMessage(this, container, from);
+            }
+        }
+
+        void IUdpSocketIOListener.SocketDidWriteBytes(UdpSocket socket, int count, NetEndPoint to) {
+            if (this.writerCollection.TryGetValue(to, out MessageStreamWriter writer)) {
+                writer.DidWrite(count);
             } else {
-                this.listener?.ChannelDidReceiveMessage(container, from);
+                if (Logger.IsLoggingEnabled) { Logger.Log($"SocketDidWriteBytes did not find writer for endPoint-{to}"); }
             }
         }
     }

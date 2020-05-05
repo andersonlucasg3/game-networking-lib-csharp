@@ -6,12 +6,6 @@ using GameNetworking.Commons;
 using Logging;
 
 namespace GameNetworking.Sockets {
-    public interface ISocketListener<TSocket>
-        where TSocket : ISocket<TSocket> {
-        void SocketDidReceiveBytes(TSocket socket, byte[] bytes, int count);
-        void SocketDidSendBytes(TSocket socket, int count);
-    }
-
     public interface ISocket<TDerived>
         where TDerived : ISocket<TDerived> {
         NetEndPoint localEndPoint { get; }
@@ -19,14 +13,9 @@ namespace GameNetworking.Sockets {
 
         bool isConnected { get; }
 
-        ISocketListener<TDerived> listener { get; set; }
-
         void Bind(NetEndPoint endPoint);
 
         void Connect(NetEndPoint endPoint);
-
-        void Receive();
-        void Send(byte[] bytes, int count);
 
         void Close();
     }
@@ -45,6 +34,12 @@ namespace GameNetworking.Sockets {
         void SocketDidDisconnect();
     }
 
+    public interface ITcpSocketIOListener<TDerived>
+        where TDerived : ITcpSocket<TDerived> {
+        void SocketDidReceiveBytes(TDerived socket, byte[] bytes, int count);
+        void SocketDidSendBytes(TDerived socket, int count);
+    }
+
     public interface ITcpSocket<TDerived> : ISocket<TDerived>, IEquatable<TDerived>
         where TDerived : ITcpSocket<TDerived> {
         ITcpServerListener<TDerived> serverListener { get; set; }
@@ -52,6 +47,9 @@ namespace GameNetworking.Sockets {
 
         void Start();
         void Stop();
+
+        void Receive();
+        void Send(byte[] bytes, int count);
 
         void Accept();
 
@@ -61,8 +59,6 @@ namespace GameNetworking.Sockets {
     public sealed class TcpSocket : ITcpSocket<TcpSocket> {
         private readonly ObjectPool<byte[]> bufferPool;
         private readonly ObjectPool<IPEndPoint> ipEndPointPool;
-        private readonly Object sendLockCookie = new Object();
-        private readonly Object receiveLockCookie = new Object();
 
         private bool isClosed = false;
         private bool hasBeenConnected = false;
@@ -75,7 +71,7 @@ namespace GameNetworking.Sockets {
         public NetEndPoint localEndPoint { get; private set; } = new NetEndPoint();
         public NetEndPoint remoteEndPoint { get; private set; } = new NetEndPoint();
 
-        public ISocketListener<TcpSocket> listener { get; set; }
+        public ITcpSocketIOListener<TcpSocket> ioListener { get; set; }
         public ITcpServerListener<TcpSocket> serverListener { get; set; }
         public ITcpClientListener clientListener { get; set; }
 
@@ -191,38 +187,34 @@ namespace GameNetworking.Sockets {
         #region Read & Write
 
         public void Receive() {
-            lock (this.receiveLockCookie) {
-                if (this.socket == null) { return; }
+            if (this.socket == null) { return; }
 
-                var buffer = this.bufferPool.Rent();
-                int count = this.socket.Receive(buffer, 0, Consts.bufferSize, SocketFlags.None, out SocketError errorCode);
+            var buffer = this.bufferPool.Rent();
+            int count = this.socket.Receive(buffer, 0, Consts.bufferSize, SocketFlags.None, out SocketError errorCode);
 
-                this.listener?.SocketDidReceiveBytes(this, buffer, count);
-                this.bufferPool.Pay(buffer);
-
-                if (this.CheckDisconnected() || this.CheckSocketError(errorCode)) {
-                    this.serverListener?.SocketDidDisconnect(this);
-                    this.clientListener?.SocketDidDisconnect();
-                    this.CheckClosed();
-                    return;
-                }
+            if (this.CheckDisconnected() || this.CheckSocketError(errorCode)) {
+                this.serverListener?.SocketDidDisconnect(this);
+                this.clientListener?.SocketDidDisconnect();
+                this.CheckClosed();
+                return;
+            } else {
+                this.ioListener?.SocketDidReceiveBytes(this, buffer, count);
             }
+            this.bufferPool.Pay(buffer);
         }
 
         public void Send(byte[] bytes, int count) {
-            lock (this.sendLockCookie) {
-                if (this.socket == null) { return; }
+            if (this.socket == null) { return; }
 
-                int written = this.socket.Send(bytes, 0, count, SocketFlags.None, out SocketError errorCode);
+            int written = this.socket.Send(bytes, 0, count, SocketFlags.None, out SocketError errorCode);
 
-                if (this.CheckDisconnected() || this.CheckSocketError(errorCode)) {
-                    this.serverListener?.SocketDidDisconnect(this);
-                    this.clientListener?.SocketDidDisconnect();
-                    this.CheckClosed();
-                    return;
-                } else {
-                    this.listener?.SocketDidSendBytes(this, written);
-                }
+            if (this.CheckDisconnected() || this.CheckSocketError(errorCode)) {
+                this.serverListener?.SocketDidDisconnect(this);
+                this.clientListener?.SocketDidDisconnect();
+                this.CheckClosed();
+                return;
+            } else {
+                this.ioListener?.SocketDidSendBytes(this, written);
             }
         }
 
@@ -278,15 +270,22 @@ namespace GameNetworking.Sockets {
     #region UDP
 
     public interface IUdpSocket<TDerived> : ISocket<TDerived>
-        where TDerived : IUdpSocket<TDerived> { }
+        where TDerived : IUdpSocket<TDerived> {
+        void Receive();
+        void Send(byte[] bytes, int count, NetEndPoint to);
+    }
+
+    public interface IUdpSocketIOListener {
+        void SocketDidReceiveBytes(UdpSocket socket, byte[] bytes, int count, NetEndPoint from);
+        void SocketDidWriteBytes(UdpSocket socket, int count, NetEndPoint to);
+    }
 
     public sealed class UdpSocket : IUdpSocket<UdpSocket> {
         private const int SIO_UDP_CONNRESET = -1744830452;
 
-        private readonly Object receiveToken = new Object();
-        private readonly Object sendToken = new Object();
         private readonly ObjectPool<byte[]> bufferPool;
         private readonly ObjectPool<IPEndPoint> ipEndPointPool;
+        private readonly ObjectPool<NetEndPoint> netEndPointPool;
         private Socket socket;
 
         public bool isBound => this.socket.IsBound;
@@ -295,11 +294,12 @@ namespace GameNetworking.Sockets {
         public NetEndPoint localEndPoint { get; private set; } = new NetEndPoint();
         public NetEndPoint remoteEndPoint { get; private set; } = new NetEndPoint();
 
-        public ISocketListener<UdpSocket> listener { get; set; }
+        public IUdpSocketIOListener<UdpSocket> listener { get; set; }
 
         public UdpSocket() {
             this.bufferPool = new ObjectPool<byte[]>(() => new byte[Consts.bufferSize]);
             this.ipEndPointPool = new ObjectPool<IPEndPoint>(() => new IPEndPoint(IPAddress.Any, 0));
+            this.netEndPointPool = new ObjectPool<NetEndPoint>(() => new NetEndPoint());
         }
 
         public UdpSocket(UdpSocket socket, NetEndPoint remoteEndPoint) : this() {
@@ -321,11 +321,12 @@ namespace GameNetworking.Sockets {
         }
 
         public void Bind(NetEndPoint endPoint) {
+            this.localEndPoint = endPoint;
             var ipep = this.ipEndPointPool.Rent();
-            this.From(endPoint, ref ipep);
+            ipep.Address = IPAddress.Parse(endPoint.host);
+            ipep.Port = endPoint.port;
             this.Bind(ipep);
             this.ipEndPointPool.Pay(ipep);
-            this.localEndPoint = endPoint;
         }
 
         public void Connect(NetEndPoint endPoint) => this.remoteEndPoint = endPoint;
@@ -343,35 +344,26 @@ namespace GameNetworking.Sockets {
         #region Read & Write
 
         public void Receive() {
-            lock (this.receiveToken) {
-                var buffer = this.bufferPool.Rent();
-                EndPoint endPoint = this.ipEndPointPool.Rent();
-                var readByteCount = this.socket.ReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref endPoint);
+            var buffer = this.bufferPool.Rent();
+            var netEndPoint = this.netEndPointPool.Rent();
+            EndPoint endPoint = this.ipEndPointPool.Rent();
+            var readByteCount = this.socket.ReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref endPoint);
 
-                this.remoteEndPoint.From(endPoint);
-                this.listener?.SocketDidReceiveBytes(this, buffer, readByteCount);
+            netEndPoint.From(endPoint);
+            this.listener?.SocketDidReceiveBytes(this, buffer, readByteCount, netEndPoint);
 
-                this.bufferPool.Pay(buffer);
-                this.ipEndPointPool.Pay((IPEndPoint)endPoint);
-            }
+            this.bufferPool.Pay(buffer);
+            this.ipEndPointPool.Pay((IPEndPoint)endPoint);
+            this.netEndPointPool.Pay(netEndPoint);
         }
 
-        public void Send(byte[] bytes, int count) {
-            lock (this.sendToken) {
-                if (count == 0 || this.socket == null || !this.isConnected) {
-                    this.listener?.SocketDidSendBytes(this, 0);
-                    return;
-                }
-
-                var endPoint = this.ipEndPointPool.Rent();
-                this.From(this.remoteEndPoint, ref endPoint);
-
-                var writtenCount = this.socket.SendTo(bytes, 0, count, SocketFlags.None, endPoint);
-
-                this.ipEndPointPool.Pay(endPoint);
-
-                this.listener?.SocketDidSendBytes(this, writtenCount);
-            }
+        public void Send(byte[] bytes, int count, NetEndPoint to) {
+            IPEndPoint endPoint = this.ipEndPointPool.Rent();
+            endPoint.Address = IPAddress.Parse(to.host);
+            endPoint.Port = to.port;
+            var writtenCount = this.socket.SendTo(bytes, 0, count, SocketFlags.None, endPoint);
+            this.listener?.SocketDidWriteBytes(this, writtenCount, to);
+            this.ipEndPointPool.Pay(endPoint);
         }
 
         #endregion
@@ -388,15 +380,6 @@ namespace GameNetworking.Sockets {
         }
 
         public override int GetHashCode() => this.remoteEndPoint.GetHashCode();
-
-        #endregion
-
-        #region Private Methods
-
-        private void From(NetEndPoint ep, ref IPEndPoint endPoint) {
-            endPoint.Address = IPAddress.Parse(ep.host);
-            endPoint.Port = ep.port;
-        }
 
         #endregion
     }

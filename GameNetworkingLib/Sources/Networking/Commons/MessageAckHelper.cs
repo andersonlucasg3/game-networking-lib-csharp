@@ -11,16 +11,17 @@ namespace GameNetworking.Networking.Commons {
         void MessageAckHelperReceivedExpectedResponse(NetEndPoint from, TIngoingMessage message);
     }
 
-    public class MessageAckHelper<TOutgoingMessage, TIngoingMessage>: IClientMessageRouter
+    public class MessageAckHelper<TOutgoingMessage, TIngoingMessage> : IClientMessageRouter
         where TIngoingMessage : class, ITypedMessage, new()
         where TOutgoingMessage : ITypedMessage {
-        private readonly IMessageSender sender;
+        private readonly UnreliableChannel sender;
         private readonly IClientMessageRouter rerouter;
         private readonly double interval;
         private readonly int retryCount;
         private readonly TIngoingMessage referenceMessage;
 
         private TOutgoingMessage message;
+        private NetEndPoint to;
 
         private bool started = false;
         private double startedTime;
@@ -28,7 +29,7 @@ namespace GameNetworking.Networking.Commons {
 
         public IMessageAckHelperListener<TIngoingMessage> listener { get; set; }
 
-        public MessageAckHelper(IMessageSender sender, IClientMessageRouter rerouter, int maxRetryCount = 3, double intervalBetweenRetries = 1.0) {
+        public MessageAckHelper(UnreliableChannel sender, IClientMessageRouter rerouter, int maxRetryCount = 3, double intervalBetweenRetries = 1.0) {
             this.sender = sender;
             this.rerouter = rerouter;
             this.retryCount = maxRetryCount;
@@ -36,8 +37,9 @@ namespace GameNetworking.Networking.Commons {
             this.referenceMessage = new TIngoingMessage();
         }
 
-        public void Start(TOutgoingMessage message) {
+        public void Start(TOutgoingMessage message, NetEndPoint to) {
             this.message = message;
+            this.to = to;
 
             this.retryIndex = 0;
             this.startedTime = TimeUtils.CurrentTime();
@@ -64,7 +66,7 @@ namespace GameNetworking.Networking.Commons {
         }
 
         private void Send() {
-            this.sender.Send(this.message, Channel.unreliable);
+            this.sender.Send(this.message, this.to);
             this.retryIndex++;
         }
     }

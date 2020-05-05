@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using GameNetworking.Channels;
 using GameNetworking.Messages.Models;
 using GameNetworking.Sockets;
@@ -11,8 +10,11 @@ namespace GameNetworking.Networking {
         void NetworkServerDidReceiveUnidentifiedMessage(MessageContainer container, NetEndPoint from);
     }
 
+    public interface INetworkServerMessageListener {
+        void NetworkServerDidReceiveMessage(MessageContainer container);
+    }
+
     public interface INetworkServer {
-        ReliableChannel reliableChannel { get; }
         UnreliableChannel unreliableChannel { get; }
 
         INetworkServerListener listener { get; set; }
@@ -25,16 +27,16 @@ namespace GameNetworking.Networking {
         void Update();
     }
 
-    public class NetworkServer : INetworkServer, ITcpServerListener<TcpSocket>, IChannelListener {
+    public class NetworkServer : INetworkServer, ITcpServerListener<TcpSocket>, IUnreliableChannelListener {
         private readonly Object lockToken = new Object();
         private readonly TcpSocket tcpSocket;
         private readonly UdpSocket udpSocket;
 
         private readonly PlayerCollection<TcpSocket, ReliableChannel> socketCollection;
+        private readonly PlayerCollection<NetEndPoint, INetworkServerMessageListener> identifiedCollection;
 
         private bool isAccepting = false;
 
-        public ReliableChannel reliableChannel { get; }
         public UnreliableChannel unreliableChannel { get; }
 
         public NetEndPoint listeningOnEndPoint { get; private set; }
@@ -48,9 +50,9 @@ namespace GameNetworking.Networking {
             this.tcpSocket.serverListener = this;
 
             this.socketCollection = new PlayerCollection<TcpSocket, ReliableChannel>();
+            this.identifiedCollection = new PlayerCollection<NetEndPoint, INetworkServerMessageListener>();
 
-            this.reliableChannel = new ReliableChannel(this.tcpSocket);
-            this.unreliableChannel = new UnreliableChannel(this.udpSocket) { listener = this, isServer = true };
+            this.unreliableChannel = new UnreliableChannel(this.udpSocket) { listener = this };
         }
 
         public void Start(NetEndPoint endPoint) {
@@ -61,12 +63,12 @@ namespace GameNetworking.Networking {
 
             this.listeningOnEndPoint = this.tcpSocket.localEndPoint;
 
-            this.unreliableChannel.StartIO(true, false, 4);
-            // starts only input reading for server UDP socket
+            this.unreliableChannel.StartIO();
         }
 
         public void Stop() {
             this.tcpSocket.Stop();
+            this.unreliableChannel.StopIO();
         }
 
         public void Close() {
@@ -87,33 +89,41 @@ namespace GameNetworking.Networking {
             this.tcpSocket.Accept();
         }
 
+        public void Register(NetEndPoint endPoint, INetworkServerMessageListener listener) {
+            this.identifiedCollection.Add(endPoint, listener);
+        }
+
+        public void Unregister(NetEndPoint endPoint) {
+            this.identifiedCollection.Remove(endPoint);
+        }
+
         void ITcpServerListener<TcpSocket>.SocketDidAccept(TcpSocket socket) {
             if (socket == null) { return; }
 
             socket.serverListener = this;
 
             var reliable = new ReliableChannel(socket);
-            var unreliable = new UnreliableChannel(new UdpSocket(udpSocket, socket.remoteEndPoint));
 
             reliable.StartIO();
-            unreliable.StartIO(false, true, 1);
-            // starts only output writing for client UDP fake socket
 
             this.socketCollection.Add(socket, reliable);
-            this.listener?.NetworkServerDidAcceptPlayer(reliable, unreliable);
+            this.listener?.NetworkServerDidAcceptPlayer(reliable, this.unreliableChannel);
 
             lock (this.lockToken) { this.isAccepting = false; }
         }
 
         void ITcpServerListener<TcpSocket>.SocketDidDisconnect(TcpSocket socket) {
             var channel = this.socketCollection.Remove(socket);
-            this.unreliableChannel.Unregister(socket.remoteEndPoint);
             if (channel == null) { return; }
             this.listener?.NetworkServerPlayerDidDisconnect(channel);
         }
 
-        void IChannelListener.ChannelDidReceiveMessage(MessageContainer container, NetEndPoint from) {
-            this.listener?.NetworkServerDidReceiveUnidentifiedMessage(container, from);
+        void IUnreliableChannelListener.ChannelDidReceiveMessage(UnreliableChannel channel, MessageContainer container, NetEndPoint from) {
+            if (this.identifiedCollection.TryGetPlayer(from, out INetworkServerMessageListener listener)) {
+                listener?.NetworkServerDidReceiveMessage(container);
+            } else {
+                this.listener?.NetworkServerDidReceiveUnidentifiedMessage(container, from);
+            }
         }
     }
 }

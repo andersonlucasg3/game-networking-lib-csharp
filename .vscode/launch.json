@@ -14,7 +14,7 @@
             "args": [],
             "cwd": "${workspaceFolder}/TestClientApp",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
-            "console": "externalTerminal",
+            "console": "internalConsole",
             "stopAtEntry": false
         },
         {
@@ -27,7 +27,7 @@
             "args": [],
             "cwd": "${workspaceFolder}/TestServerApp",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
-            "console": "externalTerminal",
+            "console": "internalConsole",
             "stopAtEntry": false
         },
         {

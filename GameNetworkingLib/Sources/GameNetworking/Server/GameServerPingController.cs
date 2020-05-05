@@ -73,7 +73,12 @@ namespace GameNetworking.Server {
 
         internal GameServerPingController<TPlayer> pingController { get; set; }
         internal bool pingSent { get; private set; }
-        internal bool canSendNextPing { get { return this.pingElapsedTime > (pingController?.pingInterval ?? 0.5F); } }
+        internal bool canSendNextPing {
+            get {
+                var isPlayerIdentified = player.remoteIdentifiedEndPoint != null;
+                return isPlayerIdentified && this.pingElapsedTime > (pingController?.pingInterval ?? 0.5F);
+            }
+        }
         internal TPlayer player { get; }
 
         internal PingPlayer(TPlayer instance) {

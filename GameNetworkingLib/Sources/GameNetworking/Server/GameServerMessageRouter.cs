@@ -7,7 +7,7 @@ using GameNetworking.Messages.Models;
 
 namespace GameNetworking.Server {
     public class GameServerMessageRouter<TPlayer> : IPlayerMessageListener
-        where TPlayer : class, IPlayer {
+        where TPlayer : Player {
 
         private readonly IMainThreadDispatcher dispatcher;
 

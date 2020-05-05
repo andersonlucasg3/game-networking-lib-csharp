@@ -58,8 +58,9 @@ namespace GameNetworking.Client {
             this.networkClient = networkClient;
             this.networkClient.listener = this;
 
-            this.natIdentifierAckHelper = new MessageAckHelper<NatIdentifierRequestMessage, NatIdentifierResponseMessage>(this.networkClient, router, 10)
-            { listener = this };
+            this.natIdentifierAckHelper = new MessageAckHelper<NatIdentifierRequestMessage, NatIdentifierResponseMessage>(
+                this.networkClient.unreliableChannel, router, 10
+            ) { listener = this };
 
             this.router = router;
             this.router.Configure(this);
@@ -67,7 +68,17 @@ namespace GameNetworking.Client {
 
         public void Connect(string host, int port) => this.networkClient.Connect(host, port);
         public void Disconnect() => this.networkClient.Disconnect();
-        public void Send(ITypedMessage message, Channel channel) => this.networkClient.Send(message, channel);
+        public void Send(ITypedMessage message, Channel channel) {
+            switch (channel) {
+                case Channel.reliable:
+                    this.networkClient.reliableChannel.Send(message);
+                    break;
+                case Channel.unreliable:
+                    var remote = this.networkClient.remoteEndPoint;
+                    this.networkClient.unreliableChannel.Send(message, remote);
+                    break;
+            }
+        }
 
         public virtual void Update() {
             this.natIdentifierAckHelper?.Update();
@@ -100,7 +111,8 @@ namespace GameNetworking.Client {
                 this.listener?.GameClientDidIdentifyLocalPlayer(player);
 
                 var endPoint = this.networkClient.localEndPoint;
-                this.natIdentifierAckHelper.Start(new NatIdentifierRequestMessage(player.playerId, endPoint.host, endPoint.port));
+                var remote = this.networkClient.remoteEndPoint;
+                this.natIdentifierAckHelper.Start(new NatIdentifierRequestMessage(player.playerId, endPoint.host, endPoint.port), remote);
             }
         }
 

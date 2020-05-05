@@ -294,7 +294,7 @@ namespace GameNetworking.Sockets {
         public NetEndPoint localEndPoint { get; private set; } = new NetEndPoint();
         public NetEndPoint remoteEndPoint { get; private set; } = new NetEndPoint();
 
-        public IUdpSocketIOListener<UdpSocket> listener { get; set; }
+        public IUdpSocketIOListener listener { get; set; }
 
         public UdpSocket() {
             this.bufferPool = new ObjectPool<byte[]>(() => new byte[Consts.bufferSize]);

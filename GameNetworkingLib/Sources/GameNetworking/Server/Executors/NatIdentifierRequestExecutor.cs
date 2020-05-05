@@ -6,7 +6,7 @@ using GameNetworking.Sockets;
 
 namespace GameNetworking.Executors.Server {
     class NatIdentifierRequestExecutor<TPlayer> : Commons.BaseExecutor<IGameServer<TPlayer>, NatIdentifierRequestMessage>
-        where TPlayer : class, GameNetworking.Server.IPlayer {
+        where TPlayer : GameNetworking.Server.Player {
         private readonly NetEndPoint remoteEndPoint;
 
         public NatIdentifierRequestExecutor(IGameServer<TPlayer> instance, NetEndPoint remoteEndPoint, NatIdentifierRequestMessage message) : base(instance, message) {
@@ -15,9 +15,9 @@ namespace GameNetworking.Executors.Server {
 
         public override void Execute() {
             if (!this.instance.playerCollection.TryGetPlayer(this.message.playerId, out TPlayer player)) { return; }
-            var channel = player.GetChannel<UnreliableChannel>(Channel.unreliable);
-            channel.SetRemote(this.remoteEndPoint);
-            this.instance.networkServer.unreliableChannel.Register(this.remoteEndPoint, channel);
+            var channel = player.unreliableChannel;
+            player.remoteIdentifiedEndPoint = this.remoteEndPoint;
+            this.instance.networkServer.Register(this.remoteEndPoint, player);
 
             this.instance.listener.GameServerPlayerDidConnect(player, Channel.unreliable);
 

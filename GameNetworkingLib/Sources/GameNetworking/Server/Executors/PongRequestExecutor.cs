@@ -5,7 +5,7 @@ using GameNetworking.Server;
 
 namespace GameNetworking.Executors.Server {
     internal class PongRequestExecutor<TPlayer> : Commons.BaseExecutor<IGameServer<TPlayer>, PongRequestMessage>
-        where TPlayer : class, GameNetworking.Server.IPlayer {
+        where TPlayer : GameNetworking.Server.Player {
         private readonly TPlayer player;
 
         public PongRequestExecutor(IGameServer<TPlayer> server, TPlayer player, PongRequestMessage message) : base(server, message) {

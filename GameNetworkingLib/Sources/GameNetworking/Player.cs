@@ -11,8 +11,6 @@ namespace GameNetworking {
             int playerId { get; }
             float mostRecentPingValue { get; }
 
-            void Send(ITypedMessage message, Channel channel);
-
             void Disconnect();
         }
 
@@ -21,12 +19,11 @@ namespace GameNetworking {
         }
 
         public class Player : IPlayer, IReliableChannelListener, INetworkServerMessageListener {
-            private ReliableChannel reliableChannel;
-            private UnreliableChannel unreliableChannel;
-            private NetEndPoint remoteIdentifiedEndPoint;
 
             internal double lastReceivedPongRequest;
-
+            internal ReliableChannel reliableChannel { get; private set; }
+            internal UnreliableChannel unreliableChannel { get; private set; }
+            internal NetEndPoint remoteIdentifiedEndPoint { get; set; }
             internal IPlayerMessageListener listener { get; set; }
 
             public int playerId { get; internal set; }

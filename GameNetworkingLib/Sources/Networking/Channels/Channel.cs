@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using GameNetworking.Messages.Models;
 using GameNetworking.Messages.Streams;
@@ -17,6 +18,7 @@ namespace GameNetworking.Channels {
 
     public abstract class Channel<TSocket> : IChannel, ISocketListener<TSocket>
         where TSocket : ISocket<TSocket> {
+        private readonly Object lockToken = new Object();
         private readonly MessageStreamReader reader;
         private readonly MessageStreamWriter writer;
 

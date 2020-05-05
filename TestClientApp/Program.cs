@@ -1,6 +1,7 @@
 ﻿#if !UNITY_64
 
 using System;
+using System.Threading;
 using System.Collections.Generic;
 using GameNetworking.Channels;
 using GameNetworking.Client;
@@ -18,8 +19,7 @@ namespace TestClientApp {
 
         private GameClient<Player> client;
         private int counter = 0;
-
-        private bool askToSend = false;
+        private int? playerId;
 
         static void Main(string[] _) {
             var program = new Program();
@@ -34,11 +34,12 @@ namespace TestClientApp {
                     program.actions.ForEach(each => each?.Invoke());
                     program.actions.RemoveAll(_ => true);
                     program.client.Update();
+                }
 
-                    if (program.askToSend) {
-                        Console.ReadLine();
-                        program.Send();
-                    }
+                Thread.Sleep(250);
+
+                if (program.playerId.HasValue) {
+                    program.Send();
                 }
             }
         }
@@ -49,10 +50,6 @@ namespace TestClientApp {
 
         public void GameClientDidConnect(Channel channel) {
             Logger.Log($"GameClientDidConnect - {channel}");
-            if (channel == Channel.unreliable) {
-                this.Send();
-                this.askToSend = true;
-            }
         }
 
         public void GameClientConnectDidTimeout() {
@@ -67,6 +64,9 @@ namespace TestClientApp {
             Logger.Log("GameClientDidIdentifyLocalPlayer");
             Logger.Log($"Identified as {player.playerId}");
             Logger.Log($"Is local player {player.isLocalPlayer}");
+
+            this.playerId = player.playerId;
+            this.Send();
         }
 
         public void GameClientPlayerDidConnect(Player player) {
@@ -79,23 +79,38 @@ namespace TestClientApp {
 
         public void GameClientDidReceiveMessage(MessageContainer container) {
             Logger.Log("GameClientDidReceiveMessage");
-            Logger.Log($"Received message type: {container.type}");
+            var message = container.Parse<Message>();
+            Logger.Log($"Received message to playerId-{message.playerId}, and I'm playerId-{playerId.Value}, with id-{message.messageId}");
+
         }
 
         private void Send() {
-            this.client.Send(new Message(), Channel.unreliable);
-            Logger.Log($"Send message! {counter++}");
-            if (this.client.localPlayer == null) { return; }
-            var ping = this.client.localPlayer.mostRecentPingValue;
-            Logger.Log($"Player ping {ping}");
+            this.client.Send(new Message(this.playerId.Value, this.counter++), Channel.unreliable);
         }
     }
 
     class Message : ITypedMessage {
         public int type => 1001;
 
-        public void Decode(IDecoder decoder) { }
-        public void Encode(IEncoder encoder) { }
+        public int playerId;
+        public int messageId;
+
+        public Message() { }
+
+        public Message(int playerId, int messageId) {
+            this.playerId = playerId;
+            this.messageId = messageId;
+        }
+
+        public void Decode(IDecoder decoder) {
+            this.playerId = decoder.GetInt();
+            this.messageId = decoder.GetInt();
+        }
+
+        public void Encode(IEncoder encoder) {
+            encoder.Encode(this.playerId);
+            encoder.Encode(this.messageId);
+        }
     }
 }
 

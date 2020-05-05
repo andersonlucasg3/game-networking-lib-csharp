@@ -54,9 +54,9 @@ namespace GameNetworking {
 
             public TChannel GetChannel<TChannel>(Channel channel) where TChannel : class, IChannel {
                 switch (channel) {
-                case Channel.reliable: return this.reliableChannel as TChannel;
-                case Channel.unreliable: return this.unreliableChannel as TChannel;
-                default: return null;
+                    case Channel.reliable: return this.reliableChannel as TChannel;
+                    case Channel.unreliable: return this.unreliableChannel as TChannel;
+                    default: return null;
                 }
             }
 
@@ -74,6 +74,7 @@ namespace GameNetworking {
             #endregion
 
             void IChannelListener.ChannelDidReceiveMessage(MessageContainer container, NetEndPoint from) {
+                Logging.Logger.Log($"Player did receive message from {from}");
                 this.listener?.PlayerDidReceiveMessage(container, this);
             }
         }

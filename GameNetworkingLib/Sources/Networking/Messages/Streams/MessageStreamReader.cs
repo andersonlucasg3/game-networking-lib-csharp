@@ -5,6 +5,7 @@ using GameNetworking.Messages.Models;
 
 namespace GameNetworking.Messages.Streams {
     public class MessageStreamReader : IStreamReader {
+        private readonly Object lockToken = new Object();
         private readonly ObjectPool<Decoder> _decoderPool = new ObjectPool<Decoder>(() => new Decoder());
         private readonly byte[] currentBuffer = new byte[1024 * 1024]; // 1MB
         private int currentBufferLength;
@@ -12,14 +13,14 @@ namespace GameNetworking.Messages.Streams {
         public MessageStreamReader() { }
 
         public void Add(byte[] buffer, int count) {
-            lock (this) {
+            lock (this.lockToken) {
                 Array.Copy(buffer, 0, this.currentBuffer, this.currentBufferLength, count);
                 this.currentBufferLength += count;
             }
         }
 
         public MessageContainer Decode() {
-            lock (this) {
+            lock (this.lockToken) {
                 if (this.currentBufferLength == 0) { return null; }
 
                 int delimiterIndex = CoderHelper.CheckForDelimiter(this.currentBuffer, this.currentBufferLength);

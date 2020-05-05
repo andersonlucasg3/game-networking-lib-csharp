@@ -1,20 +1,33 @@
 {
-   // Use IntelliSense to find out which attributes exist for C# debugging
-   // Use hover for the description of the existing attributes
-   // For further information visit https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md
-   "version": "0.2.0",
-   "configurations": [
+    // Use IntelliSense to find out which attributes exist for C# debugging
+    // Use hover for the description of the existing attributes
+    // For further information visit https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md
+    "version": "0.2.0",
+    "configurations": [
         {
-            "name": ".NET Core Launch (console)",
+            "name": "Launch Client",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/game-server-lib-tests/bin/Debug/netcoreapp2.0/game-server-lib-tests.dll",
+            "program": "${workspaceFolder}/TestClientApp/bin/Debug/netcoreapp3.1/TestClientApp.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/game-server-lib-tests",
+            "cwd": "${workspaceFolder}/TestClientApp",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
-            "console": "internalConsole",
+            "console": "externalTerminal",
+            "stopAtEntry": false
+        },
+        {
+            "name": "Launch Server",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            // If you have changed target frameworks, make sure to update the program path.
+            "program": "${workspaceFolder}/TestServerApp/bin/Debug/netcoreapp3.1/TestServerApp.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/TestServerApp",
+            // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
+            "console": "externalTerminal",
             "stopAtEntry": false
         },
         {

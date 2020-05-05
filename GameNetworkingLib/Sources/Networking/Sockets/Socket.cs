@@ -113,13 +113,12 @@ namespace GameNetworking.Sockets {
 
         public void Accept() {
             this.socket.BeginAccept((ar) => {
-                Socket accepted = null;
-                lock (this) {
-                    if (this.socket != null) {
-                        accepted = this.socket.EndAccept(ar);
-                    }
+                if (this.socket == null) {
+                    this.serverListener?.SocketDidAccept(null);
+                    return;
                 }
 
+                Socket accepted = this.socket.EndAccept(ar);
                 if (accepted == null) {
                     this.serverListener?.SocketDidAccept(null);
                     return;
@@ -172,19 +171,17 @@ namespace GameNetworking.Sockets {
         #endregion
 
         private void CheckClosed() {
-            if (this.isClosed) { return; }
-            lock (this) {
-                try {
-                    if (!this.CheckDisconnected()) {
-                        this.socket.Shutdown(SocketShutdown.Both);
-                    }
-                } finally {
-                    this.socket.Close();
+            if (this.isClosed || this.socket == null) { return; }
+            try {
+                if (!this.CheckDisconnected()) {
+                    this.socket.Shutdown(SocketShutdown.Both);
                 }
-                this.socket = null;
-                this.isClosed = true;
-                this.hasBeenConnected = false;
+            } finally {
+                this.socket.Close();
             }
+            this.socket = null;
+            this.isClosed = true;
+            this.hasBeenConnected = false;
         }
 
         public void Close() {
@@ -196,6 +193,7 @@ namespace GameNetworking.Sockets {
         public void Receive() {
             lock (this.receiveLockCookie) {
                 if (this.socket == null) { return; }
+
                 var buffer = this.bufferPool.Rent();
                 int count = this.socket.Receive(buffer, 0, Consts.bufferSize, SocketFlags.None, out SocketError errorCode);
 
@@ -213,6 +211,8 @@ namespace GameNetworking.Sockets {
 
         public void Send(byte[] bytes, int count) {
             lock (this.sendLockCookie) {
+                if (this.socket == null) { return; }
+
                 int written = this.socket.Send(bytes, 0, count, SocketFlags.None, out SocketError errorCode);
 
                 if (this.CheckDisconnected() || this.CheckSocketError(errorCode)) {
@@ -283,6 +283,8 @@ namespace GameNetworking.Sockets {
     public sealed class UdpSocket : IUdpSocket<UdpSocket> {
         private const int SIO_UDP_CONNRESET = -1744830452;
 
+        private readonly Object receiveToken = new Object();
+        private readonly Object sendToken = new Object();
         private readonly ObjectPool<byte[]> bufferPool;
         private readonly ObjectPool<IPEndPoint> ipEndPointPool;
         private Socket socket;
@@ -341,31 +343,35 @@ namespace GameNetworking.Sockets {
         #region Read & Write
 
         public void Receive() {
-            var buffer = this.bufferPool.Rent();
-            EndPoint endPoint = this.ipEndPointPool.Rent();
-            var readByteCount = this.socket.ReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref endPoint);
+            lock (this.receiveToken) {
+                var buffer = this.bufferPool.Rent();
+                EndPoint endPoint = this.ipEndPointPool.Rent();
+                var readByteCount = this.socket.ReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref endPoint);
 
-            this.remoteEndPoint.From(endPoint);
-            this.listener?.SocketDidReceiveBytes(this, buffer, readByteCount);
+                this.remoteEndPoint.From(endPoint);
+                this.listener?.SocketDidReceiveBytes(this, buffer, readByteCount);
 
-            this.bufferPool.Pay(buffer);
-            this.ipEndPointPool.Pay((IPEndPoint)endPoint);
+                this.bufferPool.Pay(buffer);
+                this.ipEndPointPool.Pay((IPEndPoint)endPoint);
+            }
         }
 
         public void Send(byte[] bytes, int count) {
-            if (count == 0 || this.socket == null || !this.isConnected) {
-                this.listener?.SocketDidSendBytes(this, 0);
-                return;
+            lock (this.sendToken) {
+                if (count == 0 || this.socket == null || !this.isConnected) {
+                    this.listener?.SocketDidSendBytes(this, 0);
+                    return;
+                }
+
+                var endPoint = this.ipEndPointPool.Rent();
+                this.From(this.remoteEndPoint, ref endPoint);
+
+                var writtenCount = this.socket.SendTo(bytes, 0, count, SocketFlags.None, endPoint);
+
+                this.ipEndPointPool.Pay(endPoint);
+
+                this.listener?.SocketDidSendBytes(this, writtenCount);
             }
-
-            var endPoint = this.ipEndPointPool.Rent();
-            this.From(this.remoteEndPoint, ref endPoint);
-
-            var writtenCount = this.socket.SendTo(bytes, 0, count, SocketFlags.None, endPoint);
-
-            this.ipEndPointPool.Pay(endPoint);
-
-            this.listener?.SocketDidSendBytes(this, writtenCount);
         }
 
         #endregion
@@ -393,11 +399,6 @@ namespace GameNetworking.Sockets {
         }
 
         #endregion
-
-        private struct SendInfo {
-            public byte[] bytes;
-            public int count;
-        }
     }
 
     #endregion

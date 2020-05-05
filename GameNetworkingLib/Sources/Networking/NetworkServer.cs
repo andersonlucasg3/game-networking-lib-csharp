@@ -26,11 +26,11 @@ namespace GameNetworking.Networking {
     }
 
     public class NetworkServer : INetworkServer, ITcpServerListener<TcpSocket>, IChannelListener {
+        private readonly Object lockToken = new Object();
         private readonly TcpSocket tcpSocket;
         private readonly UdpSocket udpSocket;
 
         private readonly PlayerCollection<TcpSocket, ReliableChannel> socketCollection;
-        private readonly ConcurrentQueue<TcpSocket> socketsToRemove = new ConcurrentQueue<TcpSocket>();
 
         private bool isAccepting = false;
 
@@ -76,25 +76,15 @@ namespace GameNetworking.Networking {
 
         public void Update() {
             this.Accept();
-            this.RemoveSockets();
         }
 
         public void Accept() {
-            lock (this) {
+            lock (this.lockToken) {
                 if (this.isAccepting) { return; }
                 this.isAccepting = true;
             }
 
             this.tcpSocket.Accept();
-        }
-
-        private void RemoveSockets() {
-            while (this.socketsToRemove.TryDequeue(out TcpSocket socket)) {
-                ReliableChannel channel = this.socketCollection.Remove(socket);
-                if (channel == null) { return; }
-                this.unreliableChannel.Unregister(socket.remoteEndPoint);
-                this.listener?.NetworkServerPlayerDidDisconnect(channel);
-            }
         }
 
         void ITcpServerListener<TcpSocket>.SocketDidAccept(TcpSocket socket) {
@@ -112,11 +102,14 @@ namespace GameNetworking.Networking {
             this.socketCollection.Add(socket, reliable);
             this.listener?.NetworkServerDidAcceptPlayer(reliable, unreliable);
 
-            lock (this) { this.isAccepting = false; }
+            lock (this.lockToken) { this.isAccepting = false; }
         }
 
         void ITcpServerListener<TcpSocket>.SocketDidDisconnect(TcpSocket socket) {
-            this.socketsToRemove.Enqueue(socket);
+            var channel = this.socketCollection.Remove(socket);
+            this.unreliableChannel.Unregister(socket.remoteEndPoint);
+            if (channel == null) { return; }
+            this.listener?.NetworkServerPlayerDidDisconnect(channel);
         }
 
         void IChannelListener.ChannelDidReceiveMessage(MessageContainer container, NetEndPoint from) {

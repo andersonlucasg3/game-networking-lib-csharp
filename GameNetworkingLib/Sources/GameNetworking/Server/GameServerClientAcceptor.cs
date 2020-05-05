@@ -21,8 +21,6 @@ namespace GameNetworking.Server {
         public GameServerClientAcceptor() => this.channelCollection = new ConcurrentDictionary<IChannel, TPlayer>();
 
         public void AcceptClient(TPlayer player) {
-            if (Logger.IsLoggingEnabled) { Logger.Log($"(AcceptClient) count {this.listener.playerCollection.count}"); }
-
             this.listener.ClientAcceptorPlayerDidConnect(player);
 
             var players = this.listener.playerCollection.values;
@@ -45,6 +43,8 @@ namespace GameNetworking.Server {
                 };
                 player.Send(connectedSelf, Channel.reliable);
             }
+
+            if (Logger.IsLoggingEnabled) { Logger.Log($"(AcceptClient) count {this.listener.playerCollection.count}"); }
         }
 
         public void Disconnect(TPlayer player) {

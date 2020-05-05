@@ -112,7 +112,8 @@ namespace GameNetworking.Server {
 
         void INetworkServerListener.NetworkServerDidReceiveUnidentifiedMessage(MessageContainer container, NetEndPoint from) {
             if (container.Is((int)MessageType.natIdentifier)) {
-                new NatIdentifierRequestExecutor<TPlayer>(this, from, container.Parse<NatIdentifierRequestMessage>()).Execute();
+                Action action = new NatIdentifierRequestExecutor<TPlayer>(this, from, container.Parse<NatIdentifierRequestMessage>()).Execute;
+                this.router.dispatcher.Enqueue(action);
             }
         }
 

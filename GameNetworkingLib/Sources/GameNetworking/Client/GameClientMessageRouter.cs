@@ -13,9 +13,9 @@ namespace GameNetworking.Commons.Client {
 
     public class GameClientMessageRouter<TPlayer> : IClientMessageRouter
         where TPlayer : GameNetworking.Client.Player {
-
-        private readonly IMainThreadDispatcher dispatcher;
         protected IGameClient<TPlayer> game { get; private set; }
+
+        public readonly IMainThreadDispatcher dispatcher;
 
         public GameClientMessageRouter(IMainThreadDispatcher dispatcher) {
             this.dispatcher = dispatcher;

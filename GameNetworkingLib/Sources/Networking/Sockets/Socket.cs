@@ -352,11 +352,16 @@ namespace GameNetworking.Sockets {
 
             var buffer = this.bufferPool.Rent();
             var netEndPoint = this.netEndPointPool.Rent();
-            EndPoint endPoint = this.ipEndPointPool.Rent();
-            var readByteCount = this.socket.ReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref endPoint);
+            var endPoint = this.ipEndPointPool.Rent();
+            endPoint.Address = IPAddress.Any;
+            endPoint.Port = 0;
+            EndPoint ep = endPoint;
+            var readByteCount = this.socket.ReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref ep);
 
-            netEndPoint.From(endPoint);
-            this.listener?.SocketDidReceiveBytes(this, buffer, readByteCount, netEndPoint);
+            if (readByteCount > 0) {
+                netEndPoint.From(ep);
+                this.listener?.SocketDidReceiveBytes(this, buffer, readByteCount, netEndPoint);
+            }
 
             this.bufferPool.Pay(buffer);
             this.ipEndPointPool.Pay((IPEndPoint)endPoint);

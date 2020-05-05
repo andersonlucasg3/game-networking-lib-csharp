@@ -8,10 +8,9 @@ using GameNetworking.Messages.Models;
 namespace GameNetworking.Server {
     public class GameServerMessageRouter<TPlayer> : IPlayerMessageListener
         where TPlayer : Player {
-
-        private readonly IMainThreadDispatcher dispatcher;
-
         protected IGameServer<TPlayer> server { get; private set; }
+
+        public readonly IMainThreadDispatcher dispatcher;
 
         public GameServerMessageRouter(IMainThreadDispatcher dispatcher) {
             this.dispatcher = dispatcher;

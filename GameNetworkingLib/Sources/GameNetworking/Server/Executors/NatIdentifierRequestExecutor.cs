@@ -10,7 +10,7 @@ namespace GameNetworking.Executors.Server {
         private readonly NetEndPoint remoteEndPoint;
 
         public NatIdentifierRequestExecutor(IGameServer<TPlayer> instance, NetEndPoint remoteEndPoint, NatIdentifierRequestMessage message) : base(instance, message) {
-            this.remoteEndPoint = remoteEndPoint;
+            this.remoteEndPoint = new NetEndPoint(remoteEndPoint.host, remoteEndPoint.port);
         }
 
         public override void Execute() {

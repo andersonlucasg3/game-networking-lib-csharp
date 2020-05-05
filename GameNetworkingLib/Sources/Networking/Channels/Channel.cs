@@ -106,9 +106,11 @@ namespace GameNetworking.Channels {
             this.writerCollection = new Dictionary<NetEndPoint, MessageStreamWriter>();
         }
 
-        internal void StartIO() {
-            this.Receive();
-            this.Flush();
+        internal void StartIO(int count = 1) {
+            for (int index = 0; index < count; index++) {
+                this.Receive();
+                this.Flush();
+            }
         }
 
         internal void StopIO() {
@@ -134,13 +136,15 @@ namespace GameNetworking.Channels {
             var sendInfo = (SendInfo)stateInfo;
             var to = sendInfo.to;
             var message = sendInfo.message;
+
+            MessageStreamWriter writer;
             lock (this.writerCollection) {
-                if (!this.writerCollection.TryGetValue(to, out MessageStreamWriter writer)) {
+                if (!this.writerCollection.TryGetValue(to, out writer)) {
                     writer = new MessageStreamWriter();
                     this.writerCollection.Add(to, writer);
                 }
-                writer.Write(message);
             }
+            writer.Write(message);
         }
 
         private void ReceiveTask(object stateInfo) {

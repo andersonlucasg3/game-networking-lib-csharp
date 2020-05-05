@@ -223,30 +223,39 @@ namespace GameNetworking.Sockets {
         #region Private Methods
 
         private bool CheckDisconnected() {
-            return this.hasBeenConnected && !this.isConnected;
+            return this.hasBeenConnected && (!this.isConnected || !this.IsConnected());
         }
 
         private bool CheckSocketError(SocketError error) {
             switch (error) {
-                case SocketError.Shutdown:
-                case SocketError.OperationAborted:
-                case SocketError.NotConnected:
-                case SocketError.NetworkUnreachable:
-                case SocketError.NetworkReset:
-                case SocketError.NetworkDown:
-                case SocketError.Interrupted:
-                case SocketError.HostUnreachable:
-                case SocketError.HostNotFound:
-                case SocketError.HostDown:
-                case SocketError.Fault:
-                case SocketError.Disconnecting:
-                case SocketError.ConnectionReset:
-                case SocketError.ConnectionRefused:
-                case SocketError.ConnectionAborted:
-                    return true;
-                default:
-                    return false;
+            case SocketError.Shutdown:
+            case SocketError.OperationAborted:
+            case SocketError.NotConnected:
+            case SocketError.NetworkUnreachable:
+            case SocketError.NetworkReset:
+            case SocketError.NetworkDown:
+            case SocketError.Interrupted:
+            case SocketError.HostUnreachable:
+            case SocketError.HostNotFound:
+            case SocketError.HostDown:
+            case SocketError.Fault:
+            case SocketError.Disconnecting:
+            case SocketError.ConnectionReset:
+            case SocketError.ConnectionRefused:
+            case SocketError.ConnectionAborted:
+                return true;
+            default:
+                return false;
             }
+        }
+
+        private bool IsConnected() {
+            try {
+                lock (this) {
+                    if (this.socket == null) { return false; }
+                    return !(this.socket.Poll(1, SelectMode.SelectRead) && socket.Available == 0);
+                }
+            } catch (SocketException) { return false; }
         }
 
         private void From(NetEndPoint ep, ref IPEndPoint endPoint) {

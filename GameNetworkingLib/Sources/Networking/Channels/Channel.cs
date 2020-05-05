@@ -125,7 +125,9 @@ namespace GameNetworking.Channels {
                     this.toWriterCollection.Add(new KeyValuePair<NetEndPoint, MessageStreamWriter>(to, writer));
                 }
             }
-            writer.Write(message);
+            lock (writer) {
+                writer.Write(message);
+            }
         }
 
         #region Read & Write
@@ -149,8 +151,10 @@ namespace GameNetworking.Channels {
                         var keyValue = this.toWriterCollection[index];
                         var to = keyValue.Key;
                         var writer = keyValue.Value;
-                        var count = writer.Put(out byte[] buffer);
-                        this.socket.Send(buffer, count, to);
+                        lock (writer) {
+                            var count = writer.Put(out byte[] buffer);
+                            this.socket.Send(buffer, count, to);
+                        }
                     }
                 }
             }
@@ -173,7 +177,9 @@ namespace GameNetworking.Channels {
 
         void IUdpSocketIOListener.SocketDidWriteBytes(UdpSocket socket, int count, NetEndPoint to) {
             if (this.writerCollection.TryGetValue(to, out MessageStreamWriter writer)) {
-                writer.DidWrite(count);
+                lock (writer) {
+                    writer.DidWrite(count);
+                }
             } else {
                 if (Logger.IsLoggingEnabled) { Logger.Log($"SocketDidWriteBytes did not find writer for endPoint-{to}"); }
             }

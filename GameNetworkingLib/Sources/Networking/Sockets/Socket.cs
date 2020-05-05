@@ -333,7 +333,11 @@ namespace GameNetworking.Sockets {
 
         public void Close() {
             if (this.socket == null) { return; }
-            try { this.socket.Shutdown(SocketShutdown.Both); } finally { this.socket.Close(); }
+            try {
+                if (this.socket.Connected) {
+                    this.socket.Shutdown(SocketShutdown.Both);
+                }
+            } finally { this.socket.Close(); }
             this.socket = null;
         }
 

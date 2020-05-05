@@ -44,8 +44,8 @@ namespace GameNetworking.Messages.Streams {
         }
 
         public void DidWrite(int count) {
-            if (count == 0) { return; }
             lock (this) {
+                if (count == 0) { return; }
                 var newLength = this.currentBufferLength - count;
                 Array.Copy(this.currentBuffer, count, this.currentBuffer, 0, newLength);
                 this.currentBufferLength = newLength;

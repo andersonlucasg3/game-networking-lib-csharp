@@ -17,7 +17,7 @@ namespace GameNetworking.Networking {
         void NetworkClientDidReceiveMessage(MessageContainer container, NetEndPoint from);
     }
 
-    public interface INetworkClient: IMessageSender {
+    public interface INetworkClient : IMessageSender {
         INetworkClientListener listener { get; set; }
 
         NetEndPoint localEndPoint { get; }
@@ -65,9 +65,9 @@ namespace GameNetworking.Networking {
 
         private IChannel GetChannel(Channel channel) {
             switch (channel) {
-            case Channel.reliable: return this.reliableChannel;
-            case Channel.unreliable: return this.unreliableChannel;
-            default: return null;
+                case Channel.reliable: return this.reliableChannel;
+                case Channel.unreliable: return this.unreliableChannel;
+                default: return null;
             }
         }
 
@@ -76,6 +76,9 @@ namespace GameNetworking.Networking {
             this.udpSocket.Connect(this.tcpSocket.remoteEndPoint);
 
             this.listener?.NetworkClientDidConnect();
+
+            this.reliableChannel.StartIO();
+            this.unreliableChannel.StartIO();
         }
 
         void ITcpClientListener.SocketDidTimeout() {

@@ -30,30 +30,36 @@ namespace GameNetworking.Channels {
 
             this.reader = new MessageStreamReader();
             this.writer = new MessageStreamWriter();
-
-            this.Flush();
-            this.Flush();
-            this.Flush();
-            this.Flush();
         }
+
+        internal abstract void StartIO();
 
         public void Send(ITypedMessage message) {
             this.writer.Write(message);
         }
 
-        private void Flush() {
+        #region Read & Write
+
+        protected virtual void Receive() {
+            ThreadPool.QueueUserWorkItem(ReceiveTask);
+        }
+
+        protected virtual void Flush() {
             ThreadPool.QueueUserWorkItem(FlushTask);
         }
 
-        private void FlushTask(object flushState) {
-            if (!this.writer.hasBytesToWrite) {
-                this.Flush();
-                return;
-            }
+        private void ReceiveTask(object stateInfo) {
+            this.socket.Receive();
 
+            this.Receive();
+        }
+
+        private void FlushTask(object flushState) {
             var count = this.writer.Put(out byte[] buffer);
             this.socket.Send(buffer, count);
         }
+
+        #endregion
 
         protected virtual void ChannelDidReceiveMessage(MessageContainer container, TSocket from) {
             this.listener?.ChannelDidReceiveMessage(container, from.remoteEndPoint);
@@ -82,6 +88,11 @@ namespace GameNetworking.Channels {
     public class ReliableChannel : Channel<TcpSocket> {
         public ReliableChannel(TcpSocket socket) : base(socket) { }
 
+        internal override void StartIO() {
+            this.Receive();
+            this.Flush();
+        }
+
         public void CloseChannel() => this.socket.Disconnect();
     }
 
@@ -96,6 +107,17 @@ namespace GameNetworking.Channels {
 
         public UnreliableChannel(UdpSocket socket) : base(socket) {
             this.socket.listener = this;
+        }
+
+        internal override void StartIO() {
+            this.StartIO(true, true, 4);
+        }
+
+        internal void StartIO(bool input, bool output, int count) {
+            for (int index = 0; index < count; index++) {
+                if (input) { this.Receive(); }
+                if (output) { this.Flush(); }
+            }
         }
 
         public void Register(NetEndPoint remoteEndPoint, IChannelListener listener) {

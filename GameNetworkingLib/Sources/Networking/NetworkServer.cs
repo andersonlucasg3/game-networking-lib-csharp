@@ -60,6 +60,9 @@ namespace GameNetworking.Networking {
             this.udpSocket.Bind(endPoint);
 
             this.listeningOnEndPoint = this.tcpSocket.localEndPoint;
+
+            this.unreliableChannel.StartIO(true, false, 4);
+            // starts only input reading for server UDP socket
         }
 
         public void Stop() {
@@ -101,6 +104,10 @@ namespace GameNetworking.Networking {
 
             var reliable = new ReliableChannel(socket);
             var unreliable = new UnreliableChannel(new UdpSocket(udpSocket, socket.remoteEndPoint));
+
+            reliable.StartIO();
+            unreliable.StartIO(false, true, 1);
+            // starts only output writing for client UDP fake socket
 
             this.socketCollection.Add(socket, reliable);
             this.listener?.NetworkServerDidAcceptPlayer(reliable, unreliable);

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Threading;
 using GameNetworking.Messages.Models;
 using GameNetworking.Messages.Streams;
@@ -91,8 +92,9 @@ namespace GameNetworking.Channels {
     }
 
     public class UnreliableChannel : IUdpSocketIOListener {
-        private readonly Dictionary<NetEndPoint, MessageStreamReader> readerCollection;
-        private readonly Dictionary<NetEndPoint, MessageStreamWriter> writerCollection;
+        private readonly ConcurrentDictionary<NetEndPoint, MessageStreamReader> readerCollection;
+        private readonly ConcurrentDictionary<NetEndPoint, MessageStreamWriter> writerCollection;
+        private readonly ConcurrentQueue<SendInfo> sendInfoCollection;
 
         private UdpSocket socket;
 
@@ -102,8 +104,9 @@ namespace GameNetworking.Channels {
             this.socket = socket;
             this.socket.listener = this;
 
-            this.readerCollection = new Dictionary<NetEndPoint, MessageStreamReader>();
-            this.writerCollection = new Dictionary<NetEndPoint, MessageStreamWriter>();
+            this.readerCollection = new ConcurrentDictionary<NetEndPoint, MessageStreamReader>();
+            this.writerCollection = new ConcurrentDictionary<NetEndPoint, MessageStreamWriter>();
+            this.sendInfoCollection = new ConcurrentQueue<SendInfo>();
         }
 
         internal void StartIO(int count = 1) {
@@ -118,11 +121,22 @@ namespace GameNetworking.Channels {
             this.socket = null;
         }
 
-        public void Send(ITypedMessage message, NetEndPoint to) {
-            ThreadPool.QueueUserWorkItem(SendTask, new SendInfo { message = message, to = to });
-        }
-
         #region Read & Write
+
+        public void Send(ITypedMessage message, NetEndPoint to) {
+            this.sendInfoCollection.Enqueue(new SendInfo { message = message, to = to });
+        }
+        private void SendTask(SendInfo sendInfo) {
+            var to = sendInfo.to;
+            var message = sendInfo.message;
+
+            MessageStreamWriter writer;
+            if (!this.writerCollection.TryGetValue(to, out writer)) {
+                writer = new MessageStreamWriter();
+                this.writerCollection.TryAdd(to, writer);
+            }
+            writer.Write(message);
+        }
 
         private void Receive() {
             ThreadPool.QueueUserWorkItem(ReceiveTask);
@@ -130,21 +144,6 @@ namespace GameNetworking.Channels {
 
         private void Flush() {
             ThreadPool.QueueUserWorkItem(FlushTask);
-        }
-
-        private void SendTask(object stateInfo) {
-            var sendInfo = (SendInfo)stateInfo;
-            var to = sendInfo.to;
-            var message = sendInfo.message;
-
-            MessageStreamWriter writer;
-            lock (this.writerCollection) {
-                if (!this.writerCollection.TryGetValue(to, out writer)) {
-                    writer = new MessageStreamWriter();
-                    this.writerCollection.Add(to, writer);
-                }
-            }
-            writer.Write(message);
         }
 
         private void ReceiveTask(object stateInfo) {
@@ -155,15 +154,17 @@ namespace GameNetworking.Channels {
 
         private void FlushTask(object flushState) {
             while (this.socket != null) {
-                lock (this.writerCollection) {
-                    var values = this.writerCollection.GetEnumerator();
-                    while (values.MoveNext()) {
-                        var keyValue = values.Current;
-                        var to = keyValue.Key;
-                        var writer = keyValue.Value;
-                        var count = writer.Put(out byte[] buffer);
-                        this.socket.Send(buffer, count, to);
-                    }
+                if (this.sendInfoCollection.TryDequeue(out SendInfo info)) {
+                    this.SendTask(info);
+                }
+
+                var values = this.writerCollection.GetEnumerator();
+                while (values.MoveNext()) {
+                    var keyValue = values.Current;
+                    var to = keyValue.Key;
+                    var writer = keyValue.Value;
+                    var count = writer.Put(out byte[] buffer);
+                    this.socket.Send(buffer, count, to);
                 }
             }
         }
@@ -173,7 +174,7 @@ namespace GameNetworking.Channels {
         void IUdpSocketIOListener.SocketDidReceiveBytes(UdpSocket socket, byte[] bytes, int count, NetEndPoint from) {
             if (!this.readerCollection.TryGetValue(from, out MessageStreamReader reader)) {
                 reader = new MessageStreamReader();
-                this.readerCollection.Add(from, reader);
+                this.readerCollection.TryAdd(from, reader);
             }
             reader.Add(bytes, count);
 

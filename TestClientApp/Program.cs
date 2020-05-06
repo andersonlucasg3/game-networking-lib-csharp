@@ -36,8 +36,6 @@ namespace TestClientApp {
                     program.client.Update();
                 }
 
-                Thread.Sleep(250);
-
                 if (program.playerId.HasValue) {
                     program.Send();
                 }

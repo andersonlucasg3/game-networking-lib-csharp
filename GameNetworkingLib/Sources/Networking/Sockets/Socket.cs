@@ -85,8 +85,6 @@ namespace GameNetworking.Sockets {
 
             this.socket.NoDelay = true;
             this.socket.Blocking = false;
-            this.socket.SendTimeout = 10000;
-            this.socket.ReceiveTimeout = 10000;
 
             if (this.socket.LocalEndPoint != null) {
                 this.localEndPoint.From(this.socket.LocalEndPoint);

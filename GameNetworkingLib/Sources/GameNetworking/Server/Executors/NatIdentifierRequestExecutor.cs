@@ -1,8 +1,8 @@
 ﻿using GameNetworking.Channels;
 using GameNetworking.Messages.Client;
 using GameNetworking.Messages.Server;
+using GameNetworking.Networking.Sockets;
 using GameNetworking.Server;
-using GameNetworking.Sockets;
 
 namespace GameNetworking.Executors.Server {
     class NatIdentifierRequestExecutor<TPlayer> : Commons.BaseExecutor<IGameServer<TPlayer>, NatIdentifierRequestMessage>
@@ -10,7 +10,7 @@ namespace GameNetworking.Executors.Server {
         private readonly NetEndPoint remoteEndPoint;
 
         public NatIdentifierRequestExecutor(IGameServer<TPlayer> instance, NetEndPoint remoteEndPoint, NatIdentifierRequestMessage message) : base(instance, message) {
-            this.remoteEndPoint = new NetEndPoint(remoteEndPoint.host, remoteEndPoint.port);
+            this.remoteEndPoint = remoteEndPoint;
         }
 
         public override void Execute() {

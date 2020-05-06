@@ -6,7 +6,7 @@ using GameNetworking.Messages;
 using GameNetworking.Messages.Client;
 using GameNetworking.Messages.Models;
 using GameNetworking.Networking;
-using GameNetworking.Sockets;
+using GameNetworking.Networking.Sockets;
 
 namespace GameNetworking.Server {
     public interface IGameServerListener<TPlayer>

@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Net;
 
-namespace GameNetworking.Sockets {
-    public class NetEndPoint : IEquatable<NetEndPoint> {
+namespace GameNetworking.Networking.Sockets {
+    public struct NetEndPoint : IEquatable<NetEndPoint> {
         public string host { get; private set; }
         public int port { get; private set; }
-
-        public NetEndPoint() : this(IPAddress.Any.ToString(), 0) { }
 
         public NetEndPoint(string host, int port) {
             this.host = host;
@@ -28,7 +26,6 @@ namespace GameNetworking.Sockets {
         }
 
         public bool Equals(NetEndPoint other) {
-            if (other == null) { return false; }
             return this.host == other.host && this.port == other.port;
         }
 

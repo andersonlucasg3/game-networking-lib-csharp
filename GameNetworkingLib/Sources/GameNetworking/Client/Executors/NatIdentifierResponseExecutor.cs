@@ -1,8 +1,7 @@
 ﻿using GameNetworking.Channels;
 using GameNetworking.Client;
 using GameNetworking.Messages.Server;
-using GameNetworking.Sockets;
-using Logging;
+using GameNetworking.Networking.Sockets;
 
 namespace GameNetworking.Executors.Client {
     class NatIdentifierResponseExecutor<TPlayer> : GameNetworking.Commons.BaseExecutor<GameClient<TPlayer>, NatIdentifierResponseMessage>
@@ -13,13 +12,6 @@ namespace GameNetworking.Executors.Client {
             this.from = from;
         }
 
-        public override void Execute() {
-            if (Logger.IsLoggingEnabled) {
-                Logger.Log($"Received information from server {this.message.remoteIp}:{this.message.port}");
-                Logger.Log($"But really received from server at {this.from}");
-            }
-            //this.instance.networkClient.ReconnectUnreliable(new NetEndPoint(this.message.))
-            this.instance.listener.GameClientDidConnect(Channel.unreliable);
-        }
+        public override void Execute() => this.instance.listener.GameClientDidConnect(Channel.unreliable);
     }
 }

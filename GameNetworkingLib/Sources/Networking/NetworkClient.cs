@@ -1,6 +1,6 @@
 ﻿using GameNetworking.Channels;
 using GameNetworking.Messages.Models;
-using GameNetworking.Sockets;
+using GameNetworking.Networking.Sockets;
 
 namespace GameNetworking.Networking {
     public interface INetworkClientListener {

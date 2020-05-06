@@ -2,7 +2,7 @@
 using GameNetworking.Commons;
 using GameNetworking.Commons.Client;
 using GameNetworking.Messages.Models;
-using GameNetworking.Sockets;
+using GameNetworking.Networking.Sockets;
 
 namespace GameNetworking.Networking.Commons {
     public interface IMessageAckHelperListener<TIngoingMessage>
@@ -11,7 +11,7 @@ namespace GameNetworking.Networking.Commons {
         void MessageAckHelperReceivedExpectedResponse(NetEndPoint from, TIngoingMessage message);
     }
 
-    public class MessageAckHelper<TOutgoingMessage, TIngoingMessage> : IClientMessageRouter
+    public class MessageAckHelper<TOutgoingMessage, TIngoingMessage>
         where TIngoingMessage : class, ITypedMessage, new()
         where TOutgoingMessage : ITypedMessage {
         private readonly UnreliableChannel sender;
@@ -62,12 +62,13 @@ namespace GameNetworking.Networking.Commons {
                 this.started = false;
                 this.listener?.MessageAckHelperReceivedExpectedResponse(from, container.Parse<TIngoingMessage>());
             } else {
-                this.rerouter.Route(from, container);
+                this.rerouter.Route(container);
             }
         }
 
         private void Send() {
             this.sender.Send(this.message, this.to);
+            this.startedTime = TimeUtils.CurrentTime();
             this.retryIndex++;
         }
     }

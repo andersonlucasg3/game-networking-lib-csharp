@@ -29,11 +29,8 @@ namespace GameNetworking.Messages.Streams {
             }
         }
 
-        public int Put(out byte[] buffer) {
-            lock (this.lockToken) {
-                buffer = this.currentBuffer;
-                return this.currentBufferLength;
-            }
+        public void Use(Action<byte[], int> action) {
+            lock (this.lockToken) { action?.Invoke(this.currentBuffer, this.currentBufferLength); }
         }
 
         public void DidWrite(int count) {

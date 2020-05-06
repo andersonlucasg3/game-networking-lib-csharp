@@ -6,7 +6,7 @@ using GameNetworking.Messages.Models;
 using GameNetworking.Messages.Server;
 using GameNetworking.Networking;
 using GameNetworking.Networking.Commons;
-using GameNetworking.Sockets;
+using GameNetworking.Networking.Sockets;
 
 namespace GameNetworking.Client {
     public interface IGameClientListener<TPlayer>
@@ -86,11 +86,14 @@ namespace GameNetworking.Client {
 
         void INetworkClientListener.NetworkClientDidConnect() => this.router.dispatcher.Enqueue(() => this.listener?.GameClientDidConnect(Channel.reliable));
         void INetworkClientListener.NetworkClientConnectDidTimeout() => this.router.dispatcher.Enqueue(() => this.listener?.GameClientConnectDidTimeout());
-        void INetworkClientListener.NetworkClientDidReceiveMessage(MessageContainer container) => this.router.Route(null, container);
+        void INetworkClientListener.NetworkClientDidReceiveMessage(MessageContainer container) => this.router.Route(container);
 
         void INetworkClientListener.NetworkClientDidReceiveMessage(MessageContainer container, NetEndPoint from) {
-            IClientMessageRouter router = (IClientMessageRouter)this.natIdentifierAckHelper ?? this.router;
-            router.Route(from, container);
+            if (this.natIdentifierAckHelper != null) {
+                this.natIdentifierAckHelper.Route(from, container);
+            } else {
+                this.router.Route(container);
+            }
         }
 
         void INetworkClientListener.NetworkClientDidDisconnect() {

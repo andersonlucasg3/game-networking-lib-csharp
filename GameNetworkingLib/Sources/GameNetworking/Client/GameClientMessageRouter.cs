@@ -4,11 +4,10 @@ using GameNetworking.Executors.Client;
 using GameNetworking.Messages;
 using GameNetworking.Messages.Models;
 using GameNetworking.Messages.Server;
-using GameNetworking.Sockets;
 
 namespace GameNetworking.Commons.Client {
     public interface IClientMessageRouter {
-        void Route(NetEndPoint from, MessageContainer container);
+        void Route(MessageContainer container);
     }
 
     public class GameClientMessageRouter<TPlayer> : IClientMessageRouter
@@ -25,7 +24,7 @@ namespace GameNetworking.Commons.Client {
             this.game = game;
         }
 
-        public virtual void Route(NetEndPoint from, MessageContainer container) {
+        public virtual void Route(MessageContainer container) {
             if (container == null) { return; }
 
             switch ((MessageType)container.type) {

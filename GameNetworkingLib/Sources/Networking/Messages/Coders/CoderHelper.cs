@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using GameNetworking.Messages.Coders.Converters;
 
 namespace GameNetworking.Messages.Coders {
     internal static class CoderHelper {
+        private static IntByteArrayConverter _intConverter = new IntByteArrayConverter(0);
         internal static byte[] delimiter = Encoding.UTF8.GetBytes("\r\r\r");
 
         internal static int InsertDelimiter(byte[] buffer, int index) {
@@ -28,7 +30,8 @@ namespace GameNetworking.Messages.Coders {
 
         internal static int WriteHeader(int type, byte[] buffer, int index) {
             var headerSize = sizeof(int);
-            Array.Copy(BitConverter.GetBytes(type), 0, buffer, index, headerSize);
+            _intConverter.value = type;
+            Array.Copy(_intConverter.array, 0, buffer, index, headerSize);
             return headerSize;
         }
     }

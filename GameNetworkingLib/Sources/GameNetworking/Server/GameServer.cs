@@ -93,13 +93,13 @@ namespace GameNetworking.Server {
         void IGameServerClientAcceptorListener<TPlayer>.ClientAcceptorPlayerDidConnect(TPlayer player) {
             player.listener = this.router;
             this._playerCollection.Add(player.playerId, player);
-            this.listener?.GameServerPlayerDidConnect(player, Channel.reliable);
+            this.router.dispatcher.Enqueue(() => this.listener?.GameServerPlayerDidConnect(player, Channel.reliable));
         }
 
         void IGameServerClientAcceptorListener<TPlayer>.ClientAcceptorPlayerDidDisconnect(TPlayer player) {
             player.listener = null;
             this._playerCollection.Remove(player.playerId);
-            this.listener?.GameServerPlayerDidDisconnect(player);
+            this.router.dispatcher.Enqueue(() => this.listener?.GameServerPlayerDidDisconnect(player));
         }
 
         void INetworkServerListener.NetworkServerDidAcceptPlayer(ReliableChannel reliable, UnreliableChannel unreliable) {

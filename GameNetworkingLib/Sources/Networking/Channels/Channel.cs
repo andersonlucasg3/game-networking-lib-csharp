@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Threading;
 using GameNetworking.Messages.Models;
 using GameNetworking.Messages.Streams;
@@ -47,24 +46,12 @@ namespace GameNetworking.Channels {
         #region Read & Write
 
         private void Receive() {
-            ThreadPool.QueueUserWorkItem(ReceiveTask);
+            this.socket.Receive();
         }
 
         private void Flush() {
-            ThreadPool.QueueUserWorkItem(FlushTask);
-        }
-
-        private void ReceiveTask(object stateInfo) {
-            while (this.socket.isConnected) {
-                this.socket.Receive();
-            }
-        }
-
-        private void FlushTask(object flushState) {
-            while (this.socket.isConnected) {
-                var count = this.writer.Put(out byte[] buffer);
-                this.socket.Send(buffer, count);
-            }
+            var count = this.writer.Put(out byte[] buffer);
+            this.socket.Send(buffer, count);
         }
 
         #endregion
@@ -76,10 +63,14 @@ namespace GameNetworking.Channels {
             while ((container = this.reader.Decode()) != null) {
                 this.listener?.ChannelDidReceiveMessage(this, container);
             }
+
+            this.Receive();
         }
 
         void ITcpSocketIOListener<TcpSocket>.SocketDidSendBytes(TcpSocket socket, int count) {
             this.writer.DidWrite(count);
+
+            this.Flush();
         }
     }
 
@@ -109,11 +100,9 @@ namespace GameNetworking.Channels {
             this.sendInfoCollection = new ConcurrentQueue<SendInfo>();
         }
 
-        internal void StartIO(int count = 1) {
-            for (int index = 0; index < count; index++) {
-                this.Receive();
-                this.Flush();
-            }
+        internal void StartIO() {
+            this.Receive();
+            this.Flush();
         }
 
         internal void StopIO() {
@@ -139,34 +128,26 @@ namespace GameNetworking.Channels {
         }
 
         private void Receive() {
-            ThreadPool.QueueUserWorkItem(ReceiveTask);
+            this.socket.Receive();
         }
 
         private void Flush() {
-            ThreadPool.QueueUserWorkItem(FlushTask);
-        }
+            ThreadPool.QueueUserWorkItem(state => {
+                do {
+                    if (this.sendInfoCollection.TryDequeue(out SendInfo info)) {
+                        this.SendTask(info);
+                    }
 
-        private void ReceiveTask(object stateInfo) {
-            while (this.socket != null) {
-                this.socket.Receive();
-            }
-        }
-
-        private void FlushTask(object flushState) {
-            while (this.socket != null) {
-                if (this.sendInfoCollection.TryDequeue(out SendInfo info)) {
-                    this.SendTask(info);
-                }
-
-                var values = this.writerCollection.GetEnumerator();
-                while (values.MoveNext()) {
-                    var keyValue = values.Current;
-                    var to = keyValue.Key;
-                    var writer = keyValue.Value;
-                    var count = writer.Put(out byte[] buffer);
-                    this.socket.Send(buffer, count, to);
-                }
-            }
+                    var values = this.writerCollection.GetEnumerator();
+                    while (values.MoveNext()) {
+                        var keyValue = values.Current;
+                        var to = keyValue.Key;
+                        var writer = keyValue.Value;
+                        var count = writer.Put(out byte[] buffer);
+                        this.socket.Send(buffer, count, to);
+                    }
+                } while (this.socket != null);
+            }, null);
         }
 
         #endregion
@@ -182,6 +163,8 @@ namespace GameNetworking.Channels {
             while ((container = reader.Decode()) != null) {
                 this.listener?.ChannelDidReceiveMessage(this, container, from);
             }
+
+            this.Receive();
         }
 
         void IUdpSocketIOListener.SocketDidWriteBytes(UdpSocket socket, int count, NetEndPoint to) {

@@ -84,8 +84,8 @@ namespace GameNetworking.Client {
             this.natIdentifierAckHelper?.Update();
         }
 
-        void INetworkClientListener.NetworkClientDidConnect() => this.listener?.GameClientDidConnect(Channel.reliable);
-        void INetworkClientListener.NetworkClientConnectDidTimeout() => this.listener?.GameClientConnectDidTimeout();
+        void INetworkClientListener.NetworkClientDidConnect() => this.router.dispatcher.Enqueue(() => this.listener?.GameClientDidConnect(Channel.reliable));
+        void INetworkClientListener.NetworkClientConnectDidTimeout() => this.router.dispatcher.Enqueue(() => this.listener?.GameClientConnectDidTimeout());
         void INetworkClientListener.NetworkClientDidReceiveMessage(MessageContainer container) => this.router.Route(null, container);
 
         void INetworkClientListener.NetworkClientDidReceiveMessage(MessageContainer container, NetEndPoint from) {
@@ -94,7 +94,7 @@ namespace GameNetworking.Client {
         }
 
         void INetworkClientListener.NetworkClientDidDisconnect() {
-            this.listener?.GameClientDidDisconnect();
+            this.router.dispatcher.Enqueue(() => this.listener?.GameClientDidDisconnect());
             this._playerCollection.Clear();
             this.localPlayer = null;
         }
@@ -108,7 +108,7 @@ namespace GameNetworking.Client {
             this.listener?.GameClientPlayerDidConnect(player);
             if (player.isLocalPlayer) {
                 this.localPlayer = player;
-                this.listener?.GameClientDidIdentifyLocalPlayer(player);
+                this.router.dispatcher.Enqueue(() => this.listener?.GameClientDidIdentifyLocalPlayer(player));
 
                 var endPoint = this.networkClient.localEndPoint;
                 var remote = this.networkClient.remoteEndPoint;
@@ -118,7 +118,7 @@ namespace GameNetworking.Client {
 
         void IRemoteClientListener.RemoteClientDidDisconnect(int playerId) {
             var player = this._playerCollection.Remove(playerId);
-            this.listener?.GameClientPlayerDidDisconnect(player);
+            this.router.dispatcher.Enqueue(() => this.listener?.GameClientPlayerDidDisconnect(player));
         }
 
         void IMessageAckHelperListener<NatIdentifierResponseMessage>.MessageAckHelperFailed() {

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
 using GameNetworking.Commons;
 using Logging;
 
@@ -59,9 +58,6 @@ namespace GameNetworking.Sockets {
     public sealed class TcpSocket : ITcpSocket<TcpSocket> {
         private readonly ObjectPool<byte[]> bufferPool;
         private readonly ObjectPool<IPEndPoint> ipEndPointPool;
-        private readonly object readLock = new object();
-        private readonly object writeLock = new object();
-        private readonly object poolLock = new object();
 
         private bool isClosed = false;
         private bool hasBeenConnected = false;
@@ -123,8 +119,9 @@ namespace GameNetworking.Sockets {
                     return;
                 }
 
-                var tcpSocket = new TcpSocket(accepted) { hasBeenConnected = true };
+                var tcpSocket = new TcpSocket(accepted);
                 this.serverListener?.SocketDidAccept(tcpSocket);
+                tcpSocket.hasBeenConnected = true;
             }, null);
         }
 
@@ -146,19 +143,24 @@ namespace GameNetworking.Sockets {
 
             var ipep = this.ipEndPointPool.Rent();
             this.From(endPoint, ref ipep);
-            this.socket.BeginConnect(ipep, (ar) => {
-                if (this.socket.Connected) {
-                    this.socket.EndConnect(ar);
-                    this.localEndPoint.From(this.socket.LocalEndPoint);
-                    this.remoteEndPoint.From(this.socket.RemoteEndPoint);
-                    this.clientListener?.SocketDidConnect();
-                    this.hasBeenConnected = true;
-                } else {
-                    this.clientListener?.SocketDidTimeout();
-                    this.CheckClosed();
-                }
-                this.ipEndPointPool.Pay(ipep);
-            }, null);
+            this.socket.BeginConnect(ipep, ConnectResult, new ConnectState { ipEndPoint = ipep });
+        }
+
+        struct ConnectState { public IPEndPoint ipEndPoint; }
+
+        private void ConnectResult(IAsyncResult ar) {
+            var state = (ConnectState)ar.AsyncState;
+            if (this.socket.Connected) {
+                this.socket.EndConnect(ar);
+                this.localEndPoint.From(this.socket.LocalEndPoint);
+                this.remoteEndPoint.From(this.socket.RemoteEndPoint);
+                this.clientListener?.SocketDidConnect();
+                this.hasBeenConnected = true;
+            } else {
+                this.clientListener?.SocketDidTimeout();
+                this.CheckClosed();
+            }
+            this.ipEndPointPool.Pay(state.ipEndPoint);
         }
 
         public void Disconnect() {
@@ -170,23 +172,18 @@ namespace GameNetworking.Sockets {
         #endregion
 
         private void CheckClosed() {
-            lock (this.readLock) {
-                lock (this.writeLock) {
-                    lock (this.poolLock) {
-                        if (this.isClosed || this.socket == null) { return; }
-                        try {
-                            if (!this.CheckDisconnected()) {
-                                this.socket.Shutdown(SocketShutdown.Both);
-                            }
-                        } finally {
-                            this.socket.Close();
-                        }
-                        this.socket = null;
-                        this.isClosed = true;
-                        this.hasBeenConnected = false;
-                    }
+            Logger.Log("Checking socket closed. Should be doing that?");
+            if (this.isClosed || this.socket == null) { return; }
+            try {
+                if (!this.CheckDisconnected()) {
+                    this.socket.Shutdown(SocketShutdown.Both);
                 }
+            } finally {
+                this.socket.Close();
             }
+            this.socket = null;
+            this.isClosed = true;
+            this.hasBeenConnected = false;
         }
 
         public void Close() {
@@ -196,38 +193,44 @@ namespace GameNetworking.Sockets {
         #region Read & Write
 
         public void Receive() {
-            lock (this.readLock) {
-                if (this.socket == null) { return; }
+            if (this.socket == null) { return; }
+            var buffer = this.bufferPool.Rent();
+            this.socket.BeginReceive(buffer, 0, Consts.bufferSize, SocketFlags.None, ReceiveResult, new ReceiveState { buffer = buffer });
+        }
 
-                var buffer = this.bufferPool.Rent();
-                int count = this.socket.Receive(buffer, 0, Consts.bufferSize, SocketFlags.None, out SocketError errorCode);
+        struct ReceiveState { public byte[] buffer; }
 
-                if (this.CheckDisconnected() || this.CheckSocketError(errorCode)) {
-                    this.CheckClosed();
-                    this.serverListener?.SocketDidDisconnect(this);
-                    this.clientListener?.SocketDidDisconnect();
-                    return;
-                } else {
-                    this.ioListener?.SocketDidReceiveBytes(this, buffer, count);
-                }
-                this.bufferPool.Pay(buffer);
+        private void ReceiveResult(IAsyncResult ar) {
+            var state = (ReceiveState)ar.AsyncState;
+            int count = this.socket.EndReceive(ar);
+
+            if (this.CheckDisconnected()) {
+                this.serverListener?.SocketDidDisconnect(this);
+                this.clientListener?.SocketDidDisconnect();
+                this.CheckClosed();
+                return;
+            } else {
+                this.ioListener?.SocketDidReceiveBytes(this, state.buffer, count);
             }
+            this.bufferPool.Pay(state.buffer);
         }
 
         public void Send(byte[] bytes, int count) {
-            lock (this.writeLock) {
-                if (this.socket == null) { return; }
+            if (this.socket == null) { return; }
 
-                int written = this.socket.Send(bytes, 0, count, SocketFlags.None, out SocketError errorCode);
+            this.socket.BeginSend(bytes, 0, count, SocketFlags.None, SendResult, null);
+        }
 
-                if (this.CheckDisconnected() || this.CheckSocketError(errorCode)) {
-                    this.serverListener?.SocketDidDisconnect(this);
-                    this.clientListener?.SocketDidDisconnect();
-                    this.CheckClosed();
-                    return;
-                } else {
-                    this.ioListener?.SocketDidSendBytes(this, written);
-                }
+        private void SendResult(IAsyncResult ar) {
+            int written = this.socket.EndSend(ar);
+
+            if (this.CheckDisconnected()) {
+                this.serverListener?.SocketDidDisconnect(this);
+                this.clientListener?.SocketDidDisconnect();
+                this.CheckClosed();
+                return;
+            } else {
+                this.ioListener?.SocketDidSendBytes(this, written);
             }
         }
 
@@ -239,35 +242,10 @@ namespace GameNetworking.Sockets {
             return this.hasBeenConnected && (!this.isConnected || !this.IsConnected());
         }
 
-        private bool CheckSocketError(SocketError error) {
-            switch (error) {
-                case SocketError.Shutdown:
-                case SocketError.OperationAborted:
-                case SocketError.NotConnected:
-                case SocketError.NetworkUnreachable:
-                case SocketError.NetworkReset:
-                case SocketError.NetworkDown:
-                case SocketError.Interrupted:
-                case SocketError.HostUnreachable:
-                case SocketError.HostNotFound:
-                case SocketError.HostDown:
-                case SocketError.Fault:
-                case SocketError.Disconnecting:
-                case SocketError.ConnectionReset:
-                case SocketError.ConnectionRefused:
-                case SocketError.ConnectionAborted:
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
         private bool IsConnected() {
             try {
-                lock (this.poolLock) {
-                    if (this.socket == null) { return false; }
-                    return !(this.socket.Poll(1, SelectMode.SelectRead) && socket.Available == 0);
-                }
+                if (this.socket == null) { return false; }
+                return !(this.socket.Poll(1, SelectMode.SelectRead) && socket.Available == 0);
             } catch (SocketException) { return false; }
         }
 
@@ -308,8 +286,6 @@ namespace GameNetworking.Sockets {
         private readonly ObjectPool<byte[]> bufferPool;
         private readonly ObjectPool<IPEndPoint> ipEndPointPool;
         private readonly ObjectPool<NetEndPoint> netEndPointPool;
-        private readonly object readLock = new object();
-        private readonly object writeLock = new object();
         private Socket socket;
 
         public bool isBound => this.socket.IsBound;
@@ -356,17 +332,13 @@ namespace GameNetworking.Sockets {
         public void Connect(NetEndPoint endPoint) => this.remoteEndPoint = endPoint;
 
         public void Close() {
-            lock (this.readLock) {
-                lock (this.writeLock) {
-                    if (this.socket == null) { return; }
-                    try {
-                        if (this.socket.Connected) {
-                            this.socket.Shutdown(SocketShutdown.Both);
-                        }
-                    } finally { this.socket.Close(); }
-                    this.socket = null;
+            if (this.socket == null) { return; }
+            try {
+                if (this.socket.Connected) {
+                    this.socket.Shutdown(SocketShutdown.Both);
                 }
-            }
+            } finally { this.socket.Close(); }
+            this.socket = null;
         }
 
         public override string ToString() {
@@ -376,39 +348,49 @@ namespace GameNetworking.Sockets {
         #region Read & Write
 
         public void Receive() {
-            lock (this.readLock) {
-                if (this.socket == null) { return; }
+            if (this.socket == null) { return; }
 
-                var buffer = this.bufferPool.Rent();
-                var netEndPoint = this.netEndPointPool.Rent();
-                var endPoint = this.ipEndPointPool.Rent();
-                endPoint.Address = IPAddress.Any;
-                endPoint.Port = 0;
-                EndPoint ep = endPoint;
-                var readByteCount = this.socket.ReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref ep);
+            var buffer = this.bufferPool.Rent();
+            var netEndPoint = this.netEndPointPool.Rent();
+            var endPoint = this.ipEndPointPool.Rent();
+            endPoint.Address = IPAddress.Any;
+            endPoint.Port = 0;
+            EndPoint ep = endPoint;
+            this.socket.BeginReceiveFrom(buffer, 0, Consts.bufferSize, SocketFlags.None, ref ep, ReceiveResult, new ReceiveState {
+                buffer = buffer,
+                netEndPoint = netEndPoint,
+                ipEndPoint = endPoint
+            });
+        }
 
-                if (readByteCount > 0) {
-                    netEndPoint.From(ep);
-                    this.listener?.SocketDidReceiveBytes(this, buffer, readByteCount, netEndPoint);
-                }
+        struct ReceiveState {
+            public byte[] buffer;
+            public NetEndPoint netEndPoint;
+            public IPEndPoint ipEndPoint;
+        }
 
-                this.bufferPool.Pay(buffer);
-                this.ipEndPointPool.Pay((IPEndPoint)endPoint);
-                this.netEndPointPool.Pay(netEndPoint);
-            }
+        private void ReceiveResult(IAsyncResult ar) {
+            var state = (ReceiveState)ar.AsyncState;
+            EndPoint ep = state.ipEndPoint;
+            var readByteCount = this.socket.EndReceiveFrom(ar, ref ep);
+
+            state.netEndPoint.From(ep);
+            this.listener?.SocketDidReceiveBytes(this, state.buffer, readByteCount, state.netEndPoint);
+
+            this.bufferPool.Pay(state.buffer);
+            this.ipEndPointPool.Pay(state.ipEndPoint);
+            this.netEndPointPool.Pay(state.netEndPoint);
         }
 
         public void Send(byte[] bytes, int count, NetEndPoint to) {
-            lock (this.writeLock) {
-                if (this.socket == null) { return; }
+            if (this.socket == null) { return; }
 
-                IPEndPoint endPoint = this.ipEndPointPool.Rent();
-                endPoint.Address = IPAddress.Parse(to.host);
-                endPoint.Port = to.port;
-                var writtenCount = this.socket.SendTo(bytes, 0, count, SocketFlags.None, endPoint);
-                this.listener?.SocketDidWriteBytes(this, writtenCount, to);
-                this.ipEndPointPool.Pay(endPoint);
-            }
+            IPEndPoint endPoint = this.ipEndPointPool.Rent();
+            endPoint.Address = IPAddress.Parse(to.host);
+            endPoint.Port = to.port;
+            var writtenCount = this.socket.SendTo(bytes, 0, count, SocketFlags.None, endPoint);
+            this.listener?.SocketDidWriteBytes(this, writtenCount, to);
+            this.ipEndPointPool.Pay(endPoint);
         }
 
         #endregion

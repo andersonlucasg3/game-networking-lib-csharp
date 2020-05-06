@@ -59,6 +59,7 @@ namespace GameNetworking.Networking.Commons {
 
         public void Route(NetEndPoint from, MessageContainer container) {
             if (container.Is(this.referenceMessage.type)) {
+                this.started = false;
                 this.listener?.MessageAckHelperReceivedExpectedResponse(from, container.Parse<TIngoingMessage>());
             } else {
                 this.rerouter.Route(from, container);

@@ -370,10 +370,12 @@ namespace GameNetworking.Sockets {
         private void ReceiveResult(IAsyncResult ar) {
             var state = (ReceiveState)ar.AsyncState;
             EndPoint ep = state.ipEndPoint;
-            var readByteCount = this.socket.EndReceiveFrom(ar, ref ep);
 
-            state.netEndPoint.From(ep);
-            this.listener?.SocketDidReceiveBytes(this, state.buffer, readByteCount, state.netEndPoint);
+            if (this.socket != null) {
+                var readByteCount = this.socket.EndReceiveFrom(ar, ref ep);
+                state.netEndPoint.From(ep);
+                this.listener?.SocketDidReceiveBytes(this, state.buffer, readByteCount, state.netEndPoint);
+            }
 
             this.bufferPool.Pay(state.buffer);
             this.ipEndPointPool.Pay(state.ipEndPoint);

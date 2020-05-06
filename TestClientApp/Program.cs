@@ -31,8 +31,9 @@ namespace TestClientApp {
 
             while (true) {
                 lock (program) {
-                    program.actions.ForEach(each => each?.Invoke());
+                    var copy = new List<Action>(program.actions);
                     program.actions.RemoveAll(_ => true);
+                    copy.ForEach(each => each?.Invoke());
                     program.client.Update();
                 }
 

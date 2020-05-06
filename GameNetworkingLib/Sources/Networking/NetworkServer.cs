@@ -63,7 +63,7 @@ namespace GameNetworking.Networking {
 
             this.listeningOnEndPoint = this.tcpSocket.localEndPoint;
 
-            this.unreliableChannel.StartIO(count: 4);
+            this.unreliableChannel.StartIO();
         }
 
         public void Stop() {

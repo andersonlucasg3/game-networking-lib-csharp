@@ -173,7 +173,7 @@ namespace GameNetworking.Channels {
         void IUdpSocketIOListener.SocketDidReceiveBytes(UdpSocket socket, byte[] bytes, int count, NetEndPoint from) {
             if (!this.readerCollection.TryGetValue(from, out MessageStreamReader reader)) {
                 reader = new MessageStreamReader();
-                this.readerCollection.TryAdd(from, reader);
+                this.readerCollection.Add(from, reader);
             }
             reader.Add(bytes, count);
 

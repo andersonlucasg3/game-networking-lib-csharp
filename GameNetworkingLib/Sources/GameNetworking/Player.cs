@@ -11,6 +11,8 @@ namespace GameNetworking {
             int playerId { get; }
             float mostRecentPingValue { get; }
 
+            void Send(ITypedMessage message, Channel channel);
+
             void Disconnect();
         }
 

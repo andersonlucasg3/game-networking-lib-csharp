@@ -8,7 +8,7 @@ using GameNetworking.Server;
 namespace GameNetworking.Executors.Server {
     struct NatIdentifierRequestExecutor<TPlayer> :
         IExecutor<GameServerMessageRouter<TPlayer>.ServerModel<NetEndPoint>, NatIdentifierRequestMessage>
-        where TPlayer : Player, new() {
+        where TPlayer : GameNetworking.Server.Player, new() {
         public void Execute(GameServerMessageRouter<TPlayer>.ServerModel<NetEndPoint> model, NatIdentifierRequestMessage message) {
             if (!model.server.playerCollection.TryGetPlayer(message.playerId, out TPlayer player)) { return; }
             player.remoteIdentifiedEndPoint = model.model;

@@ -1,10 +1,10 @@
 ﻿using GameNetworking.Client;
+using GameNetworking.Commons;
 using GameNetworking.Messages.Server;
 
 namespace GameNetworking.Executors.Client {
-    internal class ConnectedPlayerExecutor : Commons.BaseExecutor<IRemoteClientListener, ConnectedPlayerMessage> {
-        internal ConnectedPlayerExecutor(IRemoteClientListener client, ConnectedPlayerMessage message) : base(client, message) { }
-
-        public override void Execute() => this.instance.RemoteClientDidConnect(this.message.playerId, this.message.isMe);
+    internal class ConnectedPlayerExecutor : IExecutor<IRemoteClientListener, ConnectedPlayerMessage> {
+        public void Execute(IRemoteClientListener model, ConnectedPlayerMessage message)
+            => model.RemoteClientDidConnect(message.playerId, message.isMe);
     }
 }

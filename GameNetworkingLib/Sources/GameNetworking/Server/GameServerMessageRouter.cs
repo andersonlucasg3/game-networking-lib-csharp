@@ -1,5 +1,4 @@
 ﻿using GameNetworking.Commons;
-using GameNetworking.Executors;
 using GameNetworking.Executors.Server;
 using GameNetworking.Messages;
 using GameNetworking.Messages.Client;
@@ -7,8 +6,8 @@ using GameNetworking.Messages.Models;
 
 namespace GameNetworking.Server {
     public class GameServerMessageRouter<TPlayer> : IPlayerMessageListener
-        where TPlayer : Player {
-        protected IGameServer<TPlayer> server { get; private set; }
+        where TPlayer : Player, new() {
+        protected GameServer<TPlayer> server { get; private set; }
 
         public readonly IMainThreadDispatcher dispatcher;
 
@@ -16,12 +15,8 @@ namespace GameNetworking.Server {
             this.dispatcher = dispatcher;
         }
 
-        internal void Configure(IGameServer<TPlayer> server) {
+        internal void Configure(GameServer<TPlayer> server) {
             this.server = server;
-        }
-
-        protected void Execute(IExecutor executor) {
-            dispatcher.Enqueue(executor.Execute);
         }
 
         protected virtual void Route(MessageContainer container, TPlayer player) {
@@ -30,13 +25,38 @@ namespace GameNetworking.Server {
             var type = (MessageType)container.type;
 
             switch (type) {
-                case MessageType.pong: Execute(new PongRequestExecutor<TPlayer>(this.server, player, container.Parse<PongRequestMessage>())); break;
-                default: this.server.listener?.GameServerDidReceiveClientMessage(container, player); break;
+            case MessageType.pong: this.EnqueuePong(player, container.Parse<PongRequestMessage>()); break;
+            default: this.server.listener?.GameServerDidReceiveClientMessage(container, player); break;
             }
         }
 
         void IPlayerMessageListener.PlayerDidReceiveMessage(MessageContainer container, IPlayer from) {
             this.Route(container, from as TPlayer);
+        }
+
+        protected void Execute<TExecutor, TModel, TMessage>(Executor<TExecutor, TModel, TMessage> executor)
+            where TExecutor : struct, IExecutor<TModel, TMessage>
+            where TMessage : struct, ITypedMessage {
+            dispatcher.Enqueue(executor.Execute);
+        }
+
+        private void EnqueuePong(TPlayer player, PongRequestMessage message) {
+            var executor = new Executor<
+                PongRequestExecutor<TPlayer>,
+                ServerModel<TPlayer>,
+                PongRequestMessage
+                >(new ServerModel<TPlayer>(this.server, player), message);
+            this.Execute(executor);
+        }
+
+        public struct ServerModel<TModel> {
+            public readonly GameServer<TPlayer> server;
+            public readonly TModel model;
+
+            public ServerModel(GameServer<TPlayer> server, TModel model) {
+                this.server = server;
+                this.model = model;
+            }
         }
     }
 }

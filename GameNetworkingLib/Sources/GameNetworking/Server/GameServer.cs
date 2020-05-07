@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using GameNetworking.Channels;
+using GameNetworking.Commons;
 using GameNetworking.Executors.Server;
 using GameNetworking.Messages;
 using GameNetworking.Messages.Client;
@@ -111,8 +112,12 @@ namespace GameNetworking.Server {
 
         void INetworkServerListener.NetworkServerDidReceiveUnidentifiedMessage(MessageContainer container, NetEndPoint from) {
             if (container.Is((int)MessageType.natIdentifier)) {
-                Action action = new NatIdentifierRequestExecutor<TPlayer>(this, from, container.Parse<NatIdentifierRequestMessage>()).Execute;
-                this.router.dispatcher.Enqueue(action);
+                var executor = new Executor<
+                    NatIdentifierRequestExecutor<TPlayer>,
+                    GameServerMessageRouter<TPlayer>.ServerModel<NetEndPoint>,
+                    NatIdentifierRequestMessage
+                    >(new GameServerMessageRouter<TPlayer>.ServerModel<NetEndPoint>(this, from), container.Parse<NatIdentifierRequestMessage>());
+                this.router.dispatcher.Enqueue(executor.Execute);
             }
         }
 

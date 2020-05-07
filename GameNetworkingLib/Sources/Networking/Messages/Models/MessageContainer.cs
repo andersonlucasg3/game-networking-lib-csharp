@@ -4,32 +4,24 @@ using GameNetworking.Messages.Coders;
 
 namespace GameNetworking.Messages.Models {
     public sealed class MessageContainer {
-        private readonly Decoder _decoder;
-        private readonly ObjectPool<Decoder> _decoderPool;
         private readonly byte[] _buffer;
+        private readonly int _length;
 
-        public int type {
-            get; private set;
-        }
+        public int type { get; private set; }
 
-        public MessageContainer(Decoder decoder, ObjectPool<Decoder> decoderPool, byte[] buffer) {
-            this._decoderPool = decoderPool;
-            this._decoder = decoder;
+        public MessageContainer(byte[] buffer, int length) {
             this._buffer = buffer;
-            this.type = decoder.GetInt();
+            this._length = length;
+            this.type = BitConverter.ToInt32(buffer, 0);
         }
 
         public bool Is(int type) {
             return type == this.type;
         }
 
-        public TMessage Parse<TMessage>() where TMessage : class, IDecodable, new() {
-            TMessage message = new TMessage();
-            message.Decode(this._decoder);
-
-            this._decoderPool.Pay(this._decoder);
+        public TMessage Parse<TMessage>() where TMessage : struct, IDecodable {
+            var message = BinaryDecoder.Decode<TMessage>(this._buffer, sizeof(int), this._length);
             ReturnBuffer(this._buffer);
-
             return message;
         }
 

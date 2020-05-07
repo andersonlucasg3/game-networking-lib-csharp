@@ -2,13 +2,11 @@
 using GameNetworking.Messages.Models;
 
 namespace GameNetworking.Messages.Server {
-    class NatIdentifierResponseMessage : ITypedMessage {
+    struct NatIdentifierResponseMessage : ITypedMessage {
         int ITypedMessage.type => (int)MessageType.natIdentifier;
 
-        public string remoteIp = "";
-        public int port = 0;
-
-        public NatIdentifierResponseMessage() { }
+        public string remoteIp { get; private set; }
+        public int port { get; private set; }
 
         public NatIdentifierResponseMessage(string remoteIp, int port) {
             this.remoteIp = remoteIp;
@@ -17,7 +15,7 @@ namespace GameNetworking.Messages.Server {
 
         void IDecodable.Decode(IDecoder decoder) {
             this.remoteIp = decoder.GetString();
-            this.port = 0;
+            this.port = decoder.GetInt();
         }
         void IEncodable.Encode(IEncoder encoder) {
             encoder.Encode(this.remoteIp);

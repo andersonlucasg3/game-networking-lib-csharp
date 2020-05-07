@@ -60,13 +60,11 @@ namespace TestServerApp {
         }
     }
 
-    class Message : ITypedMessage {
+    struct Message : ITypedMessage {
         public int type => 1001;
 
         public int playerId;
         public int messageId;
-
-        public Message() { }
 
         public Message(int playerId, int messageId) {
             this.playerId = playerId;

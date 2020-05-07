@@ -3,7 +3,30 @@ using System.IO;
 using GameNetworking.Messages.Coders.Converters;
 
 namespace GameNetworking.Messages.Coders {
-    public sealed class Decoder : IDecoder, System.IDisposable {
+    public interface IDecodable {
+        void Decode(IDecoder decoder);
+    }
+
+    public interface IDecoder {
+        int GetInt();
+        short GetShort();
+        long GetLong();
+        uint GetUInt();
+        ushort GetUShort();
+        ulong GetULong();
+
+        float GetFloat();
+        double GetDouble();
+
+        string GetString();
+        byte[] GetBytes();
+
+        bool GetBool();
+
+        TDecodable? GetObject<TDecodable>() where TDecodable : struct, IDecodable;
+    }
+
+    sealed class _Decoder : IDecoder, IDisposable {
         private ShortByteArrayConverter _shortConverter = new ShortByteArrayConverter(0);
         private UShortByteArrayConverter _ushortConverter = new UShortByteArrayConverter(0);
         private IntByteArrayConverter _intConverter = new IntByteArrayConverter(0);
@@ -12,18 +35,17 @@ namespace GameNetworking.Messages.Coders {
         private ULongByteArrayConverter _ulongConverter = new ULongByteArrayConverter(0L);
         private FloatByteArrayConverter _floatConverter = new FloatByteArrayConverter(0F);
         private DoubleByteArrayConverter _doubleConverter = new DoubleByteArrayConverter(0F);
-        private byte[] _boolBuffer = new byte[1];
-        private MemoryStream _memoryStream;
+        private readonly byte[] _boolBuffer = new byte[1];
+        private readonly MemoryStream _memoryStream;
 
-        public Decoder() { }
-
-        public Decoder(MemoryStream stream) {
-            this._memoryStream = stream;
+        public _Decoder() {
+            this._memoryStream = new MemoryStream();
         }
 
         public void SetBuffer(byte[] bytes, int offset, int length) {
-            this._memoryStream?.Dispose();
-            this._memoryStream = new MemoryStream(bytes, offset, length);
+            this._memoryStream.SetLength(0);
+            this._memoryStream.Write(bytes, offset, length);
+            this._memoryStream.Seek(0, SeekOrigin.Begin);
         }
 
         public int GetInt() {
@@ -99,7 +121,7 @@ namespace GameNetworking.Messages.Coders {
             return Convert.ToBoolean(this._boolBuffer[0]);
         }
 
-        public T GetObject<T>() where T : class, IDecodable, new() {
+        public T? GetObject<T>() where T : struct, IDecodable {
             if (this.GetBool()) {
                 T value = new T();
                 value.Decode(this);
@@ -110,6 +132,18 @@ namespace GameNetworking.Messages.Coders {
 
         public void Dispose() {
             this._memoryStream.Dispose();
+        }
+    }
+
+    public static class BinaryDecoder {
+        public static readonly IDecoder shared = new _Decoder();
+
+        public static TMessage Decode<TMessage>(byte[] fromBuffer, int index, int length) where TMessage : struct, IDecodable {
+            var decoder = (_Decoder)shared;
+            decoder.SetBuffer(fromBuffer, index, length);
+            TMessage message = new TMessage();
+            message.Decode(shared);
+            return message;
         }
     }
 }

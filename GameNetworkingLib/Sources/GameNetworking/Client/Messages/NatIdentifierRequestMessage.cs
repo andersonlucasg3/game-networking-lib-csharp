@@ -2,14 +2,12 @@
 using GameNetworking.Messages.Models;
 
 namespace GameNetworking.Messages.Client {
-    class NatIdentifierRequestMessage : ITypedMessage {
+    struct NatIdentifierRequestMessage : ITypedMessage {
         int ITypedMessage.type => (int)MessageType.natIdentifier;
 
-        public int playerId = 0;
-        public string remoteIp = "";
-        public int port = 0;
-
-        public NatIdentifierRequestMessage() { }
+        public int playerId;
+        public string remoteIp;
+        public int port;
 
         public NatIdentifierRequestMessage(int playerId, string remoteIp, int port) {
             this.playerId = playerId;

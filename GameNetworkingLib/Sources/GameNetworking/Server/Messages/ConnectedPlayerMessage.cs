@@ -2,7 +2,7 @@
 using GameNetworking.Messages.Models;
 
 namespace GameNetworking.Messages.Server {
-    public class ConnectedPlayerMessage : ITypedMessage {
+    public struct ConnectedPlayerMessage : ITypedMessage {
         int ITypedMessage.type => (int)MessageType.connectedPlayer;
 
         public int playerId { get; set; }

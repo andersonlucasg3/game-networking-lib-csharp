@@ -6,14 +6,14 @@ using GameNetworking.Networking.Sockets;
 
 namespace GameNetworking.Networking.Commons {
     public interface IMessageAckHelperListener<TIngoingMessage>
-        where TIngoingMessage : ITypedMessage {
+        where TIngoingMessage : struct, ITypedMessage {
         void MessageAckHelperFailed();
         void MessageAckHelperReceivedExpectedResponse(NetEndPoint from, TIngoingMessage message);
     }
 
     public class MessageAckHelper<TOutgoingMessage, TIngoingMessage>
-        where TIngoingMessage : class, ITypedMessage, new()
-        where TOutgoingMessage : ITypedMessage {
+        where TIngoingMessage : struct, ITypedMessage
+        where TOutgoingMessage : struct, ITypedMessage {
         private readonly UnreliableChannel sender;
         private readonly IClientMessageRouter rerouter;
         private readonly double interval;

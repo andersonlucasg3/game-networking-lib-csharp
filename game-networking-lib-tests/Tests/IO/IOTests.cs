@@ -22,43 +22,37 @@ namespace Tests.IO {
 
         [Test]
         public void TestEncoder() {
-            Value value = new Value();
-            Encoder encoder = new Encoder();
+            Value value = new Value(new SubValue(new SubSubValue("")), Value.bytes);
             this.Measure(() => {
-                value.Encode(encoder);
+                byte[] buffer = new byte[8 * 1024];
+                BinaryEncoder.Encode(value, buffer, 0);
             }, "Encoder");
         }
 
         [Test]
         public void TestDecoder() {
-            Value value = new Value();
-            Encoder encoder = new Encoder();
-            value.Encode(encoder);
-            byte[] encoded = encoder.encodedBytes;
+            Value value = new Value(new SubValue(new SubSubValue("")), Value.bytes);
+            byte[] buffer = new byte[8 * 1024];
+            int length = BinaryEncoder.Encode(value, buffer, 0);
 
-            Decoder decoder = new Decoder();
-            decoder.SetBuffer(encoded, 0, encoded.Length);
             this.Measure(() => {
-                value.Decode(decoder);
+                _ = BinaryDecoder.Decode<Value>(buffer, 0, length);
             }, "Decoder");
         }
 
         [Test]
         public void TestEncoderDecoder() {
-            Value value = new Value();
+            Value value = new Value(new SubValue(new SubSubValue("")), Value.bytes);
 
             Value decoded = new Value();
 
-            Encoder encoder = new Encoder();
-            Decoder decoder = new Decoder();
             this.Measure(() => {
-                value.Encode(encoder);
-                byte[] encoded = encoder.encodedBytes;
+                byte[] buffer = new byte[8 * 1024];
+                int length = BinaryEncoder.Encode(value, buffer, 0);
 
-                Logger.Log($"Encoded message size: {encoded.Length}");
+                Logger.Log($"Encoded message size: {length}");
 
-                decoder.SetBuffer(encoded, 0, encoded.Length);
-                decoded.Decode(decoder);
+                decoded = BinaryDecoder.Decode<Value>(buffer, 0, length);
             }, "Encoder and Decoder");
 
             Assert.AreEqual(value.intVal, decoded.intVal);
@@ -70,7 +64,7 @@ namespace Tests.IO {
             Assert.AreEqual(value.stringVal, decoded.stringVal);
             Assert.AreEqual(value.bytesVal, decoded.bytesVal);
             Assert.AreEqual(value.subValue, decoded.subValue);
-            Assert.AreEqual(value.subValue.subSubValue.empty, decoded.subValue.subSubValue.empty);
+            Assert.AreEqual(value.subValue?.subSubValue.empty, decoded.subValue?.subSubValue.empty);
         }
 
         [Test]
@@ -79,7 +73,7 @@ namespace Tests.IO {
 
             Value value = new Value();
 
-            Value decoded = null;
+            Value? decoded = null;
 
             MemoryStream ms = new MemoryStream();
 
@@ -93,15 +87,15 @@ namespace Tests.IO {
                 decoded = (Value)formatter.Deserialize(ms);
             }, "BinaryFormatter");
 
-            Assert.AreEqual(value.intVal, decoded.intVal);
-            Assert.AreEqual(value.shortVal, decoded.shortVal);
-            Assert.AreEqual(value.longVal, decoded.longVal);
-            Assert.AreEqual(value.uintVal, decoded.uintVal);
-            Assert.AreEqual(value.ushortVal, decoded.ushortVal);
-            Assert.AreEqual(value.ulongVal, decoded.ulongVal);
-            Assert.AreEqual(value.stringVal, decoded.stringVal);
-            Assert.AreEqual(value.bytesVal, decoded.bytesVal);
-            Assert.AreEqual(value.subValue, decoded.subValue);
+            Assert.AreEqual(value.intVal, decoded?.intVal);
+            Assert.AreEqual(value.shortVal, decoded?.shortVal);
+            Assert.AreEqual(value.longVal, decoded?.longVal);
+            Assert.AreEqual(value.uintVal, decoded?.uintVal);
+            Assert.AreEqual(value.ushortVal, decoded?.ushortVal);
+            Assert.AreEqual(value.ulongVal, decoded?.ulongVal);
+            Assert.AreEqual(value.stringVal, decoded?.stringVal);
+            Assert.AreEqual(value.bytesVal, decoded?.bytesVal);
+            Assert.AreEqual(value.subValue, decoded?.subValue);
         }
 
         [Test]
@@ -144,14 +138,14 @@ namespace Tests.IO {
                     decoder.Add(x, x.Length);
                     var container = decoder.Decode();
                     if (container != null) {
-                        if (container.Is(LoginRequest.Type)) {
+                        if (container.Is(200)) { // LoginRequest
                             var message = container.Parse<LoginRequest>();
                             Assert.AreEqual(message.accessToken, firstToken);
                             Assert.AreEqual(message.username, username);
-                        } else if (container.Is(MatchRequest.Type)) {
+                        } else if (container.Is(201)) { // MatchRequest
                             var message = container.Parse<MatchRequest>();
                             Assert.AreNotEqual(message, null);
-                        } else if (container.Is(ConnectGameInstanceResponse.Type)) {
+                        } else if (container.Is(202)) { // ConnectGameInstanceResponse
                             var message = container.Parse<ConnectGameInstanceResponse>();
                             Assert.AreEqual(message.ip, ip);
                             Assert.AreEqual(message.port, port);
@@ -170,21 +164,14 @@ namespace Tests.IO {
                 username = "andersonlucasg3"
             };
 
-            Encoder encoder = new Encoder();
-            request.Encode(encoder);
-            int size = encoder.encodedBytes.Length;
+            byte[] buffer = new byte[8 * 1024];
+            int size = BinaryEncoder.Encode(request, buffer, 0);
             Logger.Log($"LoginRequest Message size: {size}");
         }
     }
 
-    class LoginRequest : ITypedMessage {
-        public static int Type {
-            get { return 200; }
-        }
-
-        int ITypedMessage.type {
-            get { return LoginRequest.Type; }
-        }
+    struct LoginRequest : ITypedMessage {
+        int ITypedMessage.type => 200;
 
         public string accessToken;
         public string username;
@@ -200,28 +187,16 @@ namespace Tests.IO {
         }
     }
 
-    class MatchRequest : ITypedMessage {
-        public static int Type {
-            get { return 201; }
-        }
-
-        int ITypedMessage.type {
-            get { return MatchRequest.Type; }
-        }
+    struct MatchRequest : ITypedMessage {
+        int ITypedMessage.type => 201;
 
         public void Encode(IEncoder encoder) { }
 
         public void Decode(IDecoder decoder) { }
     }
 
-    class ConnectGameInstanceResponse : ITypedMessage {
-        public static int Type {
-            get { return 202; }
-        }
-
-        int ITypedMessage.type {
-            get { return ConnectGameInstanceResponse.Type; }
-        }
+    struct ConnectGameInstanceResponse : ITypedMessage {
+        int ITypedMessage.type => 202;
 
         public string token;
         public string ip;
@@ -241,26 +216,36 @@ namespace Tests.IO {
     }
 
     [Serializable]
-    class Value : ITypedMessage {
-        public static int Type {
-            get { return 100; }
+    struct Value : ITypedMessage {
+        public static readonly byte[] bytes = System.Text.Encoding.UTF8.GetBytes("Minha string preferida em bytes");
+
+        int ITypedMessage.type => 100;
+
+        public int intVal;
+        public short shortVal;
+        public long longVal;
+        public uint uintVal;
+        public ushort ushortVal;
+        public ulong ulongVal;
+
+        public string stringVal;
+        public byte[] bytesVal;
+
+        public SubValue? subValue;
+
+        public Value(SubValue subValue, byte[] bytesVal, int intVal = 1, short shortVal = 2, long longVal = 3,
+            uint uintVal = 4, ushort ushortVal = 5, ulong ulongVal = 6,
+            string stringVal = "Minha string preferida") {
+            this.bytesVal = bytesVal;
+            this.intVal = intVal;
+            this.shortVal = shortVal;
+            this.longVal = longVal;
+            this.uintVal = uintVal;
+            this.ushortVal = ushortVal;
+            this.ulongVal = ulongVal;
+            this.stringVal = stringVal;
+            this.subValue = subValue;
         }
-
-        int ITypedMessage.type {
-            get { return Value.Type; }
-        }
-
-        public int intVal = 1;
-        public short shortVal = 2;
-        public long longVal = 3;
-        public uint uintVal = 4;
-        public ushort ushortVal = 5;
-        public ulong ulongVal = 6;
-
-        public string stringVal = "Minha string preferida";
-        public byte[] bytesVal = System.Text.Encoding.UTF8.GetBytes("Minha string preferida em bytes");
-
-        public SubValue subValue = new SubValue();
 
         public void Encode(IEncoder encoder) {
             encoder.Encode(this.intVal);
@@ -283,44 +268,54 @@ namespace Tests.IO {
             this.ulongVal = decoder.GetULong();
             this.stringVal = decoder.GetString();
             this.bytesVal = decoder.GetBytes();
-            this.subValue = decoder.GetObject<SubValue>();
+            var subValue = decoder.GetObject<SubValue>();
+            if (subValue.HasValue) {
+                this.subValue = subValue.Value;
+            }
         }
     }
 
     [Serializable]
-    class SubValue : ITypedMessage {
-        public static int Type {
-            get { return 101; }
+    struct SubValue : ITypedMessage {
+        int ITypedMessage.type => 101;
+
+        public string name;
+        public int age;
+        public float height;
+        public double weight;
+
+        public SubSubValue subSubValue;
+
+        public SubValue(SubSubValue subSubValue, string name = "Meu nome", int age = 30, float height = 1.95F,
+            double weight = 110F) {
+            this.name = name;
+            this.age = age;
+            this.height = height;
+            this.weight = weight;
+            this.subSubValue = subSubValue;
         }
-
-        int ITypedMessage.type {
-            get { return SubValue.Type; }
-        }
-
-        public string name = "Meu nome";
-        public int age = 30;
-        public float height = 1.95F;
-        public float weight = 110F;
-
-        public SubSubValue subSubValue = new SubSubValue();
 
         public void Encode(IEncoder encoder) {
             encoder.Encode(this.name);
             encoder.Encode(this.age);
             encoder.Encode(this.height);
             encoder.Encode(this.weight);
+            encoder.Encode(this.subSubValue);
         }
 
         public void Decode(IDecoder decoder) {
             this.name = decoder.GetString();
             this.age = decoder.GetInt();
             this.height = decoder.GetFloat();
-            this.weight = decoder.GetFloat();
+            this.weight = decoder.GetDouble();
+            var subSubValue = decoder.GetObject<SubSubValue>();
+            if (subSubValue.HasValue) {
+                this.subSubValue = subSubValue.Value;
+            }
         }
 
         public override bool Equals(object obj) {
-            if (obj is SubValue) {
-                SubValue other = obj as SubValue;
+            if (obj is SubValue other) {
                 return this.name == other.name &&
                     this.age == other.age;
             }
@@ -328,21 +323,19 @@ namespace Tests.IO {
         }
 
         public override int GetHashCode() {
-            return base.GetHashCode();
+            return HashCode.Combine(this.name, this.age, this.height, this.weight);
         }
     }
 
     [Serializable]
-    class SubSubValue : ITypedMessage {
-        public static int Type {
-            get { return 102; }
-        }
-
-        int ITypedMessage.type {
-            get { return SubSubValue.Type; }
-        }
+    struct SubSubValue : ITypedMessage {
+        int ITypedMessage.type => 102;
 
         public string empty;
+
+        public SubSubValue(string empty) {
+            this.empty = empty;
+        }
 
         public void Encode(IEncoder encoder) {
             encoder.Encode(this.empty);

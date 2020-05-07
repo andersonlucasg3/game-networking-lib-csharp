@@ -8,8 +8,7 @@ namespace GameNetworking.Messages.Streams {
     }
 
     public class MessageStreamWriter : IStreamWriter {
-        private readonly Object lockToken = new Object();
-        private readonly Encoder encoder = new Encoder();
+        private readonly object lockToken = new object();
         private readonly byte[] currentBuffer = new byte[1024 * 1024]; // 1MB
         private int currentBufferLength = 0;
 
@@ -18,13 +17,7 @@ namespace GameNetworking.Messages.Streams {
         public void Write<TMessage>(TMessage message) where TMessage : ITypedMessage {
             lock (this.lockToken) {
                 this.currentBufferLength += CoderHelper.WriteHeader(message.type, this.currentBuffer, this.currentBufferLength);
-
-                message.Encode(this.encoder);
-                var messageBytes = this.encoder.encodedBytes;
-
-                Array.Copy(messageBytes, 0, this.currentBuffer, this.currentBufferLength, messageBytes.Length);
-                this.currentBufferLength += messageBytes.Length;
-
+                this.currentBufferLength += BinaryEncoder.Encode(message, this.currentBuffer, this.currentBufferLength);
                 this.currentBufferLength += CoderHelper.InsertDelimiter(this.currentBuffer, this.currentBufferLength);
             }
         }

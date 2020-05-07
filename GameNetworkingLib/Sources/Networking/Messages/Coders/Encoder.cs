@@ -1,9 +1,33 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 using GameNetworking.Messages.Coders.Converters;
 
 namespace GameNetworking.Messages.Coders {
-    public sealed class Encoder : IEncoder, IDisposable {
+    public interface IEncodable {
+        void Encode(IEncoder encoder);
+    }
+
+    public interface IEncoder {
+        void Encode(int value);
+        void Encode(short value);
+        void Encode(long value);
+        void Encode(uint value);
+        void Encode(ushort value);
+        void Encode(ulong value);
+
+        void Encode(float value);
+        void Encode(double value);
+
+        void Encode(string value);
+        void Encode(byte[] value);
+
+        void Encode(bool value);
+
+        void Encode(IEncodable value);
+    }
+
+    sealed class _Encoder : IEncoder, IDisposable {
         private ShortByteArrayConverter _shortConverter = new ShortByteArrayConverter(0);
         private UShortByteArrayConverter _ushortConverter = new UShortByteArrayConverter(0);
         private IntByteArrayConverter _intConverter = new IntByteArrayConverter(0);
@@ -12,23 +36,19 @@ namespace GameNetworking.Messages.Coders {
         private ULongByteArrayConverter _ulongConverter = new ULongByteArrayConverter(0L);
         private FloatByteArrayConverter _floatConverter = new FloatByteArrayConverter(0F);
         private DoubleByteArrayConverter _doubleConverter = new DoubleByteArrayConverter(0F);
-        private byte[] _boolBuffer = new byte[1];
-        private MemoryStream _memoryStream;
+        private readonly byte[] _boolBuffer = new byte[1];
+        private readonly MemoryStream _memoryStream;
 
-        public byte[] encodedBytes {
-            get {
-                byte[] bytes = this._memoryStream.ToArray();
-                this._memoryStream.Seek(0, SeekOrigin.Begin);
-                return bytes;
-            }
-        }
-
-        public Encoder() {
+        public _Encoder() {
             this._memoryStream = new MemoryStream();
         }
 
-        public Encoder(MemoryStream stream) {
-            this._memoryStream = stream;
+        public int PutBytes(byte[] buffer, int index) {
+            var memBuff = this._memoryStream.GetBuffer();
+            var length = (int)this._memoryStream.Length;
+            Array.Copy(memBuff, 0, buffer, index, length);
+            this._memoryStream.SetLength(0);
+            return length;
         }
 
         public void Dispose() {
@@ -76,7 +96,7 @@ namespace GameNetworking.Messages.Coders {
         }
 
         public void Encode(string value) {
-            var bytes = System.Text.Encoding.UTF8.GetBytes(value);
+            var bytes = Encoding.UTF8.GetBytes(value);
             this.Encode(bytes);
         }
 
@@ -97,9 +117,18 @@ namespace GameNetworking.Messages.Coders {
             this.Encode(hasValue);
 
             if (hasValue) {
-                Encoder encoder = new Encoder(this._memoryStream);
-                value.Encode(encoder);
+                value.Encode(this);
             }
+        }
+    }
+
+    public static class BinaryEncoder {
+        public static readonly IEncoder shared = new _Encoder();
+
+        public static int Encode<TEncodable>(TEncodable encodable, byte[] intoBuffer, int index) where TEncodable : IEncodable {
+            _Encoder encoder = (_Encoder)shared;
+            encodable.Encode(encoder);
+            return encoder.PutBytes(intoBuffer, index);
         }
     }
 }

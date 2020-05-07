@@ -2,7 +2,7 @@
 using GameNetworking.Messages.Models;
 
 namespace GameNetworking.Messages.Server {
-    public class DisconnectedPlayerMessage : ITypedMessage {
+    public struct DisconnectedPlayerMessage : ITypedMessage {
         int ITypedMessage.type => (int)MessageType.disconnectedPlayer;
 
         public int playerId { get; set; }

@@ -18,8 +18,7 @@ namespace GameNetworking.Executors.Server {
             var players = this.instance.playerCollection.values;
             for (int index = 0; index < players.Count; index++) {
                 TPlayer player = players[index];
-                PingResultRequestMessage message = new PingResultRequestMessage(player.playerId, player.mostRecentPingValue);
-                this.player.Send(message, Channel.unreliable);
+                this.player.Send(new PingResultRequestMessage(player.playerId, player.mostRecentPingValue), Channel.unreliable);
             }
         }
     }

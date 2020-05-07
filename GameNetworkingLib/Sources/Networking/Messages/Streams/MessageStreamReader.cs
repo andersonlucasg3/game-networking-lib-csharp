@@ -1,12 +1,10 @@
 ﻿using System;
-using GameNetworking.Commons;
 using GameNetworking.Messages.Coders;
 using GameNetworking.Messages.Models;
 
 namespace GameNetworking.Messages.Streams {
     public class MessageStreamReader : IStreamReader {
-        private readonly Object lockToken = new Object();
-        private readonly ObjectPool<Decoder> _decoderPool = new ObjectPool<Decoder>(() => new Decoder());
+        private readonly object lockToken = new object();
         private readonly byte[] currentBuffer = new byte[1024 * 1024]; // 1MB
         private int currentBufferLength;
 
@@ -27,13 +25,8 @@ namespace GameNetworking.Messages.Streams {
                 if (delimiterIndex != -1) {
                     var packageBuffer = MessageContainer.GetBuffer();
                     CoderHelper.PackageBytes(delimiterIndex, this.currentBuffer, packageBuffer);
-
-                    var decoder = this._decoderPool.Rent();
-                    decoder.SetBuffer(packageBuffer, 0, delimiterIndex);
-                    var container = new MessageContainer(decoder, this._decoderPool, packageBuffer);
-
+                    var container = new MessageContainer(packageBuffer, delimiterIndex);
                     this.currentBufferLength = CoderHelper.SliceBuffer(delimiterIndex, this.currentBuffer, this.currentBufferLength);
-
                     return container;
                 }
                 return null;

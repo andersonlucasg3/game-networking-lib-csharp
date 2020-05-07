@@ -2,18 +2,13 @@
 using GameNetworking.Messages.Models;
 
 namespace GameNetworking.Messages.Server {
-    internal class PingResultRequestMessage : ITypedMessage {
+    struct PingResultRequestMessage : ITypedMessage {
         int ITypedMessage.type => (int)MessageType.pingResult;
 
-        public float pingValue { get; private set; }
         public int playerId { get; private set; }
+        public float pingValue { get; private set; }
 
-        public PingResultRequestMessage() {
-            this.pingValue = 0;
-            this.playerId = 0;
-        }
-
-        internal PingResultRequestMessage(int playerId, float value) {
+        public PingResultRequestMessage(int playerId, float value) {
             this.playerId = playerId;
             this.pingValue = value;
         }

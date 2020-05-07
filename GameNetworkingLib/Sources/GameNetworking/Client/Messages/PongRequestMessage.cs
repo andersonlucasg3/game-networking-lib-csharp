@@ -2,12 +2,10 @@ using GameNetworking.Messages.Coders;
 using GameNetworking.Messages.Models;
 
 namespace GameNetworking.Messages.Client {
-    internal class PongRequestMessage : ITypedMessage {
+    struct PongRequestMessage : ITypedMessage {
         int ITypedMessage.type => (int)MessageType.pong;
 
         public long pingRequestId { get; private set; }
-
-        public PongRequestMessage() { }
 
         public PongRequestMessage(long pingRequestId) => this.pingRequestId = pingRequestId;
 

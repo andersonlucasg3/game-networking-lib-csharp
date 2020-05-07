@@ -37,8 +37,7 @@ namespace GameNetworking.Messages.Coders.Converters {
 
         public ShortByteArrayConverter(short value) {
             this._array = new byte[sizeof(short)];
-            this._converter = new ShortConverter();
-            this._converter.value = value;
+            this._converter = new ShortConverter { value = value };
         }
     }
 
@@ -64,8 +63,7 @@ namespace GameNetworking.Messages.Coders.Converters {
 
         public UShortByteArrayConverter(ushort value) {
             this._array = new byte[sizeof(ushort)];
-            this._converter = new UShortConverter();
-            this._converter.value = value;
+            this._converter = new UShortConverter { value = value };
         }
     }
 }

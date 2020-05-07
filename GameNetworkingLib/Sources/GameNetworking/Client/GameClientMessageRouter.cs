@@ -1,4 +1,5 @@
-﻿using GameNetworking.Client;
+﻿using System;
+using GameNetworking.Client;
 using GameNetworking.Executors;
 using GameNetworking.Executors.Client;
 using GameNetworking.Messages;
@@ -11,8 +12,8 @@ namespace GameNetworking.Commons.Client {
     }
 
     public class GameClientMessageRouter<TPlayer> : IClientMessageRouter
-        where TPlayer : GameNetworking.Client.Player {
-        protected IGameClient<TPlayer> game { get; private set; }
+        where TPlayer : GameNetworking.Client.Player, new() {
+        protected GameClient<TPlayer> game { get; private set; }
 
         public readonly IMainThreadDispatcher dispatcher;
 
@@ -20,7 +21,7 @@ namespace GameNetworking.Commons.Client {
             this.dispatcher = dispatcher;
         }
 
-        public void Configure(IGameClient<TPlayer> game) {
+        public void Configure(GameClient<TPlayer> game) {
             this.game = game;
         }
 
@@ -28,25 +29,53 @@ namespace GameNetworking.Commons.Client {
             if (container == null) { return; }
 
             switch ((MessageType)container.type) {
-            case MessageType.connectedPlayer: this.Execute(); break;
-            case MessageType.ping: this.Execute(new PingRequestExecutor<TPlayer>(this.game, container.Parse<PingRequestMessage>())); break;
-            case MessageType.pingResult: this.Execute(new PingResultRequestExecutor<TPlayer>(this.game, container.Parse<PingResultRequestMessage>())); break;
-            case MessageType.disconnectedPlayer: this.Execute(new DisconnectedPlayerExecutor(this.game as IRemoteClientListener, container.Parse<DisconnectedPlayerMessage>())); break;
+            case MessageType.connectedPlayer: this.EnqueueConnectedPlayer(container.Parse<ConnectedPlayerMessage>()); break;
+            case MessageType.ping: this.EnqueuePing(container.Parse<PingRequestMessage>()); break;
+            case MessageType.pingResult: this.EnqueuePingResult(container.Parse<PingResultRequestMessage>()); break;
+            case MessageType.disconnectedPlayer: this.EnqueueDisconnectedPlayer(container.Parse<DisconnectedPlayerMessage>()); break;
             default: this.game?.listener?.GameClientDidReceiveMessage(container); break;
             }
         }
 
-        private void Execute<TExecutor, TModel, TMessage>(Executor<TExecutor, TMessage, TModel> executor)
-            where TExecutor : IExecutor<TModel, TMessage>
+        private void Execute<TExecutor, TModel, TMessage>(Executor<TExecutor, TModel, TMessage> executor)
+            where TExecutor : struct, IExecutor<TModel, TMessage>
             where TMessage : struct, ITypedMessage {
             dispatcher.Enqueue(executor.Execute);
         }
 
-        private Executor<TExecutor, TModel, TMessage> Create<TExecutor, TModel, TMessage>(
-            TExecutor executor, TModel model, TMessage message)
-            where TExecutor : IExecutor<TModel, TMessage>
-            where TMessage : struct, ITypedMessage {
-            return new Executor<TExecutor, TMessage, TModel>(executor, model, message);
+        private void EnqueueConnectedPlayer(ConnectedPlayerMessage message) {
+            var executor = new Executor<
+                ConnectedPlayerExecutor,
+                IRemoteClientListener,
+                ConnectedPlayerMessage>(this.game, message);
+            this.Execute(executor);
+        }
+
+        private void EnqueuePing(PingRequestMessage message) {
+            var executor = new Executor<
+                PingRequestExecutor<TPlayer>,
+                GameClient<TPlayer>,
+                PingRequestMessage
+                >(this.game, message);
+            this.Execute(executor);
+        }
+
+        private void EnqueuePingResult(PingResultRequestMessage message) {
+            var executor = new Executor<
+                PingResultRequestExecutor<TPlayer>,
+                GameClient<TPlayer>,
+                PingResultRequestMessage
+                >(this.game, message);
+            this.Execute(executor);
+        }
+
+        private void EnqueueDisconnectedPlayer(DisconnectedPlayerMessage message) {
+            var executor = new Executor<
+                DisconnectedPlayerExecutor,
+                IRemoteClientListener,
+                DisconnectedPlayerMessage
+                >(this.game, message);
+            this.Execute(executor);
         }
     }
 }

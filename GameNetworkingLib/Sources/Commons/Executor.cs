@@ -7,14 +7,14 @@ namespace GameNetworking.Commons {
     }
 
     public struct Executor<TExecutor, TModel, TMessage>
-        where TExecutor : IExecutor<TModel, TMessage>
+        where TExecutor : struct, IExecutor<TModel, TMessage>
         where TMessage : struct, ITypedMessage {
         readonly TExecutor forwarding;
         readonly TModel model;
         readonly TMessage message;
 
-        public Executor(TExecutor executor, TModel model, TMessage message) {
-            this.forwarding = executor;
+        public Executor(TModel model, TMessage message) {
+            this.forwarding = new TExecutor();
             this.model = model;
             this.message = message;
         }

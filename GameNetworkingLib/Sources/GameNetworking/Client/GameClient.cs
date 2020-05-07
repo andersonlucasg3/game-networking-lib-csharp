@@ -1,4 +1,5 @@
 ﻿using GameNetworking.Channels;
+using GameNetworking.Commons;
 using GameNetworking.Commons.Client;
 using GameNetworking.Executors.Client;
 using GameNetworking.Messages.Client;
@@ -70,13 +71,13 @@ namespace GameNetworking.Client {
         public void Disconnect() => this.networkClient.Disconnect();
         public void Send(ITypedMessage message, Channel channel) {
             switch (channel) {
-                case Channel.reliable:
-                    this.networkClient.reliableChannel.Send(message);
-                    break;
-                case Channel.unreliable:
-                    var remote = this.networkClient.remoteEndPoint;
-                    this.networkClient.unreliableChannel.Send(message, remote);
-                    break;
+            case Channel.reliable:
+                this.networkClient.reliableChannel.Send(message);
+                break;
+            case Channel.unreliable:
+                var remote = this.networkClient.remoteEndPoint;
+                this.networkClient.unreliableChannel.Send(message, remote);
+                break;
             }
         }
 
@@ -130,7 +131,12 @@ namespace GameNetworking.Client {
         }
 
         void IMessageAckHelperListener<NatIdentifierResponseMessage>.MessageAckHelperReceivedExpectedResponse(NetEndPoint from, NatIdentifierResponseMessage message) {
-            this.router.dispatcher.Enqueue(new NatIdentifierResponseExecutor<TPlayer>(this, message).Execute);
+            var executor = new Executor<
+                NatIdentifierResponseExecutor<TPlayer>,
+                GameClient<TPlayer>,
+                NatIdentifierResponseMessage
+                >(this, message);
+            this.router.dispatcher.Enqueue(executor.Execute);
             this.natIdentifierAckHelper = null;
         }
     }

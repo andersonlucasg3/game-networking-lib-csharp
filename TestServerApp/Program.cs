@@ -6,9 +6,9 @@ using GameNetworking.Channels;
 using GameNetworking.Commons;
 using GameNetworking.Messages.Coders;
 using GameNetworking.Messages.Models;
-using GameNetworking.Networking;
 using GameNetworking.Server;
-using GameNetworking.Sockets;
+using GameNetworking.Networking;
+using GameNetworking.Networking.Sockets;
 using Logging;
 
 namespace TestServerApp {

@@ -25,7 +25,7 @@ namespace GameNetworking {
             internal double lastReceivedPongRequest;
             internal ReliableChannel reliableChannel { get; private set; }
             internal UnreliableChannel unreliableChannel { get; private set; }
-            internal NetEndPoint remoteIdentifiedEndPoint { get; set; }
+            internal NetEndPoint? remoteIdentifiedEndPoint { get; set; }
             internal IPlayerMessageListener listener { get; set; }
 
             public int playerId { get; internal set; }
@@ -50,7 +50,9 @@ namespace GameNetworking {
             public void Send(ITypedMessage message, Channel channel) {
                 switch (channel) {
                     case Channel.reliable: this.reliableChannel.Send(message); break;
-                    case Channel.unreliable: this.unreliableChannel.Send(message, this.remoteIdentifiedEndPoint); break;
+                    case Channel.unreliable:
+                        if (!this.remoteIdentifiedEndPoint.HasValue) { break; }
+                        this.unreliableChannel.Send(message, this.remoteIdentifiedEndPoint.Value); break;
                 }
             }
 

@@ -1,6 +1,7 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using GameNetworking.Commons;
 using Logging;
 
@@ -31,10 +32,7 @@ namespace GameNetworking.Networking.Sockets {
         void Start();
         void Stop();
 
-        void Receive();
         void Send(byte[] bytes, int count);
-
-        void Accept();
 
         void Disconnect();
     }
@@ -84,17 +82,14 @@ namespace GameNetworking.Networking.Sockets {
 
         public void Start() {
             this.socket.Listen(0);
+
+            ThreadPool.QueueUserWorkItem(_ => {
+                do { this.Accept(); } while (this.socket != null);
+            });
         }
 
         public void Stop() {
             this.CheckClosed();
-        }
-
-        public void Accept() {
-            var accepted = this.socket.Accept();
-            if (accepted != null) {
-                this.serverListener?.SocketDidAccept(new TcpSocket(accepted) { hasBeenConnected = true });
-            }
         }
 
         public void Bind(NetEndPoint endPoint) {
@@ -104,6 +99,18 @@ namespace GameNetworking.Networking.Sockets {
             this.From(endPoint, ref ipep);
             this.socket.Bind(ipep);
             this.ipEndPointPool.Pay(ipep);
+        }
+
+        private void Accept() {
+            lock (this.closeLock) {
+                if (this.socket == null) { return; }
+                if (!this.socket.Poll(-1, SelectMode.SelectRead)) { return; }
+
+                var accepted = this.socket.Accept();
+                if (accepted != null) {
+                    this.serverListener?.SocketDidAccept(new TcpSocket(accepted) { hasBeenConnected = true });
+                }
+            }
         }
 
         #endregion
@@ -168,33 +175,33 @@ namespace GameNetworking.Networking.Sockets {
         public void Receive() {
             lock (this.closeLock) {
                 if (this.socket == null) { return; }
+                if (!this.socket.Poll(-1, SelectMode.SelectRead) || this.socket.Available == 0) { return; }
 
-                var buffer = this.bufferPool.Rent();
-                int count = this.socket.Receive(buffer, 0, Consts.bufferSize, SocketFlags.None);
                 if (this.CheckDisconnected()) {
                     this.serverListener?.SocketDidDisconnect(this);
                     this.clientListener?.SocketDidDisconnect();
                     this.CheckClosed();
                     return;
                 } else {
+                    var buffer = this.bufferPool.Rent();
+                    int count = this.socket.Receive(buffer, 0, Consts.bufferSize, SocketFlags.None);
                     this.ioListener?.SocketDidReceiveBytes(this, buffer, count);
+                    this.bufferPool.Pay(buffer);
                 }
-                this.bufferPool.Pay(buffer);
             }
         }
 
         public void Send(byte[] bytes, int count) {
             lock (this.closeLock) {
                 if (this.socket == null) { return; }
-
-                int written = this.socket.Send(bytes, 0, count, SocketFlags.None);
+                if (!this.socket.Poll(-1, SelectMode.SelectWrite)) { return; }
 
                 if (this.CheckDisconnected()) {
                     this.serverListener?.SocketDidDisconnect(this);
                     this.clientListener?.SocketDidDisconnect();
                     this.CheckClosed();
-                    return;
                 } else {
+                    int written = this.socket.Send(bytes, 0, count, SocketFlags.None);
                     this.ioListener?.SocketDidSendBytes(this, written);
                 }
             }
@@ -205,14 +212,7 @@ namespace GameNetworking.Networking.Sockets {
         #region Private Methods
 
         private bool CheckDisconnected() {
-            return this.hasBeenConnected && (!this.isConnected || !this.IsConnected());
-        }
-
-        private bool IsConnected() {
-            try {
-                if (this.socket == null) { return false; }
-                return !(this.socket.Poll(1, SelectMode.SelectRead) && socket.Available == 0);
-            } catch (SocketException) { return false; }
+            return this.hasBeenConnected && !this.isConnected;
         }
 
         private void From(NetEndPoint ep, ref IPEndPoint endPoint) {

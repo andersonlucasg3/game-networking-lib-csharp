@@ -23,22 +23,16 @@ namespace GameNetworking.Networking {
 
         void Start(NetEndPoint endPoint);
         void Stop();
-
-        void Update();
     }
 
     public class NetworkServer : INetworkServer, ITcpServerListener<TcpSocket>, IUnreliableChannelListener {
-        private readonly Object lockToken = new Object();
         private readonly TcpSocket tcpSocket;
         private readonly UdpSocket udpSocket;
 
         private readonly PlayerCollection<TcpSocket, ReliableChannel> socketCollection;
         private readonly PlayerCollection<NetEndPoint, INetworkServerMessageListener> identifiedCollection;
 
-        private bool isAccepting = false;
-
         public UnreliableChannel unreliableChannel { get; }
-
         public NetEndPoint listeningOnEndPoint { get; private set; }
 
         public INetworkServerListener listener { get; set; }
@@ -76,19 +70,6 @@ namespace GameNetworking.Networking {
             this.udpSocket.Close();
         }
 
-        public void Update() {
-            this.Accept();
-        }
-
-        public void Accept() {
-            lock (this.lockToken) {
-                if (this.isAccepting) { return; }
-                this.isAccepting = true;
-            }
-
-            this.tcpSocket.Accept();
-        }
-
         public void Register(NetEndPoint endPoint, INetworkServerMessageListener listener) {
             this.identifiedCollection.Add(endPoint, listener);
         }
@@ -108,8 +89,6 @@ namespace GameNetworking.Networking {
 
             this.socketCollection.Add(socket, reliable);
             this.listener?.NetworkServerDidAcceptPlayer(reliable, this.unreliableChannel);
-
-            lock (this.lockToken) { this.isAccepting = false; }
         }
 
         void ITcpServerListener<TcpSocket>.SocketDidDisconnect(TcpSocket socket) {

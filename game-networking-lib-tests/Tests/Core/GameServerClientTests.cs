@@ -9,7 +9,7 @@ using System.Linq;
 using GameNetworking.Messages.Models;
 using GameNetworking.Client;
 using GameNetworking.Networking;
-using GameNetworking.Sockets;
+using GameNetworking.Networking.Sockets;
 using GameNetworking.Server;
 
 using ServerPlayer = GameNetworking.Server.Player;
@@ -43,7 +43,7 @@ namespace Tests.Core {
         public bool disconnectCalled { get; private set; }
         public ClientPlayer localPlayer { get; private set; }
 
-#region IGameClientListener
+        #region IGameClientListener
 
         void IGameClientListener<ClientPlayer>.GameClientDidConnect(Channel _) => this.connectedCalled = true;
         void IGameClientListener<ClientPlayer>.GameClientConnectDidTimeout() => this.connectTimeoutCalled = true;
@@ -53,7 +53,7 @@ namespace Tests.Core {
         void IGameClientListener<ClientPlayer>.GameClientPlayerDidConnect(ClientPlayer player) => this.connectedPlayers.Add(player);
         void IGameClientListener<ClientPlayer>.GameClientPlayerDidDisconnect(ClientPlayer player) => this.disconnectedPlayers.Add(player);
 
-#endregion
+        #endregion
     }
 
     public class ServerListener : IServerListener {
@@ -63,13 +63,13 @@ namespace Tests.Core {
         public List<ServerPlayer> connectedPlayers { get; } = new List<ServerPlayer>();
         public List<ServerPlayer> disconnectedPlayers { get; } = new List<ServerPlayer>();
 
-#region IGameServerListener
+        #region IGameServerListener
 
         void IGameServerListener<ServerPlayer>.GameServerPlayerDidConnect(ServerPlayer player, Channel _) => connectedPlayers.Add(player);
         void IGameServerListener<ServerPlayer>.GameServerPlayerDidDisconnect(ServerPlayer player) => disconnectedPlayers.Add(player);
         void IGameServerListener<ServerPlayer>.GameServerDidReceiveClientMessage(MessageContainer container, ServerPlayer player) => Assert.NotNull(player);
 
-#endregion
+        #endregion
     }
 
     public class GameServerClientTests {
@@ -95,7 +95,7 @@ namespace Tests.Core {
             listener = newListener;
         }
 
-        [Test] 
+        [Test]
         public void TestConnectDisconnect() {
             this.NewServer(out GameServer<ServerPlayer> server, out ServerListener serverListener);
             this.NewClient(out GameClient<ClientPlayer> client, out ClientListener clientListener);
@@ -159,7 +159,7 @@ namespace Tests.Core {
             Thread.Sleep(2000);
         }
 
-        [Test] 
+        [Test]
         public void TestMultiPlayerConnectDisconnect() {
             this.NewClient(out GameClient<ClientPlayer> client1, out ClientListener clientListener1);
             this.NewClient(out GameClient<ClientPlayer> client2, out ClientListener clientListener2);
@@ -340,7 +340,7 @@ namespace Tests.Core {
             Update();
 
             client1.Connect(hostIp, 5000);
-            
+
             Update();
 
             client2.Connect(hostIp, 5000);
@@ -400,7 +400,7 @@ namespace Tests.Core {
 
             Update();
             Update();
-            
+
             Assert.IsTrue(clientListener.localPlayer.playerId == 0);
 
             client1.Disconnect();

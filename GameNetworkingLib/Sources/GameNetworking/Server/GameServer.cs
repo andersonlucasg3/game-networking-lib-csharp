@@ -68,7 +68,6 @@ namespace GameNetworking.Server {
         }
 
         public void Update() {
-            this.networkServer.Update();
             this.pingController.Update();
         }
 

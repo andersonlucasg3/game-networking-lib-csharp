@@ -32,7 +32,7 @@ namespace GameNetworking.Channels {
             ThreadPool.QueueUserWorkItem(_ => {
                 bool shouldStop = false;
 
-                NetEndPoint to = null;
+                NetEndPoint to = new NetEndPoint();
                 void SendTo(byte[] bytes, int count) {
                     this.socket.Send(bytes, count, to);
                 }

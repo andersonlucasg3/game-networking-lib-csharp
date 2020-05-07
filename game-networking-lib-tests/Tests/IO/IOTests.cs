@@ -129,14 +129,11 @@ namespace Tests.IO {
             var encoder = new MessageStreamWriter();
             List<byte> data = new List<byte>();
             encoder.Write(loginRequest);
-            var count = encoder.Put(out byte[] buffer);
-            data.AddRange(buffer, count);
+            encoder.Use((buffer, count) => data.AddRange(buffer, count));
             encoder.Write(matchRequest);
-            count = encoder.Put(out buffer);
-            data.AddRange(buffer, count);
+            encoder.Use((buffer, count) => data.AddRange(buffer, count));
             encoder.Write(connectRequest);
-            count = encoder.Put(out buffer);
-            data.AddRange(buffer, count);
+            encoder.Use((buffer, count) => data.AddRange(buffer, count));
 
             var decoder = new MessageStreamReader();
 

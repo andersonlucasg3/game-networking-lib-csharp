@@ -75,7 +75,7 @@ namespace GameNetworking.Server {
         internal bool pingSent { get; private set; }
         internal bool canSendNextPing {
             get {
-                var isPlayerIdentified = player.remoteIdentifiedEndPoint != null;
+                var isPlayerIdentified = player.remoteIdentifiedEndPoint.HasValue;
                 return isPlayerIdentified && this.pingElapsedTime > (pingController?.pingInterval ?? 0.5F);
             }
         }

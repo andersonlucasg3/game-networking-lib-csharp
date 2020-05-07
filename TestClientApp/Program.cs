@@ -10,7 +10,7 @@ using GameNetworking.Commons.Client;
 using GameNetworking.Messages.Coders;
 using GameNetworking.Messages.Models;
 using GameNetworking.Networking;
-using GameNetworking.Sockets;
+using GameNetworking.Networking.Sockets;
 using Logging;
 
 namespace TestClientApp {

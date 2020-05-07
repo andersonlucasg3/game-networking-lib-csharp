@@ -23,7 +23,7 @@ namespace GameNetworking.Messages.Models {
             return type == this.type;
         }
 
-        public TMessage Parse<TMessage>() where TMessage : class, IDecodable, new() {
+        public TMessage Parse<TMessage>() where TMessage : IDecodable, new() {
             TMessage message = new TMessage();
             message.Decode(this._decoder);
 

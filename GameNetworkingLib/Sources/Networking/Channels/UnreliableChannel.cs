@@ -30,7 +30,7 @@ namespace GameNetworking.Channels {
 
         internal void StartIO() {
             ThreadPool.QueueUserWorkItem(_ => {
-                bool shouldStop = false;
+                bool shouldRun = true;
 
                 NetEndPoint to = new NetEndPoint();
                 void SendTo(byte[] bytes, int count) {
@@ -38,7 +38,7 @@ namespace GameNetworking.Channels {
                 }
 
                 do {
-                    lock (this) { shouldStop = this.socket == null; }
+                    lock (this) { shouldRun = this.socket != null; }
 
                     this.socket.Receive();
 
@@ -46,8 +46,7 @@ namespace GameNetworking.Channels {
                         var message = info.message;
                         to = info.to;
 
-                        MessageStreamWriter writer;
-                        if (!this.writerCollection.TryGetValue(to, out writer)) {
+                        if (!this.writerCollection.TryGetValue(to, out MessageStreamWriter writer)) {
                             writer = new MessageStreamWriter();
                             this.writerCollection.TryAdd(to, writer);
                         }
@@ -62,7 +61,7 @@ namespace GameNetworking.Channels {
                         writer.Use(SendTo);
                     }
 
-                } while (shouldStop);
+                } while (shouldRun);
             });
         }
 
@@ -84,8 +83,8 @@ namespace GameNetworking.Channels {
             }
             reader.Add(bytes, count);
 
-            MessageContainer container = reader.Decode();
-            if (container != null) {
+            MessageContainer container;
+            while ((container = reader.Decode()) != null) {
                 this.listener?.ChannelDidReceiveMessage(this, container, from);
             }
         }

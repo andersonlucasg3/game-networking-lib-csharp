@@ -57,10 +57,12 @@ namespace GameNetworking.Networking {
 
             this.listeningOnEndPoint = this.tcpSocket.localEndPoint;
 
+            ReliableChannel.StartIO();
             this.unreliableChannel.StartIO();
         }
 
         public void Stop() {
+            ReliableChannel.StopIO();
             this.tcpSocket.Stop();
             this.unreliableChannel.StopIO();
         }
@@ -84,8 +86,7 @@ namespace GameNetworking.Networking {
             socket.serverListener = this;
 
             var reliable = new ReliableChannel(socket);
-
-            reliable.StartIO();
+            ReliableChannel.Add(reliable);
 
             this.socketCollection.Add(socket, reliable);
             this.listener?.NetworkServerDidAcceptPlayer(reliable, this.unreliableChannel);
@@ -94,6 +95,7 @@ namespace GameNetworking.Networking {
         void ITcpServerListener<TcpSocket>.SocketDidDisconnect(TcpSocket socket) {
             var channel = this.socketCollection.Remove(socket);
             if (channel == null) { return; }
+            ReliableChannel.Remove(channel);
             this.listener?.NetworkServerPlayerDidDisconnect(channel);
         }
 

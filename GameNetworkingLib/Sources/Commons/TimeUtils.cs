@@ -10,7 +10,7 @@ namespace GameNetworking.Commons {
 
         public static double CurrentTime() {
             if (provider != null) {
-                return (double)provider.time;
+                return provider.time;
             }
             return TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds;
         }

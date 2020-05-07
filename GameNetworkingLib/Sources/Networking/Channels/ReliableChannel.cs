@@ -1,6 +1,7 @@
 using GameNetworking.Messages.Models;
 using GameNetworking.Messages.Streams;
 using GameNetworking.Networking.Sockets;
+using System.Collections.Generic;
 using System.Threading;
 
 namespace GameNetworking.Channels {
@@ -9,6 +10,10 @@ namespace GameNetworking.Channels {
     }
 
     public class ReliableChannel : ITcpSocketIOListener<TcpSocket> {
+        private static bool ioRunning = false;
+        private static readonly List<ReliableChannel> aliveSockets = new List<ReliableChannel>();
+        private static readonly object socketLock = new object();
+
         private readonly MessageStreamReader reader;
         private readonly MessageStreamWriter writer;
         private readonly TcpSocket socket;
@@ -23,26 +28,49 @@ namespace GameNetworking.Channels {
             this.writer = new MessageStreamWriter();
         }
 
-        public void CloseChannel() => this.socket.Disconnect();
+        public static void StartIO() {
+            ioRunning = true;
+            ThreadPool.QueueUserWorkItem(_ => {
+                ReliableChannel[] channels;
+                do {
+                    lock (socketLock) {
+                        channels = aliveSockets.ToArray();
+                    }
+
+                    for (int index = 0; index < channels.Length; index++) {
+                        var channel = channels[index];
+                        channel.socket.Receive();
+                        channel.writer.Use(channel.socket.Send);
+                    }
+                } while (ioRunning);
+            });
+        }
+
+        public static void StopIO() {
+            ioRunning = false;
+        }
+
+        public static void Add(ReliableChannel channel) {
+            lock (socketLock) { aliveSockets.Add(channel); }
+        }
+
+        public static void Remove(ReliableChannel channel) {
+            lock (socketLock) { aliveSockets.Remove(channel); }
+        }
+
+        public void CloseChannel() {
+            this.socket.Disconnect();
+        }
 
         public void Send(ITypedMessage message) {
             this.writer.Write(message);
         }
 
-        internal void StartIO() {
-            ThreadPool.QueueUserWorkItem(_ => {
-                do {
-                    this.socket.Receive();
-                    this.writer.Use(this.socket.Send);
-                } while (this.socket.isConnected);
-            });
-        }
-
         void ITcpSocketIOListener<TcpSocket>.SocketDidReceiveBytes(TcpSocket socket, byte[] bytes, int count) {
             this.reader.Add(bytes, count);
 
-            MessageContainer container = this.reader.Decode();
-            if (container != null) {
+            MessageContainer container;
+            while ((container = this.reader.Decode()) != null) {
                 this.listener?.ChannelDidReceiveMessage(this, container);
             }
         }

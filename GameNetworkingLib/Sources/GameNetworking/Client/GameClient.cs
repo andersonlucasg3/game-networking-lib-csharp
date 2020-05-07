@@ -130,7 +130,7 @@ namespace GameNetworking.Client {
         }
 
         void IMessageAckHelperListener<NatIdentifierResponseMessage>.MessageAckHelperReceivedExpectedResponse(NetEndPoint from, NatIdentifierResponseMessage message) {
-            this.router.dispatcher.Enqueue(new NatIdentifierResponseExecutor<TPlayer>(this, from, message).Execute);
+            this.router.dispatcher.Enqueue(new NatIdentifierResponseExecutor<TPlayer>(this, message).Execute);
             this.natIdentifierAckHelper = null;
         }
     }

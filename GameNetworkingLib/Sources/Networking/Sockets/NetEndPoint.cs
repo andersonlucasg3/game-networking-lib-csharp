@@ -11,13 +11,6 @@ namespace GameNetworking.Networking.Sockets {
             this.port = port;
         }
 
-        public void From(IPEndPoint endPoint) {
-            this.host = endPoint.Address.ToString();
-            this.port = endPoint.Port;
-        }
-
-        public void From(EndPoint endPoint) => this.From(endPoint as IPEndPoint);
-
         public override bool Equals(object obj) {
             if (obj is NetEndPoint other) {
                 return this.Equals(other);

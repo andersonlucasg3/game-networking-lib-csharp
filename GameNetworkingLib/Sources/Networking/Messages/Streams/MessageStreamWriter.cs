@@ -30,7 +30,10 @@ namespace GameNetworking.Messages.Streams {
         }
 
         public void Use(Action<byte[], int> action) {
-            lock (this.lockToken) { action?.Invoke(this.currentBuffer, this.currentBufferLength); }
+            lock (this.lockToken) {
+                if (this.currentBufferLength == 0) { return; }
+                action?.Invoke(this.currentBuffer, this.currentBufferLength);
+            }
         }
 
         public void DidWrite(int count) {

@@ -50,22 +50,25 @@ namespace GameNetworking.Networking {
             this.unreliableChannel.listener = this;
         }
 
-        public void Connect(string host, int port) => this.tcpSocket.Connect(new NetEndPoint(host, port));
-        internal void ReconnectUnreliable(NetEndPoint remote) => this.udpSocket.Connect(remote);
+        public void Connect(string host, int port) {
+            this.tcpSocket.Connect(new NetEndPoint(host, port));
+            ReliableChannel.StartIO();
+            this.unreliableChannel.StartIO();
+        }
 
         public void Disconnect() {
             this.reliableChannel.CloseChannel();
+            ReliableChannel.StopIO();
             this.unreliableChannel.StopIO();
         }
 
         void ITcpClientListener.SocketDidConnect() {
+            ReliableChannel.Add(this.reliableChannel);
+
             this.udpSocket.Bind(this.tcpSocket.localEndPoint);
             this.udpSocket.Connect(this.tcpSocket.remoteEndPoint);
 
             this.listener?.NetworkClientDidConnect();
-
-            this.reliableChannel.StartIO();
-            this.unreliableChannel.StartIO();
         }
 
         void ITcpClientListener.SocketDidTimeout() {
@@ -75,6 +78,8 @@ namespace GameNetworking.Networking {
         }
 
         void ITcpClientListener.SocketDidDisconnect() {
+            ReliableChannel.Remove(this.reliableChannel);
+
             this.listener?.NetworkClientDidDisconnect();
 
             this.tcpSocket.Close();

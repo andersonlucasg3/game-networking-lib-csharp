@@ -23,7 +23,7 @@ namespace GameNetworking {
         TPlayer FindPlayer(TKey playerId);
         TPlayer FindPlayer(Func<TPlayer, bool> predicate);
 
-        void ForEach(Action<TPlayer> players);
+        void ForEach<TValue>(Action<TPlayer, TValue> players, TValue value);
     }
 
     public class PlayerCollection<TKey, TPlayer> : IReadOnlyPlayerCollection<TKey, TPlayer>
@@ -96,10 +96,10 @@ namespace GameNetworking {
             return player;
         }
 
-        public void ForEach(Action<TPlayer> action) {
+        public void ForEach<TValue>(Action<TPlayer, TValue> action, TValue value) {
             var p = this.values;
             var c = p.Count;
-            for (int idx = 0; idx < c; idx++) { action(p[idx]); }
+            for (int idx = 0; idx < c; idx++) { action(p[idx], value); }
         }
 
         public IEnumerator<TPlayer> GetEnumerator() {

@@ -6,9 +6,9 @@ using GameNetworking.Channels;
 using GameNetworking.Commons;
 using GameNetworking.Messages.Coders;
 using GameNetworking.Messages.Models;
-using GameNetworking.Networking;
 using GameNetworking.Server;
-using GameNetworking.Sockets;
+using GameNetworking.Networking;
+using GameNetworking.Networking.Sockets;
 using Logging;
 
 namespace TestServerApp {
@@ -16,7 +16,6 @@ namespace TestServerApp {
         private readonly List<Action> actions = new List<Action>();
 
         private GameServer<Player> server;
-        private int counter = 0;
 
         static void Main(string[] _) {
             var program = new Program();
@@ -27,16 +26,17 @@ namespace TestServerApp {
             program.server.listener = program;
 
             while (true) {
-                var copyActions = new List<Action>(program.actions);
-                program.actions.RemoveAll(_ => true);
-                copyActions.ForEach(a => a.Invoke());
+                lock (program) {
+                    program.actions.ForEach(a => a.Invoke());
+                    program.actions.RemoveAll(_ => true);
+                }
 
                 program.server.Update();
             }
         }
 
         public void Enqueue(Action action) {
-            this.actions.Add(action);
+            lock (this) { this.actions.Add(action); }
         }
 
         public void GameServerPlayerDidConnect(Player player, Channel channel) {
@@ -48,23 +48,40 @@ namespace TestServerApp {
         }
 
         public void GameServerDidReceiveClientMessage(MessageContainer container, Player player) {
-            Logger.Log("GameServerDidReceiveClientMessage");
+            Logger.Log($"GameServerDidReceiveClientMessage - type {container.type}");
             if (container.type == 1001) {
-                this.Send(player);
+                this.Send(player, container.Parse<Message>());
             }
         }
 
-        private void Send(Player player) {
-            player.Send(new Message(), Channel.unreliable);
-            Logger.Log($"Send message! {counter++}");
+        private void Send(Player player, Message message) {
+            Logger.Log($"Received message from playerId-{message.playerId}, as playerId-{player.playerId}, messageId-{message.messageId}");
+            player.Send(new Message(player.playerId, message.messageId), Channel.unreliable);
         }
     }
 
     class Message : ITypedMessage {
-        public int type => 1002;
+        public int type => 1001;
 
-        public void Decode(IDecoder decoder) { }
-        public void Encode(IEncoder encoder) { }
+        public int playerId;
+        public int messageId;
+
+        public Message() { }
+
+        public Message(int playerId, int messageId) {
+            this.playerId = playerId;
+            this.messageId = messageId;
+        }
+
+        public void Decode(IDecoder decoder) {
+            this.playerId = decoder.GetInt();
+            this.messageId = decoder.GetInt();
+        }
+
+        public void Encode(IEncoder encoder) {
+            encoder.Encode(this.playerId);
+            encoder.Encode(this.messageId);
+        }
     }
 }
 

@@ -14,15 +14,13 @@ namespace GameNetworking.Server {
     public sealed class GameServerClientAcceptor<TPlayer> where TPlayer : Player, new() {
         private int playerIdCounter = 0;
 
-        private readonly ConcurrentDictionary<IChannel, TPlayer> channelCollection;
+        private readonly ConcurrentDictionary<ReliableChannel, TPlayer> channelCollection;
 
         public IGameServerClientAcceptorListener<TPlayer> listener { get; set; }
 
-        public GameServerClientAcceptor() => this.channelCollection = new ConcurrentDictionary<IChannel, TPlayer>();
+        public GameServerClientAcceptor() => this.channelCollection = new ConcurrentDictionary<ReliableChannel, TPlayer>();
 
         public void AcceptClient(TPlayer player) {
-            if (Logger.IsLoggingEnabled) { Logger.Log($"(AcceptClient) count {this.listener.playerCollection.count}"); }
-
             this.listener.ClientAcceptorPlayerDidConnect(player);
 
             var players = this.listener.playerCollection.values;
@@ -45,6 +43,8 @@ namespace GameNetworking.Server {
                 };
                 player.Send(connectedSelf, Channel.reliable);
             }
+
+            if (Logger.IsLoggingEnabled) { Logger.Log($"(AcceptClient) count {this.listener.playerCollection.count}"); }
         }
 
         public void Disconnect(TPlayer player) {

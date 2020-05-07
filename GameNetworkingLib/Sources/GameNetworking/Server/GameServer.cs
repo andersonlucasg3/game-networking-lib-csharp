@@ -6,7 +6,7 @@ using GameNetworking.Messages;
 using GameNetworking.Messages.Client;
 using GameNetworking.Messages.Models;
 using GameNetworking.Networking;
-using GameNetworking.Sockets;
+using GameNetworking.Networking.Sockets;
 
 namespace GameNetworking.Server {
     public interface IGameServerListener<TPlayer>
@@ -68,28 +68,37 @@ namespace GameNetworking.Server {
         }
 
         public void Update() {
-            this.networkServer.Update();
             this.pingController.Update();
         }
 
         public void SendBroadcast(ITypedMessage message, Channel channel) {
-            this._playerCollection.ForEach((player) => player.Send(message, channel));
+            var sendValue = new SendValue() { message = message, channel = channel };
+            this._playerCollection.ForEach(Send, sendValue);
+        }
+
+        private void Send(TPlayer player, SendValue value) {
+            player.Send(value.message, value.channel);
         }
 
         public void SendBroadcast(ITypedMessage message, Predicate<TPlayer> predicate, Channel channel) {
-            this._playerCollection.ForEach((player) => { if (predicate(player)) { player.Send(message, channel); } });
+            var sendValue = new SendValue() { message = message, predicate = predicate, channel = channel };
+            this._playerCollection.ForEach(SendPredicate, sendValue);
+        }
+
+        private void SendPredicate(TPlayer player, SendValue value) {
+            if (value.predicate(player)) { player.Send(value.message, value.channel); }
         }
 
         void IGameServerClientAcceptorListener<TPlayer>.ClientAcceptorPlayerDidConnect(TPlayer player) {
             player.listener = this.router;
             this._playerCollection.Add(player.playerId, player);
-            this.listener?.GameServerPlayerDidConnect(player, Channel.reliable);
+            this.router.dispatcher.Enqueue(() => this.listener?.GameServerPlayerDidConnect(player, Channel.reliable));
         }
 
         void IGameServerClientAcceptorListener<TPlayer>.ClientAcceptorPlayerDidDisconnect(TPlayer player) {
             player.listener = null;
             this._playerCollection.Remove(player.playerId);
-            this.listener?.GameServerPlayerDidDisconnect(player);
+            this.router.dispatcher.Enqueue(() => this.listener?.GameServerPlayerDidDisconnect(player));
         }
 
         void INetworkServerListener.NetworkServerDidAcceptPlayer(ReliableChannel reliable, UnreliableChannel unreliable) {
@@ -102,8 +111,15 @@ namespace GameNetworking.Server {
 
         void INetworkServerListener.NetworkServerDidReceiveUnidentifiedMessage(MessageContainer container, NetEndPoint from) {
             if (container.Is((int)MessageType.natIdentifier)) {
-                new NatIdentifierRequestExecutor<TPlayer>(this, from, container.Parse<NatIdentifierRequestMessage>()).Execute();
+                Action action = new NatIdentifierRequestExecutor<TPlayer>(this, from, container.Parse<NatIdentifierRequestMessage>()).Execute;
+                this.router.dispatcher.Enqueue(action);
             }
+        }
+
+        private struct SendValue {
+            public ITypedMessage message;
+            public Channel channel;
+            public Predicate<TPlayer> predicate;
         }
     }
 }

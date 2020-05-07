@@ -6,7 +6,6 @@ using System.IO;
 using System.Collections.Generic;
 using System.Runtime.Serialization.Formatters.Binary;
 using Logging;
-using GameNetworking.Messages.Coders.Binary;
 using GameNetworking.Messages.Models;
 using GameNetworking.Messages.Coders;
 using GameNetworking.Messages.Streams;
@@ -24,20 +23,23 @@ namespace Tests.IO {
         [Test]
         public void TestEncoder() {
             Value value = new Value();
+            Encoder encoder = new Encoder();
             this.Measure(() => {
-                Encoder.Encode(value);
+                value.Encode(encoder);
             }, "Encoder");
         }
 
         [Test]
         public void TestDecoder() {
             Value value = new Value();
-
-            byte[] encoded = Encoder.Encode(value);
+            Encoder encoder = new Encoder();
+            value.Encode(encoder);
+            byte[] encoded = encoder.encodedBytes;
 
             Decoder decoder = new Decoder();
+            decoder.SetBuffer(encoded, 0, encoded.Length);
             this.Measure(() => {
-                Decoder.Decode<Value>(encoded, 0, encoded.Length);
+                value.Decode(decoder);
             }, "Decoder");
         }
 
@@ -45,14 +47,18 @@ namespace Tests.IO {
         public void TestEncoderDecoder() {
             Value value = new Value();
 
-            Value decoded = null;
+            Value decoded = new Value();
 
+            Encoder encoder = new Encoder();
+            Decoder decoder = new Decoder();
             this.Measure(() => {
-                byte[] encoded = Encoder.Encode(value);
+                value.Encode(encoder);
+                byte[] encoded = encoder.encodedBytes;
 
                 Logger.Log($"Encoded message size: {encoded.Length}");
 
-                decoded = Decoder.Decode<Value>(encoded, 0, encoded.Length);
+                decoder.SetBuffer(encoded, 0, encoded.Length);
+                decoded.Decode(decoder);
             }, "Encoder and Decoder");
 
             Assert.AreEqual(value.intVal, decoded.intVal);
@@ -123,14 +129,11 @@ namespace Tests.IO {
             var encoder = new MessageStreamWriter();
             List<byte> data = new List<byte>();
             encoder.Write(loginRequest);
-            var count = encoder.Put(out byte[] buffer);
-            data.AddRange(buffer, count);
+            encoder.Use((buffer, count) => data.AddRange(buffer, count));
             encoder.Write(matchRequest);
-            count = encoder.Put(out buffer);
-            data.AddRange(buffer, count);
+            encoder.Use((buffer, count) => data.AddRange(buffer, count));
             encoder.Write(connectRequest);
-            count = encoder.Put(out buffer);
-            data.AddRange(buffer, count);
+            encoder.Use((buffer, count) => data.AddRange(buffer, count));
 
             var decoder = new MessageStreamReader();
 
@@ -167,7 +170,9 @@ namespace Tests.IO {
                 username = "andersonlucasg3"
             };
 
-            int size = Encoder.Encode(request).Length;
+            Encoder encoder = new Encoder();
+            request.Encode(encoder);
+            int size = encoder.encodedBytes.Length;
             Logger.Log($"LoginRequest Message size: {size}");
         }
     }

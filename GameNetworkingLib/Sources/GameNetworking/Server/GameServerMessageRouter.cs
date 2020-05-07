@@ -7,11 +7,10 @@ using GameNetworking.Messages.Models;
 
 namespace GameNetworking.Server {
     public class GameServerMessageRouter<TPlayer> : IPlayerMessageListener
-        where TPlayer : class, IPlayer {
-
-        private readonly IMainThreadDispatcher dispatcher;
-
+        where TPlayer : Player {
         protected IGameServer<TPlayer> server { get; private set; }
+
+        public readonly IMainThreadDispatcher dispatcher;
 
         public GameServerMessageRouter(IMainThreadDispatcher dispatcher) {
             this.dispatcher = dispatcher;
@@ -31,7 +30,7 @@ namespace GameNetworking.Server {
             var type = (MessageType)container.type;
 
             switch (type) {
-                case MessageType.pong: Execute(new PongRequestExecutor<TPlayer>(this.server, player)); break;
+                case MessageType.pong: Execute(new PongRequestExecutor<TPlayer>(this.server, player, container.Parse<PongRequestMessage>())); break;
                 default: this.server.listener?.GameServerDidReceiveClientMessage(container, player); break;
             }
         }

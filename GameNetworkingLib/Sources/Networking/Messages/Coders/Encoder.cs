@@ -1,91 +1,104 @@
 ﻿using System;
 using System.IO;
+using GameNetworking.Messages.Coders.Converters;
 
 namespace GameNetworking.Messages.Coders {
-    internal sealed class Encoder : IEncoder, IDisposable {
-        internal BinaryWriter writer;
+    public sealed class Encoder : IEncoder, IDisposable {
+        private ShortByteArrayConverter _shortConverter = new ShortByteArrayConverter(0);
+        private UShortByteArrayConverter _ushortConverter = new UShortByteArrayConverter(0);
+        private IntByteArrayConverter _intConverter = new IntByteArrayConverter(0);
+        private UIntByteArrayConverter _uintConverter = new UIntByteArrayConverter(0);
+        private LongByteArrayConverter _longConverter = new LongByteArrayConverter(0L);
+        private ULongByteArrayConverter _ulongConverter = new ULongByteArrayConverter(0L);
+        private FloatByteArrayConverter _floatConverter = new FloatByteArrayConverter(0F);
+        private DoubleByteArrayConverter _doubleConverter = new DoubleByteArrayConverter(0F);
+        private byte[] _boolBuffer = new byte[1];
+        private MemoryStream _memoryStream;
 
-        internal Encoder() {
-            this.writer = new BinaryWriter(new MemoryStream());
+        public byte[] encodedBytes {
+            get {
+                byte[] bytes = this._memoryStream.ToArray();
+                this._memoryStream.Seek(0, SeekOrigin.Begin);
+                return bytes;
+            }
         }
 
-        internal Encoder(Stream stream) {
-            this.writer = new BinaryWriter(stream);
+        public Encoder() {
+            this._memoryStream = new MemoryStream();
+        }
+
+        public Encoder(MemoryStream stream) {
+            this._memoryStream = stream;
         }
 
         public void Dispose() {
-            this.writer.Dispose();
+            this._memoryStream.Dispose();
         }
 
         public void Encode(int value) {
-            this.writer.Write(value);
+            this._intConverter.value = value;
+            this._memoryStream.Write(this._intConverter.array, 0, sizeof(int));
         }
 
         public void Encode(short value) {
-            this.writer.Write(value);
+            this._shortConverter.value = value;
+            this._memoryStream.Write(this._shortConverter.array, 0, sizeof(short));
         }
 
         public void Encode(long value) {
-            this.writer.Write(value);
+            this._longConverter.value = value;
+            this._memoryStream.Write(this._longConverter.array, 0, sizeof(long));
         }
 
         public void Encode(uint value) {
-            this.writer.Write(value);
+            this._uintConverter.value = value;
+            this._memoryStream.Write(this._uintConverter.array, 0, sizeof(uint));
         }
 
         public void Encode(ushort value) {
-            this.writer.Write(value);
+            this._ushortConverter.value = value;
+            this._memoryStream.Write(this._ushortConverter.array, 0, sizeof(ushort));
         }
 
         public void Encode(ulong value) {
-            this.writer.Write(value);
+            this._ulongConverter.value = value;
+            this._memoryStream.Write(this._ulongConverter.array, 0, sizeof(ulong));
         }
 
         public void Encode(float value) {
-            this.writer.Write(value);
+            this._floatConverter.value = value;
+            this._memoryStream.Write(this._floatConverter.array, 0, sizeof(float));
         }
 
         public void Encode(double value) {
-            this.writer.Write(value);
+            this._doubleConverter.value = value;
+            this._memoryStream.Write(this._doubleConverter.array, 0, sizeof(double));
         }
 
         public void Encode(string value) {
-            this.writer.Write(value);
+            var bytes = System.Text.Encoding.UTF8.GetBytes(value);
+            this.Encode(bytes);
         }
 
         public void Encode(byte[] value) {
-            int length = value.Length;
-            this.writer.Write(length);
-            this.writer.Write(value);
+            this._intConverter.value = value.Length;
+            this._memoryStream.Write(this._intConverter.array, 0, sizeof(int));
+
+            this._memoryStream.Write(value, 0, value.Length);
         }
 
         public void Encode(bool value) {
-            this.writer.Write(value);
+            this._boolBuffer[0] = Convert.ToByte(value);
+            this._memoryStream.Write(this._boolBuffer, 0, 1);
         }
 
         public void Encode(IEncodable value) {
             bool hasValue = value != null;
-            this.writer.Write(hasValue);
+            this.Encode(hasValue);
 
             if (hasValue) {
-                Encoder encoder = new Encoder(this.writer.BaseStream);
+                Encoder encoder = new Encoder(this._memoryStream);
                 value.Encode(encoder);
-            }
-        }
-    }
-
-    namespace Binary {
-        public sealed class Encoder {
-            private Encoder() { }
-
-            public static byte[] Encode(IEncodable value) {
-                Coders.Encoder encoder = new Coders.Encoder();
-
-                value.Encode(encoder);
-
-                MemoryStream memoryStream = (MemoryStream)encoder.writer.BaseStream;
-                encoder.Dispose();
-                return memoryStream.ToArray();
             }
         }
     }

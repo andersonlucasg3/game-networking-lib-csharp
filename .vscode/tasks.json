@@ -7,8 +7,12 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/game-networking-lib-tests/game-networking-lib-tests.csproj"
+                "${workspaceFolder}/game-networking-lib.sln"
             ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
             "problemMatcher": "$msCompile"
         },
         {

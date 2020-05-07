@@ -6,7 +6,7 @@ using GameNetworking.Messages.Models;
 using GameNetworking.Messages.Server;
 using GameNetworking.Networking;
 using GameNetworking.Networking.Commons;
-using GameNetworking.Sockets;
+using GameNetworking.Networking.Sockets;
 
 namespace GameNetworking.Client {
     public interface IGameClientListener<TPlayer>
@@ -58,8 +58,9 @@ namespace GameNetworking.Client {
             this.networkClient = networkClient;
             this.networkClient.listener = this;
 
-            this.natIdentifierAckHelper = new MessageAckHelper<NatIdentifierRequestMessage, NatIdentifierResponseMessage>(this.networkClient, router, 10)
-            { listener = this };
+            this.natIdentifierAckHelper = new MessageAckHelper<NatIdentifierRequestMessage, NatIdentifierResponseMessage>(
+                this.networkClient.unreliableChannel, router, 10, 2F
+            ) { listener = this };
 
             this.router = router;
             this.router.Configure(this);
@@ -67,24 +68,36 @@ namespace GameNetworking.Client {
 
         public void Connect(string host, int port) => this.networkClient.Connect(host, port);
         public void Disconnect() => this.networkClient.Disconnect();
-        public void Send(ITypedMessage message, Channel channel) => this.networkClient.Send(message, channel);
+        public void Send(ITypedMessage message, Channel channel) {
+            switch (channel) {
+                case Channel.reliable:
+                    this.networkClient.reliableChannel.Send(message);
+                    break;
+                case Channel.unreliable:
+                    var remote = this.networkClient.remoteEndPoint;
+                    this.networkClient.unreliableChannel.Send(message, remote);
+                    break;
+            }
+        }
 
         public virtual void Update() {
             this.natIdentifierAckHelper?.Update();
-            this.networkClient.Flush();
         }
 
-        void INetworkClientListener.NetworkClientDidConnect() => this.listener?.GameClientDidConnect(Channel.reliable);
-        void INetworkClientListener.NetworkClientConnectDidTimeout() => this.listener?.GameClientConnectDidTimeout();
-        void INetworkClientListener.NetworkClientDidReceiveMessage(MessageContainer container) => this.router.Route(null, container);
+        void INetworkClientListener.NetworkClientDidConnect() => this.router.dispatcher.Enqueue(() => this.listener?.GameClientDidConnect(Channel.reliable));
+        void INetworkClientListener.NetworkClientConnectDidTimeout() => this.router.dispatcher.Enqueue(() => this.listener?.GameClientConnectDidTimeout());
+        void INetworkClientListener.NetworkClientDidReceiveMessage(MessageContainer container) => this.router.Route(container);
 
         void INetworkClientListener.NetworkClientDidReceiveMessage(MessageContainer container, NetEndPoint from) {
-            IClientMessageRouter router = (IClientMessageRouter)this.natIdentifierAckHelper ?? this.router;
-            router.Route(from, container);
+            if (this.natIdentifierAckHelper != null) {
+                this.natIdentifierAckHelper.Route(from, container);
+            } else {
+                this.router.Route(container);
+            }
         }
 
         void INetworkClientListener.NetworkClientDidDisconnect() {
-            this.listener?.GameClientDidDisconnect();
+            this.router.dispatcher.Enqueue(() => this.listener?.GameClientDidDisconnect());
             this._playerCollection.Clear();
             this.localPlayer = null;
         }
@@ -98,16 +111,17 @@ namespace GameNetworking.Client {
             this.listener?.GameClientPlayerDidConnect(player);
             if (player.isLocalPlayer) {
                 this.localPlayer = player;
-                this.listener?.GameClientDidIdentifyLocalPlayer(player);
+                this.router.dispatcher.Enqueue(() => this.listener?.GameClientDidIdentifyLocalPlayer(player));
 
                 var endPoint = this.networkClient.localEndPoint;
-                this.natIdentifierAckHelper.Start(new NatIdentifierRequestMessage(player.playerId, endPoint.host, endPoint.port));
+                var remote = this.networkClient.remoteEndPoint;
+                this.natIdentifierAckHelper.Start(new NatIdentifierRequestMessage(player.playerId, endPoint.host, endPoint.port), remote);
             }
         }
 
         void IRemoteClientListener.RemoteClientDidDisconnect(int playerId) {
             var player = this._playerCollection.Remove(playerId);
-            this.listener?.GameClientPlayerDidDisconnect(player);
+            this.router.dispatcher.Enqueue(() => this.listener?.GameClientPlayerDidDisconnect(player));
         }
 
         void IMessageAckHelperListener<NatIdentifierResponseMessage>.MessageAckHelperFailed() {
@@ -116,7 +130,7 @@ namespace GameNetworking.Client {
         }
 
         void IMessageAckHelperListener<NatIdentifierResponseMessage>.MessageAckHelperReceivedExpectedResponse(NetEndPoint from, NatIdentifierResponseMessage message) {
-            new NatIdentifierResponseExecutor<TPlayer>(this, from, message).Execute();
+            this.router.dispatcher.Enqueue(new NatIdentifierResponseExecutor<TPlayer>(this, message).Execute);
             this.natIdentifierAckHelper = null;
         }
     }

@@ -2,7 +2,8 @@
 using GameNetworking.Channels;
 using GameNetworking.Commons;
 using GameNetworking.Messages.Models;
-using GameNetworking.Sockets;
+using GameNetworking.Networking;
+using GameNetworking.Networking.Sockets;
 
 namespace GameNetworking {
     namespace Server {
@@ -11,7 +12,6 @@ namespace GameNetworking {
             float mostRecentPingValue { get; }
 
             void Send(ITypedMessage message, Channel channel);
-            TChannel GetChannel<TChannel>(Channel channel) where TChannel : class, IChannel;
 
             void Disconnect();
         }
@@ -20,12 +20,12 @@ namespace GameNetworking {
             void PlayerDidReceiveMessage(MessageContainer container, IPlayer from);
         }
 
-        public class Player : IPlayer, IChannelListener {
-            private ReliableChannel reliableChannel;
-            private UnreliableChannel unreliableChannel;
+        public class Player : IPlayer, IReliableChannelListener, INetworkServerMessageListener {
 
             internal double lastReceivedPongRequest;
-
+            internal ReliableChannel reliableChannel { get; private set; }
+            internal UnreliableChannel unreliableChannel { get; private set; }
+            internal NetEndPoint? remoteIdentifiedEndPoint { get; set; }
             internal IPlayerMessageListener listener { get; set; }
 
             public int playerId { get; internal set; }
@@ -41,16 +41,6 @@ namespace GameNetworking {
                 this.unreliableChannel = unreliable;
 
                 this.reliableChannel.listener = this;
-                this.unreliableChannel.listener = this;
-            }
-
-            internal void Flush() {
-                this.reliableChannel.Flush();
-                this.unreliableChannel.Flush();
-            }
-
-            internal void Flush(Channel channel) {
-                this.GetChannel<IChannel>(channel).Flush();
             }
 
             #endregion
@@ -58,14 +48,11 @@ namespace GameNetworking {
             #region Public methods
 
             public void Send(ITypedMessage message, Channel channel) {
-                this.GetChannel<IChannel>(channel).Send(message);
-            }
-
-            public TChannel GetChannel<TChannel>(Channel channel) where TChannel : class, IChannel {
                 switch (channel) {
-                case Channel.reliable: return this.reliableChannel as TChannel;
-                case Channel.unreliable: return this.unreliableChannel as TChannel;
-                default: return null;
+                    case Channel.reliable: this.reliableChannel.Send(message); break;
+                    case Channel.unreliable:
+                        if (!this.remoteIdentifiedEndPoint.HasValue) { break; }
+                        this.unreliableChannel.Send(message, this.remoteIdentifiedEndPoint.Value); break;
                 }
             }
 
@@ -82,7 +69,11 @@ namespace GameNetworking {
 
             #endregion
 
-            void IChannelListener.ChannelDidReceiveMessage(MessageContainer container, NetEndPoint from) {
+            void IReliableChannelListener.ChannelDidReceiveMessage(ReliableChannel channel, MessageContainer container) {
+                this.listener?.PlayerDidReceiveMessage(container, this);
+            }
+
+            void INetworkServerMessageListener.NetworkServerDidReceiveMessage(MessageContainer container) {
                 this.listener?.PlayerDidReceiveMessage(container, this);
             }
         }

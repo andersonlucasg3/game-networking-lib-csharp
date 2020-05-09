@@ -1,3 +1,4 @@
+using System;
 using GameNetworking.Messages.Models;
 
 namespace GameNetworking.Commons {
@@ -21,6 +22,10 @@ namespace GameNetworking.Commons {
 
         public void Execute() {
             this.forwarding.Execute(this.model, this.message);
+
+            if (this.message is IDisposable disposable) {
+                disposable.Dispose();
+            }
         }
     }
 }

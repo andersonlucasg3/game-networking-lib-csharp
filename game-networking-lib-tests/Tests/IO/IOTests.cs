@@ -137,16 +137,16 @@ namespace Tests.IO {
                     var x = data.GetRange(position, 1).ToArray();
                     decoder.Add(x, x.Length);
                     var container = decoder.Decode();
-                    if (container != null) {
-                        if (container.Is(200)) { // LoginRequest
-                            var message = container.Parse<LoginRequest>();
+                    if (container.HasValue) {
+                        if (container.Value.Is(200)) { // LoginRequest
+                            var message = container.Value.Parse<LoginRequest>();
                             Assert.AreEqual(message.accessToken, firstToken);
                             Assert.AreEqual(message.username, username);
-                        } else if (container.Is(201)) { // MatchRequest
-                            var message = container.Parse<MatchRequest>();
+                        } else if (container.Value.Is(201)) { // MatchRequest
+                            var message = container.Value.Parse<MatchRequest>();
                             Assert.AreNotEqual(message, null);
-                        } else if (container.Is(202)) { // ConnectGameInstanceResponse
-                            var message = container.Parse<ConnectGameInstanceResponse>();
+                        } else if (container.Value.Is(202)) { // ConnectGameInstanceResponse
+                            var message = container.Value.Parse<ConnectGameInstanceResponse>();
                             Assert.AreEqual(message.ip, ip);
                             Assert.AreEqual(message.port, port);
                             Assert.AreEqual(message.token, secondToken);

@@ -1,6 +1,7 @@
 using GameNetworking.Messages.Models;
 using GameNetworking.Messages.Streams;
 using GameNetworking.Networking.Sockets;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 
@@ -39,10 +40,17 @@ namespace GameNetworking.Channels {
 
                     for (int index = 0; index < channels.Length; index++) {
                         var channel = channels[index];
-                        channel.socket.Receive();
-                        channel.writer.Use(channel.socket.Send);
+                        try {
+                            channel.socket.Receive();
+                            channel.writer.Use(channel.socket.Send);
+                        } catch (ObjectDisposedException) {
+                            ioRunning = false;
+                        } catch (Exception ex) {
+                            Logging.Logger.Log($"Exception thrown in ThreadPool\n{ex}");
+                        }
                     }
                 } while (ioRunning);
+                Logging.Logger.Log("ReliableChannel ThreadPool EXITING");
             });
         }
 

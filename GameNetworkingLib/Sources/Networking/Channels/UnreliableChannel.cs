@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using GameNetworking.Messages.Models;
@@ -40,28 +41,35 @@ namespace GameNetworking.Channels {
                 do {
                     lock (this) { shouldRun = this.socket != null; }
 
-                    this.socket.Receive();
+                    try {
+                        this.socket.Receive();
 
-                    if (this.sendInfoCollection.TryDequeue(out SendInfo info)) {
-                        var message = info.message;
-                        to = info.to;
+                        if (this.sendInfoCollection.TryDequeue(out SendInfo info)) {
+                            var message = info.message;
+                            to = info.to;
 
-                        if (!this.writerCollection.TryGetValue(to, out MessageStreamWriter writer)) {
-                            writer = new MessageStreamWriter();
-                            this.writerCollection.TryAdd(to, writer);
+                            if (!this.writerCollection.TryGetValue(to, out MessageStreamWriter writer)) {
+                                writer = new MessageStreamWriter();
+                                this.writerCollection.TryAdd(to, writer);
+                            }
+                            writer.Write(message);
                         }
-                        writer.Write(message);
-                    }
 
-                    var values = this.writerCollection.GetEnumerator();
-                    while (values.MoveNext()) {
-                        var keyValue = values.Current;
-                        var writer = keyValue.Value;
-                        to = keyValue.Key;
-                        writer.Use(SendTo);
+                        var values = this.writerCollection.GetEnumerator();
+                        while (values.MoveNext()) {
+                            var keyValue = values.Current;
+                            var writer = keyValue.Value;
+                            to = keyValue.Key;
+                            writer.Use(SendTo);
+                        }
+                    } catch (ObjectDisposedException) {
+                        shouldRun = false;
+                    } catch (Exception ex) {
+                        Logger.Log($"Exception thrown in ThreadPool\n{ex}");
                     }
-
                 } while (shouldRun);
+
+                Logger.Log("UnreliableChannel ThreadPool EXITING");
             });
         }
 

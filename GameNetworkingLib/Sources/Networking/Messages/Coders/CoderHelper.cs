@@ -24,7 +24,9 @@ namespace GameNetworking.Messages.Coders {
         internal static int SliceBuffer(int delimiterIndex, byte[] buffer, int count) {
             var delimiterEndIndex = delimiterIndex + delimiter.Length;
             var newLength = count - delimiterEndIndex;
-            Array.Copy(buffer, delimiterEndIndex, buffer, 0, newLength);
+            if (newLength > 0) {
+                Array.Copy(buffer, delimiterEndIndex, buffer, 0, newLength);
+            }
             return newLength;
         }
 

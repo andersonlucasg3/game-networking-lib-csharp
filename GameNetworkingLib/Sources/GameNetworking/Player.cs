@@ -58,6 +58,9 @@ namespace GameNetworking {
 
             public void Disconnect() {
                 this.reliableChannel.CloseChannel();
+                if (this.remoteIdentifiedEndPoint.HasValue) {
+                    this.unreliableChannel.CloseChannel(this.remoteIdentifiedEndPoint.Value);
+                }
             }
 
             #endregion

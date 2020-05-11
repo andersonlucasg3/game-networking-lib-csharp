@@ -61,7 +61,7 @@ namespace GameNetworking.Server {
         }
 
         public void Start(int port) {
-            this.networkServer.Start(new NetEndPoint(IPAddress.Any.ToString(), port));
+            this.networkServer.Start(new NetEndPoint(IPAddress.Any, port));
         }
 
         public void Stop() {

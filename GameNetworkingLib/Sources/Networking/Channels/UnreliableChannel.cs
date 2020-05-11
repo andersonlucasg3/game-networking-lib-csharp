@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 using GameNetworking.Messages.Models;
 using GameNetworking.Messages.Streams;
@@ -14,7 +15,9 @@ namespace GameNetworking.Channels {
     public class UnreliableChannel : IUdpSocketIOListener {
         private readonly ConcurrentDictionary<NetEndPoint, MessageStreamReader> readerCollection;
         private readonly ConcurrentDictionary<NetEndPoint, MessageStreamWriter> writerCollection;
+        private readonly List<NetEndPoint> netEndPointWriters;
         private readonly ConcurrentQueue<SendInfo> sendInfoCollection;
+        private readonly object lockToken = new object();
 
         private UdpSocket socket;
 
@@ -26,51 +29,12 @@ namespace GameNetworking.Channels {
 
             this.readerCollection = new ConcurrentDictionary<NetEndPoint, MessageStreamReader>();
             this.writerCollection = new ConcurrentDictionary<NetEndPoint, MessageStreamWriter>();
+            this.netEndPointWriters = new List<NetEndPoint>();
             this.sendInfoCollection = new ConcurrentQueue<SendInfo>();
         }
 
         internal void StartIO() {
-            ThreadPool.QueueUserWorkItem(_ => {
-                bool shouldRun = true;
-
-                NetEndPoint to = new NetEndPoint();
-                void SendTo(byte[] bytes, int count) {
-                    this.socket.Send(bytes, count, to);
-                }
-
-                do {
-                    lock (this) { shouldRun = this.socket != null; }
-
-                    try {
-                        this.socket.Receive();
-
-                        if (this.sendInfoCollection.TryDequeue(out SendInfo info)) {
-                            var message = info.message;
-                            to = info.to;
-
-                            if (!this.writerCollection.TryGetValue(to, out MessageStreamWriter writer)) {
-                                writer = new MessageStreamWriter();
-                                this.writerCollection.TryAdd(to, writer);
-                            }
-                            writer.Write(message);
-                        }
-
-                        var values = this.writerCollection.GetEnumerator();
-                        while (values.MoveNext()) {
-                            var keyValue = values.Current;
-                            var writer = keyValue.Value;
-                            to = keyValue.Key;
-                            writer.Use(SendTo);
-                        }
-                    } catch (ObjectDisposedException) {
-                        shouldRun = false;
-                    } catch (Exception ex) {
-                        Logger.Log($"Exception thrown in ThreadPool\n{ex}");
-                    }
-                } while (shouldRun);
-
-                Logger.Log("UnreliableChannel ThreadPool EXITING");
-            });
+            ThreadPool.QueueUserWorkItem(ThreadPoolWorker);
         }
 
         internal void StopIO() {
@@ -80,8 +44,67 @@ namespace GameNetworking.Channels {
             }
         }
 
+        public void CloseChannel(NetEndPoint endPoint) {
+            this.writerCollection.TryRemove(endPoint, out _);
+            lock (this.lockToken) {
+                this.netEndPointWriters.Remove(endPoint);
+            }
+        }
+
         public void Send(ITypedMessage message, NetEndPoint to) {
             this.sendInfoCollection.Enqueue(new SendInfo { message = message, to = to });
+        }
+
+        private void ThreadPoolWorker(object state) {
+            Thread.CurrentThread.Name = "UnreliableChannel Thread";
+            bool shouldRun = true;
+
+            NetEndPoint to = new NetEndPoint();
+            void SendTo(byte[] bytes, int count) {
+                this.socket.Send(bytes, count, to);
+            }
+
+            NetEndPoint[] endPoints = new NetEndPoint[100];
+            int endPointCount = 0;
+
+            do {
+                lock (this) { shouldRun = this.socket != null; }
+
+                try {
+                    this.socket.Receive();
+
+                    if (this.sendInfoCollection.TryDequeue(out SendInfo info)) {
+                        var message = info.message;
+                        to = info.to;
+
+                        if (!this.writerCollection.TryGetValue(to, out MessageStreamWriter writer)) {
+                            writer = new MessageStreamWriter();
+                            this.writerCollection.TryAdd(to, writer);
+                            lock (this.lockToken) {
+                                this.netEndPointWriters.Add(to);
+                            }
+                        }
+                        writer.Write(message);
+                    }
+
+                    lock (this.lockToken) {
+                        this.netEndPointWriters.CopyTo(endPoints);
+                        endPointCount = this.netEndPointWriters.Count;
+                    }
+
+                    for (int index = 0; index < endPointCount; index++) {
+                        to = endPoints[index];
+                        var writer = this.writerCollection[to];
+                        writer.Use(SendTo);
+                    }
+                } catch (ObjectDisposedException) {
+                    shouldRun = false;
+                } catch (Exception ex) {
+                    Logger.Log($"Exception thrown in ThreadPool\n{ex}");
+                }
+            } while (shouldRun);
+
+            Logger.Log("UnreliableChannel ThreadPool EXITING");
         }
 
         void IUdpSocketIOListener.SocketDidReceiveBytes(UdpSocket socket, byte[] bytes, int count, NetEndPoint from) {
@@ -91,9 +114,9 @@ namespace GameNetworking.Channels {
             }
             reader.Add(bytes, count);
 
-            MessageContainer container;
+            MessageContainer? container;
             while ((container = reader.Decode()) != null) {
-                this.listener?.ChannelDidReceiveMessage(this, container, from);
+                this.listener?.ChannelDidReceiveMessage(this, container.Value, from);
             }
         }
 

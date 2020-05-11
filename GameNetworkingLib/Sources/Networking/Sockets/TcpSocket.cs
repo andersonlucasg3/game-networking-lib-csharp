@@ -78,11 +78,11 @@ namespace GameNetworking.Networking.Sockets {
         private void PopulateEndPoints() {
             if (this.socket.LocalEndPoint != null) {
                 IPEndPoint ipep = (IPEndPoint)this.socket.LocalEndPoint;
-                this.localEndPoint = new NetEndPoint(ipep.Address.ToString(), ipep.Port);
+                this.localEndPoint = new NetEndPoint(ipep.Address, ipep.Port);
             }
             if (this.socket.RemoteEndPoint != null) {
                 IPEndPoint ipep = (IPEndPoint)this.socket.RemoteEndPoint;
-                this.remoteEndPoint = new NetEndPoint(ipep.Address.ToString(), ipep.Port);
+                this.remoteEndPoint = new NetEndPoint(ipep.Address, ipep.Port);
             }
         }
 
@@ -251,7 +251,7 @@ namespace GameNetworking.Networking.Sockets {
         }
 
         private void From(NetEndPoint ep, ref IPEndPoint endPoint) {
-            endPoint.Address = IPAddress.Parse(ep.host);
+            endPoint.Address = ep.address;
             endPoint.Port = ep.port;
         }
 

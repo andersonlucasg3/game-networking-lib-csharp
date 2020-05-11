@@ -1,4 +1,5 @@
-﻿using GameNetworking.Channels;
+﻿using System.Net;
+using GameNetworking.Channels;
 using GameNetworking.Messages.Models;
 using GameNetworking.Networking.Sockets;
 
@@ -51,13 +52,14 @@ namespace GameNetworking.Networking {
         }
 
         public void Connect(string host, int port) {
-            this.tcpSocket.Connect(new NetEndPoint(host, port));
+            this.tcpSocket.Connect(new NetEndPoint(IPAddress.Parse(host), port));
             ReliableChannel.StartIO();
             this.unreliableChannel.StartIO();
         }
 
         public void Disconnect() {
             this.reliableChannel.CloseChannel();
+            this.unreliableChannel.CloseChannel(this.remoteEndPoint);
             ReliableChannel.StopIO();
             this.unreliableChannel.StopIO();
         }

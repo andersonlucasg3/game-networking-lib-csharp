@@ -20,8 +20,6 @@ namespace GameNetworking.Server {
         }
 
         protected virtual void Route(MessageContainer container, TPlayer player) {
-            if (container == null) { return; }
-
             var type = (MessageType)container.type;
 
             switch (type) {

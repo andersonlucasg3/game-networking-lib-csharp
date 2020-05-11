@@ -17,7 +17,7 @@ namespace GameNetworking.Executors.Server {
             model.server.listener.GameServerPlayerDidConnect(player, Channel.unreliable);
 
             var serverEndPoint = model.server.networkServer.listeningOnEndPoint;
-            player.Send(new NatIdentifierResponseMessage(serverEndPoint.host, serverEndPoint.port), Channel.unreliable);
+            player.Send(new NatIdentifierResponseMessage(serverEndPoint.address, serverEndPoint.port), Channel.unreliable);
         }
     }
 }

@@ -65,7 +65,7 @@ namespace GameNetworking.Networking.Sockets {
             this.isConnected = true;
 
             var ipep = this.ipEndPointPool.Rent();
-            ipep.Address = IPAddress.Parse(endPoint.host);
+            ipep.Address = endPoint.address;
             ipep.Port = endPoint.port;
             this.Bind(ipep);
             this.ipEndPointPool.Pay(ipep);
@@ -125,13 +125,13 @@ namespace GameNetworking.Networking.Sockets {
         #region Equatable Methods
 
         private void From(NetEndPoint ep, ref IPEndPoint endPoint) {
-            endPoint.Address = IPAddress.Parse(ep.host);
+            endPoint.Address = ep.address;
             endPoint.Port = ep.port;
         }
 
         private NetEndPoint From(EndPoint ep) {
             IPEndPoint endPoint = (IPEndPoint)ep;
-            return new NetEndPoint(endPoint.Address.ToString(), endPoint.Port);
+            return new NetEndPoint(endPoint.Address, endPoint.Port);
         }
 
         public bool Equals(IPEndPoint endPoint) => this.remoteEndPoint.Equals(endPoint);

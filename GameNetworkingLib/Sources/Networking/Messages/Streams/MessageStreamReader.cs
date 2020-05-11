@@ -17,7 +17,7 @@ namespace GameNetworking.Messages.Streams {
             }
         }
 
-        public MessageContainer Decode() {
+        public MessageContainer? Decode() {
             lock (this.lockToken) {
                 if (this.currentBufferLength == 0) { return null; }
 

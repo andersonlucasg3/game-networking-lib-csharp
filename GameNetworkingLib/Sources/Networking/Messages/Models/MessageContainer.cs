@@ -3,7 +3,7 @@ using GameNetworking.Commons;
 using GameNetworking.Messages.Coders;
 
 namespace GameNetworking.Messages.Models {
-    public sealed class MessageContainer {
+    public struct MessageContainer {
         private readonly byte[] _buffer;
         private readonly int _length;
 

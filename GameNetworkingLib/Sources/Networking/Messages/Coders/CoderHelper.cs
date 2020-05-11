@@ -6,7 +6,7 @@ using GameNetworking.Messages.Coders.Converters;
 namespace GameNetworking.Messages.Coders {
     internal static class CoderHelper {
         private static IntByteArrayConverter _intConverter = new IntByteArrayConverter(0);
-        internal static byte[] delimiter = Encoding.UTF8.GetBytes("\r\r\r");
+        internal static byte[] delimiter = Encoding.UTF8.GetBytes("h;'y#@%tf$ˆbh");
 
         internal static int InsertDelimiter(byte[] buffer, int index) {
             Array.Copy(delimiter, 0, buffer, index, delimiter.Length);

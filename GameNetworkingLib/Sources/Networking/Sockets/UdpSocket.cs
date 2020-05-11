@@ -24,6 +24,8 @@ namespace GameNetworking.Networking.Sockets {
         private readonly object closeLock = new object();
         private Socket socket;
 
+        private bool isClosed = false;
+
         public bool isBound => this.socket.IsBound;
         public bool isConnected { get; private set; }
 
@@ -53,6 +55,8 @@ namespace GameNetworking.Networking.Sockets {
             try { this.socket.IOControl((IOControlCode)SIO_UDP_CONNRESET, new byte[] { 0, 0, 0, 0 }, null); } catch (Exception) { Logger.Log("Error setting SIO_UDP_CONNRESET. Maybe not running on Windows."); }
             this.socket.Bind(endPoint);
 
+            this.isClosed = false;
+
             Logger.Log($"Listening on {endPoint}");
         }
 
@@ -71,13 +75,10 @@ namespace GameNetworking.Networking.Sockets {
 
         public void Close() {
             lock (this.closeLock) {
-                if (this.socket == null) { return; }
-                try {
-                    if (this.socket.Connected) {
-                        this.socket.Shutdown(SocketShutdown.Both);
-                    }
-                } finally { this.socket.Close(); }
+                if (this.isClosed || this.socket == null) { return; }
+                this.socket.Close();
                 this.socket = null;
+                this.isClosed = true;
             }
         }
 

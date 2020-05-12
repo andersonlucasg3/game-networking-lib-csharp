@@ -259,6 +259,11 @@ namespace Tests.IO {
 
             Assert.AreEqual(640, index);
         }
+
+        [Test]
+        public void TestEndianess() {
+            Console.WriteLine($"Is Little Endian: {BitConverter.IsLittleEndian}");
+        }
     }
 
     struct LoginRequest : ITypedMessage {

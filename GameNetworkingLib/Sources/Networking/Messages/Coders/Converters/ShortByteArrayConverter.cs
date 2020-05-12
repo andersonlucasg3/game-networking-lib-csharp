@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.InteropServices;
 
 namespace GameNetworking.Messages.Coders.Converters {
@@ -21,15 +22,25 @@ namespace GameNetworking.Messages.Coders.Converters {
 
         public byte[] array {
             get {
-                this._array[0] = this._converter.byte0;
-                this._array[1] = this._converter.byte1;
+                if (BitConverter.IsLittleEndian) {
+                    this._array[0] = this._converter.byte1;
+                    this._array[1] = this._converter.byte0;
+                } else {
+                    this._array[0] = this._converter.byte0;
+                    this._array[1] = this._converter.byte1;
+                }
                 return this._array;
             }
 
             set {
                 this._array = value;
-                this._converter.byte0 = this._array[0];
-                this._converter.byte1 = this._array[1];
+                if (BitConverter.IsLittleEndian) {
+                    this._converter.byte0 = this._array[1];
+                    this._converter.byte1 = this._array[0];
+                } else {
+                    this._converter.byte0 = this._array[0];
+                    this._converter.byte1 = this._array[1];
+                }
             }
         }
 
@@ -47,15 +58,25 @@ namespace GameNetworking.Messages.Coders.Converters {
 
         public byte[] array {
             get {
-                this._array[0] = this._converter.byte0;
-                this._array[1] = this._converter.byte1;
+                if (BitConverter.IsLittleEndian) {
+                    this._array[0] = this._converter.byte1;
+                    this._array[1] = this._converter.byte0;
+                } else {
+                    this._array[0] = this._converter.byte0;
+                    this._array[1] = this._converter.byte1;
+                }
                 return this._array;
             }
 
             set {
                 this._array = value;
-                this._converter.byte0 = this._array[0];
-                this._converter.byte1 = this._array[1];
+                if (BitConverter.IsLittleEndian) {
+                    this._converter.byte0 = this._array[1];
+                    this._converter.byte1 = this._array[0];
+                } else {
+                    this._converter.byte0 = this._array[0];
+                    this._converter.byte1 = this._array[1];
+                }
             }
         }
 

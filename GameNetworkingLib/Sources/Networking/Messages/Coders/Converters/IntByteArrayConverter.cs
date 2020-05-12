@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.InteropServices;
 
 namespace GameNetworking.Messages.Coders.Converters {
@@ -25,19 +26,33 @@ namespace GameNetworking.Messages.Coders.Converters {
 
         public byte[] array {
             get {
-                this._array[0] = this._converter.byte0;
-                this._array[1] = this._converter.byte1;
-                this._array[2] = this._converter.byte2;
-                this._array[3] = this._converter.byte3;
+                if (BitConverter.IsLittleEndian) {
+                    this._array[0] = this._converter.byte3;
+                    this._array[1] = this._converter.byte2;
+                    this._array[2] = this._converter.byte1;
+                    this._array[3] = this._converter.byte0;
+                } else {
+                    this._array[0] = this._converter.byte0;
+                    this._array[1] = this._converter.byte1;
+                    this._array[2] = this._converter.byte2;
+                    this._array[3] = this._converter.byte3;
+                }
                 return this._array;
             }
 
             set {
                 this._array = value;
-                this._converter.byte0 = this._array[0];
-                this._converter.byte1 = this._array[1];
-                this._converter.byte2 = this._array[2];
-                this._converter.byte3 = this._array[3];
+                if (BitConverter.IsLittleEndian) {
+                    this._converter.byte0 = this._array[3];
+                    this._converter.byte1 = this._array[2];
+                    this._converter.byte2 = this._array[1];
+                    this._converter.byte3 = this._array[0];
+                } else {
+                    this._converter.byte0 = this._array[0];
+                    this._converter.byte1 = this._array[1];
+                    this._converter.byte2 = this._array[2];
+                    this._converter.byte3 = this._array[3];
+                }
             }
         }
 
@@ -45,8 +60,9 @@ namespace GameNetworking.Messages.Coders.Converters {
 
         public IntByteArrayConverter(int value) {
             this._array = new byte[sizeof(int)];
-            this._converter = new IntConverter();
-            this._converter.value = value;
+            this._converter = new IntConverter {
+                value = value
+            };
         }
     }
 
@@ -56,19 +72,33 @@ namespace GameNetworking.Messages.Coders.Converters {
 
         public byte[] array {
             get {
-                this._array[0] = this._converter.byte0;
-                this._array[1] = this._converter.byte1;
-                this._array[2] = this._converter.byte2;
-                this._array[3] = this._converter.byte3;
+                if (BitConverter.IsLittleEndian) {
+                    this._array[0] = this._converter.byte3;
+                    this._array[1] = this._converter.byte2;
+                    this._array[2] = this._converter.byte1;
+                    this._array[3] = this._converter.byte0;
+                } else {
+                    this._array[0] = this._converter.byte0;
+                    this._array[1] = this._converter.byte1;
+                    this._array[2] = this._converter.byte2;
+                    this._array[3] = this._converter.byte3;
+                }
                 return this._array;
             }
 
             set {
                 this._array = value;
-                this._converter.byte0 = this._array[0];
-                this._converter.byte1 = this._array[1];
-                this._converter.byte2 = this._array[2];
-                this._converter.byte3 = this._array[3];
+                if (BitConverter.IsLittleEndian) {
+                    this._converter.byte0 = this._array[3];
+                    this._converter.byte1 = this._array[2];
+                    this._converter.byte2 = this._array[1];
+                    this._converter.byte3 = this._array[0];
+                } else {
+                    this._converter.byte0 = this._array[0];
+                    this._converter.byte1 = this._array[1];
+                    this._converter.byte2 = this._array[2];
+                    this._converter.byte3 = this._array[3];
+                }
             }
         }
 
@@ -76,8 +106,9 @@ namespace GameNetworking.Messages.Coders.Converters {
 
         public UIntByteArrayConverter(uint value) {
             this._array = new byte[sizeof(int)];
-            this._converter = new UIntConverter();
-            this._converter.value = value;
+            this._converter = new UIntConverter {
+                value = value
+            };
         }
     }
 }

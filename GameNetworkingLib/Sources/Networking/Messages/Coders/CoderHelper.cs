@@ -4,24 +4,24 @@ using System.Text;
 using GameNetworking.Messages.Coders.Converters;
 
 namespace GameNetworking.Messages.Coders {
-    internal static class CoderHelper {
+    public static class CoderHelper {
         private static IntByteArrayConverter _intConverter = new IntByteArrayConverter(0);
-        internal static byte[] delimiter = Encoding.UTF8.GetBytes("h;'y#@%tf$ˆbh");
+        public static byte[] delimiter = Encoding.UTF8.GetBytes("942gh2hg249");
 
-        internal static int InsertDelimiter(byte[] buffer, int index) {
+        public static int InsertDelimiter(byte[] buffer, int index) {
             Array.Copy(delimiter, 0, buffer, index, delimiter.Length);
             return delimiter.Length;
         }
 
-        internal static int CheckForDelimiter(byte[] buffer, int length) {
+        public static int CheckForDelimiter(byte[] buffer, int length) {
             return ArraySearch.IndexOf(buffer, delimiter, length);
         }
 
-        internal static void PackageBytes(int size, byte[] buffer, byte[] packetBytes) {
+        public static void PackageBytes(int size, byte[] buffer, byte[] packetBytes) {
             Array.Copy(buffer, packetBytes, size);
         }
 
-        internal static int SliceBuffer(int delimiterIndex, byte[] buffer, int count) {
+        public static int SliceBuffer(int delimiterIndex, byte[] buffer, int count) {
             var delimiterEndIndex = delimiterIndex + delimiter.Length;
             var newLength = count - delimiterEndIndex;
             if (newLength > 0) {
@@ -30,7 +30,7 @@ namespace GameNetworking.Messages.Coders {
             return newLength;
         }
 
-        internal static int WriteHeader(int type, byte[] buffer, int index) {
+        public static int WriteHeader(int type, byte[] buffer, int index) {
             var headerSize = sizeof(int);
             _intConverter.value = type;
             Array.Copy(_intConverter.array, 0, buffer, index, headerSize);
@@ -38,7 +38,7 @@ namespace GameNetworking.Messages.Coders {
         }
     }
 
-    internal static class ArraySearch {
+    public static class ArraySearch {
         private struct PartialMatch : IEquatable<PartialMatch> {
             public int Index { get; private set; }
             public int MatchLength { get; set; }
@@ -53,7 +53,7 @@ namespace GameNetworking.Messages.Coders {
             }
         }
 
-        internal static int IndexOf(byte[] arrayToSearch, byte[] patternToFind, int length) {
+        public static int IndexOf(byte[] arrayToSearch, byte[] patternToFind, int length) {
             if (patternToFind.Length == 0 || length == 0 || length < patternToFind.Length) {
                 return -1;
             }

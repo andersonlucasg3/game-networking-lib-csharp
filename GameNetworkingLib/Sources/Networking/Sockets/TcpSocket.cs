@@ -40,7 +40,9 @@ namespace GameNetworking.Networking.Sockets {
     public sealed class TcpSocket : ITcpSocket<TcpSocket> {
         private readonly ObjectPool<byte[]> bufferPool;
         private readonly ObjectPool<IPEndPoint> ipEndPointPool;
-        private readonly object closeLock = new object();
+        private readonly object acceptLock = new object();
+        private readonly object receiveLock = new object();
+        private readonly object sendLock = new object();
         private Socket socket;
 
         private bool isClosed = false;
@@ -67,8 +69,8 @@ namespace GameNetworking.Networking.Sockets {
 
             this.socket.NoDelay = true;
             this.socket.Blocking = false;
-            this.socket.ReceiveTimeout = 1000;
-            this.socket.SendTimeout = 1000;
+            this.socket.ReceiveTimeout = 0;
+            this.socket.SendTimeout = 0;
             this.socket.ReceiveBufferSize = Consts.bufferSize;
             this.socket.SendBufferSize = Consts.bufferSize;
 
@@ -110,7 +112,7 @@ namespace GameNetworking.Networking.Sockets {
         }
 
         private void Accept() {
-            lock (this.closeLock) {
+            lock (this.acceptLock) {
                 if (this.socket == null) { return; }
                 if (!this.socket.Poll(1, SelectMode.SelectRead)) { return; }
 
@@ -158,18 +160,22 @@ namespace GameNetworking.Networking.Sockets {
         #endregion
 
         private void CheckClosed() {
-            lock (this.closeLock) {
-                if (this.isClosed && this.socket == null) { return; }
-                try {
-                    if (this.isConnected) {
-                        this.socket.Shutdown(SocketShutdown.Both);
+            lock (this.acceptLock) {
+                lock (this.receiveLock) {
+                    lock (this.sendLock) {
+                        if (this.isClosed && this.socket == null) { return; }
+                        try {
+                            if (this.isConnected) {
+                                this.socket.Shutdown(SocketShutdown.Both);
+                            }
+                        } finally {
+                            this.socket.Close();
+                        }
+                        this.socket = null;
+                        this.isClosed = true;
+                        this.hasBeenConnected = false;
                     }
-                } finally {
-                    this.socket.Close();
                 }
-                this.socket = null;
-                this.isClosed = true;
-                this.hasBeenConnected = false;
             }
         }
 
@@ -186,7 +192,7 @@ namespace GameNetworking.Networking.Sockets {
         }
 
         public void Receive() {
-            lock (this.closeLock) {
+            lock (this.receiveLock) {
                 if (this.socket == null) { return; }
                 if (this.socket.Poll(1, SelectMode.SelectRead)) {
                     if (this.CheckDisconnected()) {
@@ -206,7 +212,7 @@ namespace GameNetworking.Networking.Sockets {
         }
 
         public void Send(byte[] bytes, int count) {
-            lock (this.closeLock) {
+            lock (this.sendLock) {
                 if (this.socket == null) { return; }
                 if (this.socket.Poll(1, SelectMode.SelectWrite)) {
                     int written = this.socket.Send(bytes, 0, count, SocketFlags.None, out SocketError error);

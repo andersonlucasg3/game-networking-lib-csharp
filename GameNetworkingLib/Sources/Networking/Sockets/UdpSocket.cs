@@ -21,7 +21,8 @@ namespace GameNetworking.Networking.Sockets {
 
         private readonly ObjectPool<byte[]> bufferPool;
         private readonly ObjectPool<IPEndPoint> ipEndPointPool;
-        private readonly object closeLock = new object();
+        private readonly object receiveLock = new object();
+        private readonly object sendLock = new object();
         private Socket socket;
 
         private bool isClosed = false;
@@ -74,11 +75,13 @@ namespace GameNetworking.Networking.Sockets {
         public void Connect(NetEndPoint endPoint) => this.remoteEndPoint = endPoint;
 
         public void Close() {
-            lock (this.closeLock) {
-                if (this.isClosed || this.socket == null) { return; }
-                this.socket.Close();
-                this.socket = null;
-                this.isClosed = true;
+            lock (this.sendLock) {
+                lock (this.receiveLock) {
+                    if (this.isClosed || this.socket == null) { return; }
+                    this.socket.Close();
+                    this.socket = null;
+                    this.isClosed = true;
+                }
             }
         }
 
@@ -89,7 +92,7 @@ namespace GameNetworking.Networking.Sockets {
         #region Read & Write
 
         public void Receive() {
-            lock (this.closeLock) {
+            lock (this.receiveLock) {
                 if (this.socket == null) { return; }
                 if (this.socket.Poll(1, SelectMode.SelectRead)) {
                     var buffer = this.bufferPool.Rent();
@@ -108,7 +111,7 @@ namespace GameNetworking.Networking.Sockets {
         }
 
         public void Send(byte[] bytes, int count, NetEndPoint to) {
-            lock (this.closeLock) {
+            lock (this.sendLock) {
                 if (this.socket == null) { return; }
                 if (this.socket.Poll(1, SelectMode.SelectWrite)) {
                     IPEndPoint endPoint = this.ipEndPointPool.Rent();

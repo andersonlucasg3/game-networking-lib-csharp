@@ -6,7 +6,8 @@ namespace GameNetworking.Messages.Streams {
     public class MessageStreamReader : IStreamReader {
         private readonly object lockToken = new object();
         private readonly byte[] currentBuffer = new byte[1024 * 1024]; // 1MB
-        private int currentBufferLength;
+
+        public int currentBufferLength { get; private set; }
 
         public MessageStreamReader() { }
 

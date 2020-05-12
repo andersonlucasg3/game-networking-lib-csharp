@@ -10,7 +10,8 @@ namespace GameNetworking.Messages.Streams {
     public class MessageStreamWriter : IStreamWriter {
         private readonly object lockToken = new object();
         private readonly byte[] currentBuffer = new byte[1024 * 1024]; // 1MB
-        private int currentBufferLength = 0;
+
+        public int currentBufferLength { get; private set; } = 0;
 
         public MessageStreamWriter() { }
 
@@ -31,7 +32,12 @@ namespace GameNetworking.Messages.Streams {
 
         public void DidWrite(int count) {
             lock (this.lockToken) {
-                if (count <= 0) { return; }
+                if (count <= 0) {
+                    if (Logging.Logger.IsLoggingEnabled) {
+                        Logging.Logger.Log($"Trying to shrink buffer with negative written count: {count}");
+                    }
+                    return;
+                }
                 if (count == this.currentBufferLength) {
                     this.currentBufferLength = 0;
                     return;

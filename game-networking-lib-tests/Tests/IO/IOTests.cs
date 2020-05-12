@@ -12,6 +12,8 @@ using GameNetworking.Messages.Streams;
 using GameNetworking.Commons;
 using System.Linq;
 using System.Text;
+using GameNetworking.Messages.Coders.Converters;
+using System.Net;
 
 namespace Tests.IO {
     public class IOTests {
@@ -263,6 +265,15 @@ namespace Tests.IO {
         [Test]
         public void TestEndianess() {
             Console.WriteLine($"Is Little Endian: {BitConverter.IsLittleEndian}");
+
+            int value = 15395;
+            byte[] bigEndianBytes = BitConverter.GetBytes(value);
+            Array.Reverse(bigEndianBytes);
+
+            IntByteArrayConverter converter = new IntByteArrayConverter();
+            converter.array = bigEndianBytes;
+
+            Assert.AreEqual(value, converter.value);
         }
     }
 

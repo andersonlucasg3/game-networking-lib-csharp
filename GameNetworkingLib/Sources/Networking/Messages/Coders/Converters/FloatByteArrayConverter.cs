@@ -17,16 +17,12 @@ namespace GameNetworking.Messages.Coders.Converters {
 
         public byte[] array {
             get {
+                this._array[0] = this._converter.byte0;
+                this._array[1] = this._converter.byte1;
+                this._array[2] = this._converter.byte2;
+                this._array[3] = this._converter.byte3;
                 if (BitConverter.IsLittleEndian) {
-                    this._array[0] = this._converter.byte3;
-                    this._array[1] = this._converter.byte2;
-                    this._array[2] = this._converter.byte1;
-                    this._array[3] = this._converter.byte0;
-                } else {
-                    this._array[0] = this._converter.byte0;
-                    this._array[1] = this._converter.byte1;
-                    this._array[2] = this._converter.byte2;
-                    this._array[3] = this._converter.byte3;
+                    Array.Reverse(this._array);
                 }
                 return this._array;
             }
@@ -34,16 +30,12 @@ namespace GameNetworking.Messages.Coders.Converters {
             set {
                 this._array = value;
                 if (BitConverter.IsLittleEndian) {
-                    this._converter.byte0 = this._array[3];
-                    this._converter.byte1 = this._array[2];
-                    this._converter.byte2 = this._array[1];
-                    this._converter.byte3 = this._array[0];
-                } else {
-                    this._converter.byte0 = this._array[0];
-                    this._converter.byte1 = this._array[1];
-                    this._converter.byte2 = this._array[2];
-                    this._converter.byte3 = this._array[3];
+                    Array.Reverse(this._array);
                 }
+                this._converter.byte0 = this._array[0];
+                this._converter.byte1 = this._array[1];
+                this._converter.byte2 = this._array[2];
+                this._converter.byte3 = this._array[3];
             }
         }
 
@@ -51,8 +43,9 @@ namespace GameNetworking.Messages.Coders.Converters {
 
         public FloatByteArrayConverter(float value) {
             this._array = new byte[sizeof(float)];
-            this._converter = new FloatConverter();
-            this._converter.value = value;
+            this._converter = new FloatConverter {
+                value = value
+            };
         }
     }
 }

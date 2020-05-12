@@ -21,24 +21,16 @@ namespace GameNetworking.Messages.Coders.Converters {
 
         public byte[] array {
             get {
+                this._array[0] = this._converter.byte0;
+                this._array[1] = this._converter.byte1;
+                this._array[2] = this._converter.byte2;
+                this._array[3] = this._converter.byte3;
+                this._array[4] = this._converter.byte4;
+                this._array[5] = this._converter.byte5;
+                this._array[6] = this._converter.byte6;
+                this._array[7] = this._converter.byte7;
                 if (BitConverter.IsLittleEndian) {
-                    this._array[0] = this._converter.byte7;
-                    this._array[1] = this._converter.byte6;
-                    this._array[2] = this._converter.byte5;
-                    this._array[3] = this._converter.byte4;
-                    this._array[4] = this._converter.byte3;
-                    this._array[5] = this._converter.byte2;
-                    this._array[6] = this._converter.byte1;
-                    this._array[7] = this._converter.byte0;
-                } else {
-                    this._array[0] = this._converter.byte0;
-                    this._array[1] = this._converter.byte1;
-                    this._array[2] = this._converter.byte2;
-                    this._array[3] = this._converter.byte3;
-                    this._array[4] = this._converter.byte4;
-                    this._array[5] = this._converter.byte5;
-                    this._array[6] = this._converter.byte6;
-                    this._array[7] = this._converter.byte7;
+                    Array.Reverse(this._array);
                 }
                 return this._array;
             }
@@ -46,24 +38,16 @@ namespace GameNetworking.Messages.Coders.Converters {
             set {
                 this._array = value;
                 if (BitConverter.IsLittleEndian) {
-                    this._converter.byte0 = this._array[7];
-                    this._converter.byte1 = this._array[6];
-                    this._converter.byte2 = this._array[5];
-                    this._converter.byte3 = this._array[4];
-                    this._converter.byte4 = this._array[3];
-                    this._converter.byte5 = this._array[2];
-                    this._converter.byte6 = this._array[1];
-                    this._converter.byte7 = this._array[0];
-                } else {
-                    this._converter.byte0 = this._array[0];
-                    this._converter.byte1 = this._array[1];
-                    this._converter.byte2 = this._array[2];
-                    this._converter.byte3 = this._array[3];
-                    this._converter.byte4 = this._array[4];
-                    this._converter.byte5 = this._array[5];
-                    this._converter.byte6 = this._array[6];
-                    this._converter.byte7 = this._array[7];
+                    Array.Reverse(this._array);
                 }
+                this._converter.byte0 = this._array[0];
+                this._converter.byte1 = this._array[1];
+                this._converter.byte2 = this._array[2];
+                this._converter.byte3 = this._array[3];
+                this._converter.byte4 = this._array[4];
+                this._converter.byte5 = this._array[5];
+                this._converter.byte6 = this._array[6];
+                this._converter.byte7 = this._array[7];
             }
         }
 

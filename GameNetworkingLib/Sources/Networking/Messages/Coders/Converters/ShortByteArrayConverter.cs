@@ -22,12 +22,10 @@ namespace GameNetworking.Messages.Coders.Converters {
 
         public byte[] array {
             get {
+                this._array[0] = this._converter.byte0;
+                this._array[1] = this._converter.byte1;
                 if (BitConverter.IsLittleEndian) {
-                    this._array[0] = this._converter.byte1;
-                    this._array[1] = this._converter.byte0;
-                } else {
-                    this._array[0] = this._converter.byte0;
-                    this._array[1] = this._converter.byte1;
+                    Array.Reverse(this._array);
                 }
                 return this._array;
             }
@@ -35,12 +33,10 @@ namespace GameNetworking.Messages.Coders.Converters {
             set {
                 this._array = value;
                 if (BitConverter.IsLittleEndian) {
-                    this._converter.byte0 = this._array[1];
-                    this._converter.byte1 = this._array[0];
-                } else {
-                    this._converter.byte0 = this._array[0];
-                    this._converter.byte1 = this._array[1];
+                    Array.Reverse(this._array);
                 }
+                this._converter.byte0 = this._array[0];
+                this._converter.byte1 = this._array[1];
             }
         }
 
@@ -58,12 +54,10 @@ namespace GameNetworking.Messages.Coders.Converters {
 
         public byte[] array {
             get {
+                this._array[0] = this._converter.byte0;
+                this._array[1] = this._converter.byte1;
                 if (BitConverter.IsLittleEndian) {
-                    this._array[0] = this._converter.byte1;
-                    this._array[1] = this._converter.byte0;
-                } else {
-                    this._array[0] = this._converter.byte0;
-                    this._array[1] = this._converter.byte1;
+                    Array.Reverse(this._array);
                 }
                 return this._array;
             }
@@ -71,12 +65,10 @@ namespace GameNetworking.Messages.Coders.Converters {
             set {
                 this._array = value;
                 if (BitConverter.IsLittleEndian) {
-                    this._converter.byte0 = this._array[1];
-                    this._converter.byte1 = this._array[0];
-                } else {
-                    this._converter.byte0 = this._array[0];
-                    this._converter.byte1 = this._array[1];
+                    Array.Reverse(this._array);
                 }
+                this._converter.byte0 = this._array[0];
+                this._converter.byte1 = this._array[1];
             }
         }
 

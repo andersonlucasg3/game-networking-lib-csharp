@@ -46,14 +46,8 @@ namespace GameNetworking.Channels {
             lock (socketLock) { aliveSockets.Remove(channel); }
         }
 
-        public void CloseChannel() {
-            this.socket.Disconnect();
-        }
-
-        public void Send(ITypedMessage message) {
-            this.writer.Write(message);
-            Logging.Logger.Log($"MessageStreamWriter {this.writer.currentBufferLength}");
-        }
+        public void CloseChannel() => this.socket.Disconnect();
+        public void Send(ITypedMessage message) => this.writer.Write(message);
 
         private static void ThreadPoolWorker(object state) {
             Thread.CurrentThread.Name = "ReliableChannel Thread";
@@ -69,12 +63,6 @@ namespace GameNetworking.Channels {
                     var channel = channels[index];
                     try {
                         channel.socket.Receive();
-                        if (channel.reader.currentBufferLength > 0) {
-                            Logging.Logger.Log($"MessageStreamReader {channel.reader.currentBufferLength}");
-                        }
-                        if (channel.writer.currentBufferLength > 0) {
-                            Logging.Logger.Log($"MessageStreamWriter {channel.writer.currentBufferLength}");
-                        }
                         channel.writer.Use(channel.socket.Send);
                     } catch (ObjectDisposedException) {
                         ioRunning = false;
@@ -89,17 +77,12 @@ namespace GameNetworking.Channels {
         void ITcpSocketIOListener<TcpSocket>.SocketDidReceiveBytes(TcpSocket socket, byte[] bytes, int count) {
             this.reader.Add(bytes, count);
 
-            Logging.Logger.Log($"Received bytes {count}");
-
             MessageContainer? container;
             while ((container = this.reader.Decode()).HasValue) {
                 this.listener?.ChannelDidReceiveMessage(this, container.Value);
             }
         }
 
-        void ITcpSocketIOListener<TcpSocket>.SocketDidSendBytes(TcpSocket socket, int count) {
-            this.writer.DidWrite(count);
-            Logging.Logger.Log($"Written {count} bytes");
-        }
+        void ITcpSocketIOListener<TcpSocket>.SocketDidSendBytes(TcpSocket socket, int count) => this.writer.DidWrite(count);
     }
 }

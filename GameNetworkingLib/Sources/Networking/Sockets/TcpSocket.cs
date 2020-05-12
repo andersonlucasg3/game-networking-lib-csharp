@@ -3,7 +3,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using GameNetworking.Commons;
-using Logging;
 
 namespace GameNetworking.Networking.Sockets {
     public interface ITcpServerListener<TDerived>
@@ -69,8 +68,8 @@ namespace GameNetworking.Networking.Sockets {
 
             this.socket.NoDelay = true;
             this.socket.Blocking = false;
-            this.socket.ReceiveTimeout = 0;
-            this.socket.SendTimeout = 0;
+            this.socket.ReceiveTimeout = 1000;
+            this.socket.SendTimeout = 1000;
             this.socket.ReceiveBufferSize = Consts.bufferSize;
             this.socket.SendBufferSize = Consts.bufferSize;
 

@@ -13,7 +13,6 @@ using GameNetworking.Commons;
 using System.Linq;
 using System.Text;
 using GameNetworking.Messages.Coders.Converters;
-using System.Net;
 
 namespace Tests.IO {
     public class IOTests {

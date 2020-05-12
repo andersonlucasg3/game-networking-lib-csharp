@@ -15,7 +15,9 @@ namespace GameNetworking.Messages.Models {
             this._buffer = buffer;
             this._length = length;
 
-            _intConverter.array = buffer;
+            var array = _intConverter.array;
+            Array.Copy(buffer, array, sizeof(int));
+            _intConverter.array = array;
             this.type = _intConverter.value;
         }
 

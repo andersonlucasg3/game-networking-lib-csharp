@@ -96,7 +96,7 @@ namespace GameNetworking.Messages.Coders {
         }
 
         public void Encode(string value) {
-            var bytes = Encoding.UTF8.GetBytes(value);
+            var bytes = Encoding.ASCII.GetBytes(value);
             this.Encode(bytes);
         }
 

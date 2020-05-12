@@ -204,7 +204,7 @@ namespace Tests.IO {
 
             Console.WriteLine($"Total bytes: {bytes.Length}");
 
-            var delimiter = Encoding.UTF8.GetBytes("\r\r\r\r\r\r");
+            var delimiter = Encoding.ASCII.GetBytes("\r\r\r\r\r\r");
 
             Array.Copy(delimiter, 0, bytes, 640, delimiter.Length);
 
@@ -246,7 +246,7 @@ namespace Tests.IO {
 
             Console.WriteLine($"Total bytes: {bytes.Length}");
 
-            var delimiter = Encoding.UTF8.GetBytes("942gh2hg249");
+            var delimiter = Encoding.ASCII.GetBytes("942gh2hg249");
 
             Array.Copy(delimiter, 0, bytes, 640, delimiter.Length);
 
@@ -308,7 +308,7 @@ namespace Tests.IO {
 
     [Serializable]
     struct Value : ITypedMessage {
-        public static readonly byte[] bytes = System.Text.Encoding.UTF8.GetBytes("Minha string preferida em bytes");
+        public static readonly byte[] bytes = System.Text.Encoding.ASCII.GetBytes("Minha string preferida em bytes");
 
         int ITypedMessage.type => 100;
 

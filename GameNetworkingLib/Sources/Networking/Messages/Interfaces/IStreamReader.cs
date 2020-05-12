@@ -4,6 +4,6 @@
     public interface IStreamReader {
         void Add(byte[] buffer, int count);
 
-        MessageContainer Decode();
+        MessageContainer? Decode();
     }
 }

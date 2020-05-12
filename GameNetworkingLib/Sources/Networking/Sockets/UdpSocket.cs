@@ -21,8 +21,11 @@ namespace GameNetworking.Networking.Sockets {
 
         private readonly ObjectPool<byte[]> bufferPool;
         private readonly ObjectPool<IPEndPoint> ipEndPointPool;
-        private readonly object closeLock = new object();
+        private readonly object receiveLock = new object();
+        private readonly object sendLock = new object();
         private Socket socket;
+
+        private bool isClosed = false;
 
         public bool isBound => this.socket.IsBound;
         public bool isConnected { get; private set; }
@@ -53,6 +56,8 @@ namespace GameNetworking.Networking.Sockets {
             try { this.socket.IOControl((IOControlCode)SIO_UDP_CONNRESET, new byte[] { 0, 0, 0, 0 }, null); } catch (Exception) { Logger.Log("Error setting SIO_UDP_CONNRESET. Maybe not running on Windows."); }
             this.socket.Bind(endPoint);
 
+            this.isClosed = false;
+
             Logger.Log($"Listening on {endPoint}");
         }
 
@@ -61,7 +66,7 @@ namespace GameNetworking.Networking.Sockets {
             this.isConnected = true;
 
             var ipep = this.ipEndPointPool.Rent();
-            ipep.Address = IPAddress.Parse(endPoint.host);
+            ipep.Address = endPoint.address;
             ipep.Port = endPoint.port;
             this.Bind(ipep);
             this.ipEndPointPool.Pay(ipep);
@@ -70,14 +75,13 @@ namespace GameNetworking.Networking.Sockets {
         public void Connect(NetEndPoint endPoint) => this.remoteEndPoint = endPoint;
 
         public void Close() {
-            lock (this.closeLock) {
-                if (this.socket == null) { return; }
-                try {
-                    if (this.socket.Connected) {
-                        this.socket.Shutdown(SocketShutdown.Both);
-                    }
-                } finally { this.socket.Close(); }
-                this.socket = null;
+            lock (this.sendLock) {
+                lock (this.receiveLock) {
+                    if (this.isClosed || this.socket == null) { return; }
+                    this.socket.Close();
+                    this.socket = null;
+                    this.isClosed = true;
+                }
             }
         }
 
@@ -88,7 +92,7 @@ namespace GameNetworking.Networking.Sockets {
         #region Read & Write
 
         public void Receive() {
-            lock (this.closeLock) {
+            lock (this.receiveLock) {
                 if (this.socket == null) { return; }
                 if (this.socket.Poll(1, SelectMode.SelectRead)) {
                     var buffer = this.bufferPool.Rent();
@@ -107,7 +111,7 @@ namespace GameNetworking.Networking.Sockets {
         }
 
         public void Send(byte[] bytes, int count, NetEndPoint to) {
-            lock (this.closeLock) {
+            lock (this.sendLock) {
                 if (this.socket == null) { return; }
                 if (this.socket.Poll(1, SelectMode.SelectWrite)) {
                     IPEndPoint endPoint = this.ipEndPointPool.Rent();
@@ -124,13 +128,13 @@ namespace GameNetworking.Networking.Sockets {
         #region Equatable Methods
 
         private void From(NetEndPoint ep, ref IPEndPoint endPoint) {
-            endPoint.Address = IPAddress.Parse(ep.host);
+            endPoint.Address = ep.address;
             endPoint.Port = ep.port;
         }
 
         private NetEndPoint From(EndPoint ep) {
             IPEndPoint endPoint = (IPEndPoint)ep;
-            return new NetEndPoint(endPoint.Address.ToString(), endPoint.Port);
+            return new NetEndPoint(endPoint.Address, endPoint.Port);
         }
 
         public bool Equals(IPEndPoint endPoint) => this.remoteEndPoint.Equals(endPoint);

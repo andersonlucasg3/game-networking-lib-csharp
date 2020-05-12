@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.InteropServices;
 
 namespace GameNetworking.Messages.Coders.Converters {
@@ -23,11 +24,17 @@ namespace GameNetworking.Messages.Coders.Converters {
             get {
                 this._array[0] = this._converter.byte0;
                 this._array[1] = this._converter.byte1;
+                if (BitConverter.IsLittleEndian) {
+                    Array.Reverse(this._array);
+                }
                 return this._array;
             }
 
             set {
                 this._array = value;
+                if (BitConverter.IsLittleEndian) {
+                    Array.Reverse(this._array);
+                }
                 this._converter.byte0 = this._array[0];
                 this._converter.byte1 = this._array[1];
             }
@@ -49,11 +56,17 @@ namespace GameNetworking.Messages.Coders.Converters {
             get {
                 this._array[0] = this._converter.byte0;
                 this._array[1] = this._converter.byte1;
+                if (BitConverter.IsLittleEndian) {
+                    Array.Reverse(this._array);
+                }
                 return this._array;
             }
 
             set {
                 this._array = value;
+                if (BitConverter.IsLittleEndian) {
+                    Array.Reverse(this._array);
+                }
                 this._converter.byte0 = this._array[0];
                 this._converter.byte1 = this._array[1];
             }

@@ -1,6 +1,7 @@
 using GameNetworking.Messages.Models;
 using GameNetworking.Messages.Streams;
 using GameNetworking.Networking.Sockets;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 
@@ -30,20 +31,7 @@ namespace GameNetworking.Channels {
 
         public static void StartIO() {
             ioRunning = true;
-            ThreadPool.QueueUserWorkItem(_ => {
-                ReliableChannel[] channels;
-                do {
-                    lock (socketLock) {
-                        channels = aliveSockets.ToArray();
-                    }
-
-                    for (int index = 0; index < channels.Length; index++) {
-                        var channel = channels[index];
-                        channel.socket.Receive();
-                        channel.writer.Use(channel.socket.Send);
-                    }
-                } while (ioRunning);
-            });
+            ThreadPool.QueueUserWorkItem(ThreadPoolWorker);
         }
 
         public static void StopIO() {
@@ -58,25 +46,43 @@ namespace GameNetworking.Channels {
             lock (socketLock) { aliveSockets.Remove(channel); }
         }
 
-        public void CloseChannel() {
-            this.socket.Disconnect();
-        }
+        public void CloseChannel() => this.socket.Disconnect();
+        public void Send(ITypedMessage message) => this.writer.Write(message);
 
-        public void Send(ITypedMessage message) {
-            this.writer.Write(message);
+        private static void ThreadPoolWorker(object state) {
+            Thread.CurrentThread.Name = "ReliableChannel Thread";
+            ReliableChannel[] channels = new ReliableChannel[100];
+            int channelCount = 0;
+            do {
+                lock (socketLock) {
+                    aliveSockets.CopyTo(channels);
+                    channelCount = aliveSockets.Count;
+                }
+
+                for (int index = 0; index < channelCount; index++) {
+                    var channel = channels[index];
+                    try {
+                        channel.socket.Receive();
+                        channel.writer.Use(channel.socket.Send);
+                    } catch (ObjectDisposedException) {
+                        ioRunning = false;
+                    } catch (Exception ex) {
+                        Logging.Logger.Log($"Exception thrown in ThreadPool\n{ex}");
+                    }
+                }
+            } while (ioRunning);
+            Logging.Logger.Log("ReliableChannel ThreadPool EXITING");
         }
 
         void ITcpSocketIOListener<TcpSocket>.SocketDidReceiveBytes(TcpSocket socket, byte[] bytes, int count) {
             this.reader.Add(bytes, count);
 
-            MessageContainer container;
-            while ((container = this.reader.Decode()) != null) {
-                this.listener?.ChannelDidReceiveMessage(this, container);
+            MessageContainer? container;
+            while ((container = this.reader.Decode()).HasValue) {
+                this.listener?.ChannelDidReceiveMessage(this, container.Value);
             }
         }
 
-        void ITcpSocketIOListener<TcpSocket>.SocketDidSendBytes(TcpSocket socket, int count) {
-            this.writer.DidWrite(count);
-        }
+        void ITcpSocketIOListener<TcpSocket>.SocketDidSendBytes(TcpSocket socket, int count) => this.writer.DidWrite(count);
     }
 }

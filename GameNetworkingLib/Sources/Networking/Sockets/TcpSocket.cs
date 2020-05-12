@@ -3,7 +3,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using GameNetworking.Commons;
-using Logging;
 
 namespace GameNetworking.Networking.Sockets {
     public interface ITcpServerListener<TDerived>
@@ -40,7 +39,9 @@ namespace GameNetworking.Networking.Sockets {
     public sealed class TcpSocket : ITcpSocket<TcpSocket> {
         private readonly ObjectPool<byte[]> bufferPool;
         private readonly ObjectPool<IPEndPoint> ipEndPointPool;
-        private readonly object closeLock = new object();
+        private readonly object acceptLock = new object();
+        private readonly object receiveLock = new object();
+        private readonly object sendLock = new object();
         private Socket socket;
 
         private bool isClosed = false;
@@ -78,11 +79,11 @@ namespace GameNetworking.Networking.Sockets {
         private void PopulateEndPoints() {
             if (this.socket.LocalEndPoint != null) {
                 IPEndPoint ipep = (IPEndPoint)this.socket.LocalEndPoint;
-                this.localEndPoint = new NetEndPoint(ipep.Address.ToString(), ipep.Port);
+                this.localEndPoint = new NetEndPoint(ipep.Address, ipep.Port);
             }
             if (this.socket.RemoteEndPoint != null) {
                 IPEndPoint ipep = (IPEndPoint)this.socket.RemoteEndPoint;
-                this.remoteEndPoint = new NetEndPoint(ipep.Address.ToString(), ipep.Port);
+                this.remoteEndPoint = new NetEndPoint(ipep.Address, ipep.Port);
             }
         }
 
@@ -110,7 +111,7 @@ namespace GameNetworking.Networking.Sockets {
         }
 
         private void Accept() {
-            lock (this.closeLock) {
+            lock (this.acceptLock) {
                 if (this.socket == null) { return; }
                 if (!this.socket.Poll(1, SelectMode.SelectRead)) { return; }
 
@@ -158,18 +159,22 @@ namespace GameNetworking.Networking.Sockets {
         #endregion
 
         private void CheckClosed() {
-            lock (this.closeLock) {
-                if (this.isClosed && this.socket == null) { return; }
-                try {
-                    if (this.isConnected) {
-                        this.socket.Shutdown(SocketShutdown.Both);
+            lock (this.acceptLock) {
+                lock (this.receiveLock) {
+                    lock (this.sendLock) {
+                        if (this.isClosed && this.socket == null) { return; }
+                        try {
+                            if (this.isConnected) {
+                                this.socket.Shutdown(SocketShutdown.Both);
+                            }
+                        } finally {
+                            this.socket.Close();
+                        }
+                        this.socket = null;
+                        this.isClosed = true;
+                        this.hasBeenConnected = false;
                     }
-                } finally {
-                    this.socket.Close();
                 }
-                this.socket = null;
-                this.isClosed = true;
-                this.hasBeenConnected = false;
             }
         }
 
@@ -186,7 +191,7 @@ namespace GameNetworking.Networking.Sockets {
         }
 
         public void Receive() {
-            lock (this.closeLock) {
+            lock (this.receiveLock) {
                 if (this.socket == null) { return; }
                 if (this.socket.Poll(1, SelectMode.SelectRead)) {
                     if (this.CheckDisconnected()) {
@@ -206,7 +211,7 @@ namespace GameNetworking.Networking.Sockets {
         }
 
         public void Send(byte[] bytes, int count) {
-            lock (this.closeLock) {
+            lock (this.sendLock) {
                 if (this.socket == null) { return; }
                 if (this.socket.Poll(1, SelectMode.SelectWrite)) {
                     int written = this.socket.Send(bytes, 0, count, SocketFlags.None, out SocketError error);
@@ -251,7 +256,7 @@ namespace GameNetworking.Networking.Sockets {
         }
 
         private void From(NetEndPoint ep, ref IPEndPoint endPoint) {
-            endPoint.Address = IPAddress.Parse(ep.host);
+            endPoint.Address = ep.address;
             endPoint.Port = ep.port;
         }
 

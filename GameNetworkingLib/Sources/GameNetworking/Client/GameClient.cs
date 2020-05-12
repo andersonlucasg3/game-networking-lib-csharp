@@ -116,7 +116,7 @@ namespace GameNetworking.Client {
 
                 var endPoint = this.networkClient.localEndPoint;
                 var remote = this.networkClient.remoteEndPoint;
-                this.natIdentifierAckHelper.Start(new NatIdentifierRequestMessage(player.playerId, endPoint.host, endPoint.port), remote);
+                this.natIdentifierAckHelper.Start(new NatIdentifierRequestMessage(player.playerId, endPoint.address, endPoint.port), remote);
             }
         }
 

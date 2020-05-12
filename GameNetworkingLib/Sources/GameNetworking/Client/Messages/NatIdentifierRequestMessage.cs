@@ -1,4 +1,5 @@
-﻿using GameNetworking.Messages.Coders;
+﻿using System.Net;
+using GameNetworking.Messages.Coders;
 using GameNetworking.Messages.Models;
 
 namespace GameNetworking.Messages.Client {
@@ -9,9 +10,9 @@ namespace GameNetworking.Messages.Client {
         public string remoteIp;
         public int port;
 
-        public NatIdentifierRequestMessage(int playerId, string remoteIp, int port) {
+        public NatIdentifierRequestMessage(int playerId, IPAddress remoteIp, int port) {
             this.playerId = playerId;
-            this.remoteIp = remoteIp;
+            this.remoteIp = remoteIp.ToString();
             this.port = port;
         }
 

@@ -26,8 +26,6 @@ namespace GameNetworking.Commons.Client {
         }
 
         public virtual void Route(MessageContainer container) {
-            if (container == null) { return; }
-
             switch ((MessageType)container.type) {
             case MessageType.connectedPlayer: this.EnqueueConnectedPlayer(container.Parse<ConnectedPlayerMessage>()); break;
             case MessageType.ping: this.EnqueuePing(container.Parse<PingRequestMessage>()); break;

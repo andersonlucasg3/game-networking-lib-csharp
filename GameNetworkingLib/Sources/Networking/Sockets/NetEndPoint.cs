@@ -3,11 +3,11 @@ using System.Net;
 
 namespace GameNetworking.Networking.Sockets {
     public struct NetEndPoint : IEquatable<NetEndPoint> {
-        public string host { get; private set; }
+        public IPAddress address { get; private set; }
         public int port { get; private set; }
 
-        public NetEndPoint(string host, int port) {
-            this.host = host;
+        public NetEndPoint(IPAddress address, int port) {
+            this.address = address;
             this.port = port;
         }
 
@@ -19,19 +19,19 @@ namespace GameNetworking.Networking.Sockets {
         }
 
         public bool Equals(NetEndPoint other) {
-            return this.host == other.host && this.port == other.port;
+            return this.address.Equals(other.address) && this.port == other.port;
         }
 
         public override int GetHashCode() {
 #if !UNITY_64
-            return HashCode.Combine(host, port);
+            return HashCode.Combine(this.address, this.port);
 #else
-            return host.GetHashCode() + port.GetHashCode();
+            return this.address.GetHashCode() + this.port.GetHashCode();
 #endif
         }
 
         public override string ToString() {
-            return $"{{ ip: {this.host}, port: {this.port} }}";
+            return $"{{ ip: {this.address}, port: {this.port} }}";
         }
     }
 }

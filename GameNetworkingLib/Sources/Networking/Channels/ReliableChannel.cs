@@ -5,7 +5,6 @@ using GameNetworking.Networking.Sockets;
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using UnityEngine.Assertions;
 
 namespace GameNetworking.Channels {
     public interface IReliableChannelListener {

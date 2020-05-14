@@ -285,7 +285,7 @@ namespace Tests.IO {
 
             var calculatedChecksum = CoderHelper.ComputeAdditionChecksum(bytes, 0, bytes.Length);
 
-            var checksum = 0;
+            byte checksum = 0;
             for (int index = 0; index < bytes.Length; index++) {
                 checksum += bytes[index];
             }

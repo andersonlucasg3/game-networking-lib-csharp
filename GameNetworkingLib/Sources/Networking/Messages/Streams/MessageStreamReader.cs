@@ -24,14 +24,24 @@ namespace GameNetworking.Messages.Streams {
 
                 int delimiterIndex = CoderHelper.CheckForDelimiter(this.currentBuffer, this.currentBufferLength);
                 if (delimiterIndex != -1) {
-                    var packageBuffer = MessageContainer.GetBuffer();
-                    CoderHelper.PackageBytes(delimiterIndex, this.currentBuffer, packageBuffer);
-                    var container = new MessageContainer(packageBuffer, delimiterIndex);
-                    this.currentBufferLength = CoderHelper.SliceBuffer(delimiterIndex, this.currentBuffer, this.currentBufferLength);
-                    return container;
+                    if (this.ValidateChecksum(delimiterIndex)) {
+                        var packageBuffer = MessageContainer.GetBuffer();
+                        CoderHelper.PackageBytes(delimiterIndex, this.currentBuffer, packageBuffer);
+                        var container = new MessageContainer(packageBuffer, delimiterIndex);
+                        this.currentBufferLength = CoderHelper.SliceBuffer(delimiterIndex, this.currentBuffer, this.currentBufferLength);
+                        return container;
+                    } else {
+                        this.currentBufferLength = CoderHelper.SliceBuffer(delimiterIndex, this.currentBuffer, this.currentBufferLength);
+                    }
                 }
                 return null;
             }
+        }
+
+        private bool ValidateChecksum(int messageEndIndex) {
+            var checksum = CoderHelper.ComputeAdditionChecksum(this.currentBuffer, 0, messageEndIndex - sizeof(int));
+            var messageChecksum = CoderHelper.GetChecksum(this.currentBuffer, messageEndIndex - sizeof(int));
+            return checksum == messageChecksum;
         }
     }
 }

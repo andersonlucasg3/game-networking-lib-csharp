@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 using GameNetworking.Messages.Coders.Converters;
 
@@ -30,11 +31,24 @@ namespace GameNetworking.Messages.Coders {
             return newLength;
         }
 
-        public static int WriteHeader(int type, byte[] buffer, int index) {
+        public static int WriteInt(int type, byte[] buffer, int index) {
             var headerSize = sizeof(int);
             _intConverter.value = type;
             Array.Copy(_intConverter.array, 0, buffer, index, headerSize);
             return headerSize;
+        }
+
+        public static int ComputeAdditionChecksum(byte[] data, int index, int length) {
+            int sum = 0;
+            unchecked { for (int idx = index; idx < length; idx++) { sum += data[idx]; } }
+            return sum;
+        }
+
+        public static int GetChecksum(byte[] data, int index) {
+            var array = _intConverter.array;
+            Array.Copy(data, index, array, 0, sizeof(int));
+            _intConverter.array = array;
+            return _intConverter.value;
         }
     }
 

@@ -17,8 +17,11 @@ namespace GameNetworking.Messages.Streams {
 
         public void Write<TMessage>(TMessage message) where TMessage : ITypedMessage {
             lock (this.lockToken) {
-                this.currentBufferLength += CoderHelper.WriteHeader(message.type, this.currentBuffer, this.currentBufferLength);
+                var startIndex = this.currentBufferLength;
+                this.currentBufferLength += CoderHelper.WriteInt(message.type, this.currentBuffer, this.currentBufferLength);
                 this.currentBufferLength += BinaryEncoder.Encode(message, this.currentBuffer, this.currentBufferLength);
+                var checksum = CoderHelper.ComputeAdditionChecksum(this.currentBuffer, startIndex, this.currentBufferLength);
+                this.currentBufferLength += CoderHelper.WriteInt(checksum, this.currentBuffer, this.currentBufferLength);
                 this.currentBufferLength += CoderHelper.InsertDelimiter(this.currentBuffer, this.currentBufferLength);
             }
         }

@@ -24,7 +24,7 @@ namespace GameNetworking.Messages.Coders.Converters {
             get {
                 this._array[0] = this._converter.byte0;
                 this._array[1] = this._converter.byte1;
-                if (BitConverter.IsLittleEndian) {
+                if (!BitConverter.IsLittleEndian) {
                     Array.Reverse(this._array);
                 }
                 return this._array;
@@ -32,7 +32,7 @@ namespace GameNetworking.Messages.Coders.Converters {
 
             set {
                 this._array = value;
-                if (BitConverter.IsLittleEndian) {
+                if (!BitConverter.IsLittleEndian) {
                     Array.Reverse(this._array);
                 }
                 this._converter.byte0 = this._array[0];
@@ -56,7 +56,7 @@ namespace GameNetworking.Messages.Coders.Converters {
             get {
                 this._array[0] = this._converter.byte0;
                 this._array[1] = this._converter.byte1;
-                if (BitConverter.IsLittleEndian) {
+                if (!BitConverter.IsLittleEndian) {
                     Array.Reverse(this._array);
                 }
                 return this._array;
@@ -64,7 +64,7 @@ namespace GameNetworking.Messages.Coders.Converters {
 
             set {
                 this._array = value;
-                if (BitConverter.IsLittleEndian) {
+                if (!BitConverter.IsLittleEndian) {
                     Array.Reverse(this._array);
                 }
                 this._converter.byte0 = this._array[0];

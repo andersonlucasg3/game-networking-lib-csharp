@@ -1,6 +1,7 @@
 ﻿using System;
 using GameNetworking.Messages.Coders;
 using GameNetworking.Messages.Models;
+using Logging;
 
 namespace GameNetworking.Messages.Streams {
     public class MessageStreamReader : IStreamReader {
@@ -24,7 +25,7 @@ namespace GameNetworking.Messages.Streams {
 
                 int delimiterIndex = CoderHelper.CheckForDelimiter(this.currentBuffer, this.currentBufferLength);
                 if (delimiterIndex != -1) {
-                    if (this.ValidateChecksum(delimiterIndex)) {
+                    if (this.IsValidChecksum(delimiterIndex)) {
                         var packageBuffer = MessageContainer.GetBuffer();
                         CoderHelper.PackageBytes(delimiterIndex, this.currentBuffer, packageBuffer);
                         var container = new MessageContainer(packageBuffer, delimiterIndex);
@@ -32,15 +33,16 @@ namespace GameNetworking.Messages.Streams {
                         return container;
                     } else {
                         this.currentBufferLength = CoderHelper.SliceBuffer(delimiterIndex, this.currentBuffer, this.currentBufferLength);
+                        if (Logger.IsLoggingEnabled) { Logger.Log($"Discarded currupted message!"); }
                     }
                 }
                 return null;
             }
         }
 
-        private bool ValidateChecksum(int messageEndIndex) {
-            var checksum = CoderHelper.ComputeAdditionChecksum(this.currentBuffer, 0, messageEndIndex - sizeof(int));
-            var messageChecksum = CoderHelper.GetChecksum(this.currentBuffer, messageEndIndex - sizeof(int));
+        private bool IsValidChecksum(int messageEndIndex) {
+            var checksum = CoderHelper.ComputeAdditionChecksum(this.currentBuffer, 0, messageEndIndex - sizeof(long));
+            var messageChecksum = CoderHelper.GetChecksum(this.currentBuffer, messageEndIndex - sizeof(long));
             return checksum == messageChecksum;
         }
     }

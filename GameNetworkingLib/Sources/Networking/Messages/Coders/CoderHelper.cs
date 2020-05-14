@@ -7,6 +7,7 @@ using GameNetworking.Messages.Coders.Converters;
 namespace GameNetworking.Messages.Coders {
     public static class CoderHelper {
         private static IntByteArrayConverter _intConverter = new IntByteArrayConverter(0);
+        private static LongByteArrayConverter _longConverter = new LongByteArrayConverter(0);
         public static byte[] delimiter = Encoding.ASCII.GetBytes("chupacudegoianinha");
 
         public static int InsertDelimiter(byte[] buffer, int index) {
@@ -31,24 +32,31 @@ namespace GameNetworking.Messages.Coders {
             return newLength;
         }
 
-        public static int WriteInt(int type, byte[] buffer, int index) {
+        public static int WriteInt(int value, byte[] buffer, int index) {
             var headerSize = sizeof(int);
-            _intConverter.value = type;
+            _intConverter.value = value;
             Array.Copy(_intConverter.array, 0, buffer, index, headerSize);
             return headerSize;
         }
 
-        public static int ComputeAdditionChecksum(byte[] data, int index, int length) {
-            int sum = 0;
+        public static int WriteLong(long value, byte[] buffer, int index) {
+            var size = sizeof(long);
+            _longConverter.value = value;
+            Array.Copy(_longConverter.array, 0, buffer, index, size);
+            return size;
+        }
+
+        public static long ComputeAdditionChecksum(byte[] data, int index, int length) {
+            long sum = 0;
             unchecked { for (int idx = index; idx < length; idx++) { sum += data[idx]; } }
             return sum;
         }
 
-        public static int GetChecksum(byte[] data, int index) {
-            var array = _intConverter.array;
-            Array.Copy(data, index, array, 0, sizeof(int));
-            _intConverter.array = array;
-            return _intConverter.value;
+        public static long GetChecksum(byte[] data, int index) {
+            var array = _longConverter.array;
+            Array.Copy(data, index, array, 0, sizeof(long));
+            _longConverter.array = array;
+            return _longConverter.value;
         }
     }
 

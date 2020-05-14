@@ -25,7 +25,7 @@ namespace GameNetworking.Messages.Streams {
                 this.currentBufferLength += CoderHelper.WriteInt(message.type, this.currentBuffer, this.currentBufferLength);
                 this.currentBufferLength += BinaryEncoder.Encode(message, this.currentBuffer, this.currentBufferLength);
                 var checksum = CoderHelper.ComputeAdditionChecksum(this.currentBuffer, startIndex, this.currentBufferLength);
-                this.currentBufferLength += CoderHelper.WriteInt(checksum, this.currentBuffer, this.currentBufferLength);
+                this.currentBufferLength += CoderHelper.WriteLong(checksum, this.currentBuffer, this.currentBufferLength);
                 this.currentBufferLength += CoderHelper.InsertDelimiter(this.currentBuffer, this.currentBufferLength);
             }
         }

@@ -294,23 +294,32 @@ namespace Tests.IO {
             var reader = new MessageStreamReader();
 
             var loginRequest = new LoginRequest() { accessToken = "alsdjflakjsdf", username = "meu username" };
+            var matchRequest = new MatchRequest() { value1 = 1, value2 = 2, value3 = 3, value4 = 4 };
 
             writer.Write(loginRequest);
+            writer.Write(matchRequest);
             writer.Use((buffer, len) => {
                 reader.Add(buffer, len);
                 var message = reader.Decode();
                 Assert.IsTrue(message.Value.Is(200));
                 Assert.AreEqual(loginRequest, message.Value.Parse<LoginRequest>());
+                message = reader.Decode();
+                Assert.IsTrue(message.Value.Is(201));
+                Assert.AreEqual(matchRequest, message.Value.Parse<MatchRequest>());
                 writer.DidWrite(len);
             });
 
             writer.Write(loginRequest);
-            writer.currentBuffer[5] = 235;
+            writer.Write(matchRequest);
+            writer.currentBuffer[0] = 23;
             writer.Use((buffer, len) => {
                 reader.Add(buffer, len);
                 var message = reader.Decode();
-                Assert.IsTrue(!message.HasValue);
+                Assert.IsFalse(message.HasValue);
                 Assert.IsTrue(message == null);
+                message = reader.Decode();
+                Assert.IsTrue(message.Value.Is(201));
+                Assert.AreEqual(matchRequest, message.Value.Parse<MatchRequest>());
                 writer.DidWrite(len);
             });
         }
@@ -336,9 +345,24 @@ namespace Tests.IO {
     struct MatchRequest : ITypedMessage {
         int ITypedMessage.type => 201;
 
-        public void Encode(IEncoder encoder) { }
+        public int value1;
+        public int value2;
+        public int value3;
+        public int value4;
 
-        public void Decode(IDecoder decoder) { }
+        public void Encode(IEncoder encoder) {
+            encoder.Encode(this.value1);
+            encoder.Encode(this.value2);
+            encoder.Encode(this.value3);
+            encoder.Encode(this.value4);
+        }
+
+        public void Decode(IDecoder decoder) {
+            this.value1 = decoder.GetInt();
+            this.value2 = decoder.GetInt();
+            this.value3 = decoder.GetInt();
+            this.value4 = decoder.GetInt();
+        }
     }
 
     struct ConnectGameInstanceResponse : ITypedMessage {

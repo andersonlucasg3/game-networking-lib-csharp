@@ -45,7 +45,7 @@ namespace GameNetworking.Messages.Coders {
         public void SetBuffer(byte[] bytes, int offset, int length) {
             this._memoryStream.SetLength(0);
             this._memoryStream.Write(bytes, offset, length);
-            this._memoryStream.Seek(0, SeekOrigin.Begin);
+            this._memoryStream.Seek(offset, SeekOrigin.Begin);
         }
 
         public int GetInt() {

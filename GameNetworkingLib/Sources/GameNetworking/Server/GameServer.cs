@@ -143,7 +143,7 @@ namespace GameNetworking.Server {
                     NatIdentifierRequestExecutor<TPlayer>,
                     GameServerMessageRouter<TPlayer>.ServerModel<NetEndPoint>,
                     NatIdentifierRequestMessage
-                    >(new GameServerMessageRouter<TPlayer>.ServerModel<NetEndPoint>(this, from), container.Parse<NatIdentifierRequestMessage>());
+                    >(new GameServerMessageRouter<TPlayer>.ServerModel<NetEndPoint>(this, from), container);
                 this.router.dispatcher.Enqueue(executor.Execute);
             }
         }

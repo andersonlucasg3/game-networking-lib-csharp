@@ -164,12 +164,7 @@ namespace GameNetworking.Client {
         void IMessageAckHelperListener<NatIdentifierResponseMessage>.MessageAckHelperReceivedExpectedResponse(NetEndPoint from, NatIdentifierResponseMessage message) {
             ThreadChecker.AssertUnreliableChannel();
 
-            var executor = new Executor<
-                NatIdentifierResponseExecutor<TPlayer>,
-                GameClient<TPlayer>,
-                NatIdentifierResponseMessage
-                >(this, message);
-            this.router.dispatcher.Enqueue(executor.Execute);
+            this.router.dispatcher.Enqueue(() => new NatIdentifierResponseExecutor<TPlayer>().Execute(this, message));
             this.natIdentifierAckHelper = null;
         }
     }

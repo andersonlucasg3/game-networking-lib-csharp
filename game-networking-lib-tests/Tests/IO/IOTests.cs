@@ -333,32 +333,24 @@ namespace Tests.IO {
             var reader = new MessageStreamReader();
             var writer = new MessageStreamWriter();
 
-            bool isReading = true;
-
-            ThreadPool.QueueUserWorkItem(_ => {
-                Thread.CurrentThread.Name = "Writer";
-                for (int index = 0; index < 100; index++) {
+            for (int reading = 0; reading < 50; reading++) {
+                for (int write = 0; write < 2; write++) {
                     writer.Write(loginRequest);
+                    Logger.Log($"Did Write loginRequest {write * reading}");
                 }
-            });
 
-            ThreadPool.QueueUserWorkItem(_ => {
-                Thread.CurrentThread.Name = "Reader";
-                do {
-                    writer.Use((buffer, len) => {
-                        reader.Add(buffer, len);
-                        var message = reader.Decode();
-                        if (message.HasValue) {
-                            Assert.AreEqual(loginRequest, message.Value.Parse<LoginRequest>());
-                        }
-                        writer.DidWrite(len);
-                    });
-                } while (isReading);
-            });
-
-            Thread.Sleep(5000);
-
-            isReading = false;
+                writer.Use((buffer, len) => {
+                    Logger.Log($"Using buffer with len: {len}");
+                    reader.Add(buffer, len);
+                    MessageContainer? message = null;
+                    while ((message = reader.Decode()).HasValue) {
+                        Logger.Log($"Decoded message: {message.Value.type}");
+                        Assert.AreEqual(loginRequest, message.Value.Parse<LoginRequest>());
+                    }
+                    writer.DidWrite(len);
+                    Logger.Log($"Did Write len: {len}");
+                });
+            }
 
             Assert.AreEqual(0, writer.currentBufferLength);
             Assert.AreEqual(0, reader.currentBufferLength);

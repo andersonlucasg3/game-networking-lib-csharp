@@ -29,6 +29,8 @@ namespace TestClientApp {
 
             program.client.listener = program;
 
+            var startTime = DateTime.Now;
+
             while (true) {
                 lock (program) {
                     var copy = new List<Action>(program.actions);
@@ -37,8 +39,12 @@ namespace TestClientApp {
                     program.client.Update();
                 }
 
-                if (program.playerId.HasValue) {
-                    program.Send();
+                var elapsed = DateTime.Now - startTime;
+                if (elapsed.TotalMilliseconds > 100) {
+                    startTime = DateTime.Now;
+                    if (program.playerId.HasValue) {
+                        program.Send();
+                    }
                 }
             }
         }
@@ -82,7 +88,6 @@ namespace TestClientApp {
                 var message = container.Parse<Message>();
                 Logger.Log($"Received message to playerId-{message.playerId}, and I'm playerId-{playerId.Value}, with id-{message.messageId}");
             }
-
         }
 
         private void Send() {

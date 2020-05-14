@@ -15,12 +15,15 @@ namespace GameNetworking.Commons {
         readonly TMessage message;
 
         public Executor(TModel model, TMessage message) {
+            ThreadChecker.AssertMainThread(false);
             this.forwarding = new TExecutor();
             this.model = model;
             this.message = message;
         }
 
         public void Execute() {
+            ThreadChecker.AssertMainThread();
+
             this.forwarding.Execute(this.model, this.message);
 
             if (this.message is IDisposable disposable) {

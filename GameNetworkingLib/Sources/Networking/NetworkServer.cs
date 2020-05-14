@@ -1,5 +1,5 @@
-﻿using System;
-using GameNetworking.Channels;
+﻿using GameNetworking.Channels;
+using GameNetworking.Commons;
 using GameNetworking.Messages.Models;
 using GameNetworking.Networking.Sockets;
 
@@ -50,6 +50,8 @@ namespace GameNetworking.Networking {
         }
 
         public void Start(NetEndPoint endPoint) {
+            ThreadChecker.AssertMainThread();
+
             this.tcpSocket.Bind(endPoint);
             this.tcpSocket.Start();
 
@@ -62,12 +64,16 @@ namespace GameNetworking.Networking {
         }
 
         public void Stop() {
+            ThreadChecker.AssertMainThread();
+
             ReliableChannel.StopIO();
             this.tcpSocket.Stop();
             this.unreliableChannel.StopIO();
         }
 
         public void Close() {
+            ThreadChecker.AssertMainThread();
+
             this.tcpSocket.Close();
             this.udpSocket.Close();
         }
@@ -81,6 +87,8 @@ namespace GameNetworking.Networking {
         }
 
         void ITcpServerListener<TcpSocket>.SocketDidAccept(TcpSocket socket) {
+            ThreadChecker.AssertAcceptThread();
+
             if (socket == null) { return; }
 
             socket.serverListener = this;
@@ -93,6 +101,8 @@ namespace GameNetworking.Networking {
         }
 
         void ITcpServerListener<TcpSocket>.SocketDidDisconnect(TcpSocket socket) {
+            ThreadChecker.AssertReliableChannel();
+
             var channel = this.socketCollection.Remove(socket);
             if (channel == null) { return; }
             ReliableChannel.Remove(channel);
@@ -100,6 +110,8 @@ namespace GameNetworking.Networking {
         }
 
         void IUnreliableChannelListener.ChannelDidReceiveMessage(UnreliableChannel channel, MessageContainer container, NetEndPoint from) {
+            ThreadChecker.AssertUnreliableChannel();
+
             if (this.identifiedCollection.TryGetPlayer(from, out INetworkServerMessageListener listener)) {
                 listener?.NetworkServerDidReceiveMessage(container);
             } else {

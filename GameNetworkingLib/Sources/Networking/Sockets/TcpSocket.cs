@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using GameNetworking.Commons;
+using Logging;
 
 namespace GameNetworking.Networking.Sockets {
     public interface ITcpServerListener<TDerived>
@@ -93,7 +94,11 @@ namespace GameNetworking.Networking.Sockets {
             this.socket.Listen(0);
 
             ThreadPool.QueueUserWorkItem(_ => {
+                Thread.CurrentThread.Name = "TcpSocket Accept Thread";
+                ThreadChecker.ConfigureAccept(Thread.CurrentThread);
                 do { this.Accept(); } while (this.socket != null);
+                Logger.Log("TcpSocket Accept Thread EXITING!");
+                ThreadChecker.ConfigureAccept(null);
             });
         }
 

@@ -2,11 +2,13 @@
 using System.Text;
 using System.Collections.Generic;
 using GameNetworking.Messages.Coders.Converters;
+using System.Security.Cryptography;
 
 namespace GameNetworking.Messages.Coders {
     public static class CoderHelper {
+        private static readonly MD5 md5 = MD5.Create();
+        private static readonly byte[] md5Content = new byte[32];
         private static IntByteArrayConverter _intConverter = new IntByteArrayConverter(0);
-        private static LongByteArrayConverter _longConverter = new LongByteArrayConverter(0);
         public static byte[] delimiter = Encoding.ASCII.GetBytes("chupacudegoianinha");
 
         public static int InsertDelimiter(byte[] buffer, int index) {
@@ -42,14 +44,14 @@ namespace GameNetworking.Messages.Coders {
             buffer[index] = value; return 1;
         }
 
-        public static byte ComputeAdditionChecksum(byte[] data, int index, int length) {
-            byte sum = 0;
-            unchecked { for (int idx = index; idx < length; idx++) { sum += data[idx]; } }
-            return sum;
+        public static int AddChecksum(byte[] data, int index, int length) {
+            var count = md5.TransformBlock(data, index, length, data, length);
+            return length + count;
         }
 
-        public static byte GetChecksum(byte[] data, int index) {
-            return data[index];
+        public static byte[] CalculateChecksum(byte[] data, int index, int length) {
+            md5.TransformBlock(data, index, length, md5Content, 0);
+            return md5Content;
         }
     }
 

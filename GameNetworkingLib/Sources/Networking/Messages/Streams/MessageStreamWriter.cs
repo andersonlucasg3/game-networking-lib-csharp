@@ -38,16 +38,14 @@ namespace GameNetworking.Messages.Streams {
         }
 
         public void DidWrite(int count) {
-            lock (this.lockToken) {
-                if (count <= 0) { return; }
-                if (count == this.currentBufferLength) {
-                    this.currentBufferLength = 0;
-                    return;
-                }
-                var newLength = this.currentBufferLength - count;
-                Array.Copy(this.currentBuffer, count, this.currentBuffer, 0, newLength);
-                this.currentBufferLength = newLength;
+            if (count <= 0) { return; }
+            if (count == this.currentBufferLength) {
+                this.currentBufferLength = 0;
+                return;
             }
+            var newLength = this.currentBufferLength - count;
+            Array.Copy(this.currentBuffer, count, this.currentBuffer, 0, newLength);
+            this.currentBufferLength = newLength;
         }
     }
 }

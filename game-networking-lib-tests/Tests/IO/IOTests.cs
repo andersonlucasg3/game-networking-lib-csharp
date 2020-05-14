@@ -13,6 +13,8 @@ using GameNetworking.Commons;
 using System.Linq;
 using System.Text;
 using GameNetworking.Messages.Coders.Converters;
+using System.Net.NetworkInformation;
+using System.Threading;
 
 namespace Tests.IO {
     public class IOTests {
@@ -322,6 +324,44 @@ namespace Tests.IO {
                 Assert.AreEqual(matchRequest, message.Value.Parse<MatchRequest>());
                 writer.DidWrite(len);
             });
+        }
+
+        [Test]
+        public void TestMultithreadReadAndWrite() {
+            var loginRequest = new LoginRequest() { accessToken = "askldfaljksdf", username = "anderson" };
+
+            var reader = new MessageStreamReader();
+            var writer = new MessageStreamWriter();
+
+            bool isReading = true;
+
+            ThreadPool.QueueUserWorkItem(_ => {
+                Thread.CurrentThread.Name = "Writer";
+                for (int index = 0; index < 100; index++) {
+                    writer.Write(loginRequest);
+                }
+            });
+
+            ThreadPool.QueueUserWorkItem(_ => {
+                Thread.CurrentThread.Name = "Reader";
+                do {
+                    writer.Use((buffer, len) => {
+                        reader.Add(buffer, len);
+                        var message = reader.Decode();
+                        if (message.HasValue) {
+                            Assert.AreEqual(loginRequest, message.Value.Parse<LoginRequest>());
+                        }
+                        writer.DidWrite(len);
+                    });
+                } while (isReading);
+            });
+
+            Thread.Sleep(5000);
+
+            isReading = false;
+
+            Assert.AreEqual(0, writer.currentBufferLength);
+            Assert.AreEqual(0, reader.currentBufferLength);
         }
     }
 

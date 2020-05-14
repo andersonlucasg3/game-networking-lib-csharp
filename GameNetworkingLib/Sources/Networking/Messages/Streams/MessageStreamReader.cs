@@ -41,8 +41,9 @@ namespace GameNetworking.Messages.Streams {
         }
 
         private bool IsValidChecksum(int messageEndIndex) {
-            var checksum = CoderHelper.ComputeAdditionChecksum(this.currentBuffer, 0, messageEndIndex - sizeof(long));
-            var messageChecksum = CoderHelper.GetChecksum(this.currentBuffer, messageEndIndex - sizeof(long));
+            var checksum = CoderHelper.ComputeAdditionChecksum(this.currentBuffer, 0, messageEndIndex - 1);
+            var messageChecksum = CoderHelper.GetChecksum(this.currentBuffer, messageEndIndex - 1);
+            if (checksum == 0 || messageChecksum == 0) { return false; }
             return checksum == messageChecksum;
         }
     }

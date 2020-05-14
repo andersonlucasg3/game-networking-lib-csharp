@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Text;
+using System.Collections.Generic;
 using GameNetworking.Messages.Coders.Converters;
 
 namespace GameNetworking.Messages.Coders {
@@ -39,24 +38,18 @@ namespace GameNetworking.Messages.Coders {
             return headerSize;
         }
 
-        public static int WriteLong(long value, byte[] buffer, int index) {
-            var size = sizeof(long);
-            _longConverter.value = value;
-            Array.Copy(_longConverter.array, 0, buffer, index, size);
-            return size;
+        public static int WriteByte(byte value, byte[] buffer, int index) {
+            buffer[index] = value; return 1;
         }
 
-        public static long ComputeAdditionChecksum(byte[] data, int index, int length) {
-            long sum = 0;
+        public static byte ComputeAdditionChecksum(byte[] data, int index, int length) {
+            byte sum = 0;
             unchecked { for (int idx = index; idx < length; idx++) { sum += data[idx]; } }
             return sum;
         }
 
-        public static long GetChecksum(byte[] data, int index) {
-            var array = _longConverter.array;
-            Array.Copy(data, index, array, 0, sizeof(long));
-            _longConverter.array = array;
-            return _longConverter.value;
+        public static byte GetChecksum(byte[] data, int index) {
+            return data[index];
         }
     }
 

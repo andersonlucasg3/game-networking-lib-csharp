@@ -274,6 +274,46 @@ namespace Tests.IO {
 
             Assert.AreEqual(value, converter.value);
         }
+
+        [Test]
+        public void TestMessageChecksum() {
+            byte[] bytes = new byte[] {
+                4,6,4,6,6,46,6,34,64,2,64,62,47,27,247
+            };
+
+            var calculatedChecksum = CoderHelper.ComputeAdditionChecksum(bytes, 0, bytes.Length);
+
+            var checksum = 0;
+            for (int index = 0; index < bytes.Length; index++) {
+                checksum += bytes[index];
+            }
+
+            Assert.AreEqual(checksum, calculatedChecksum);
+
+            var writer = new MessageStreamWriter();
+            var reader = new MessageStreamReader();
+
+            var loginRequest = new LoginRequest() { accessToken = "alsdjflakjsdf", username = "meu username" };
+
+            writer.Write(loginRequest);
+            writer.Use((buffer, len) => {
+                reader.Add(buffer, len);
+                var message = reader.Decode();
+                Assert.IsTrue(message.Value.Is(200));
+                Assert.AreEqual(loginRequest, message.Value.Parse<LoginRequest>());
+                writer.DidWrite(len);
+            });
+
+            writer.Write(loginRequest);
+            writer.currentBuffer[5] = 235;
+            writer.Use((buffer, len) => {
+                reader.Add(buffer, len);
+                var message = reader.Decode();
+                Assert.IsTrue(!message.HasValue);
+                Assert.IsTrue(message == null);
+                writer.DidWrite(len);
+            });
+        }
     }
 
     struct LoginRequest : ITypedMessage {

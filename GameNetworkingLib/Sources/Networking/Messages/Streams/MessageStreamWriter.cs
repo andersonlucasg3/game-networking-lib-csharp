@@ -9,7 +9,11 @@ namespace GameNetworking.Messages.Streams {
 
     public class MessageStreamWriter : IStreamWriter {
         private readonly object lockToken = new object();
+#if !UNITY_64
+        public readonly byte[] currentBuffer = new byte[1024 * 1024]; // 1MB
+#else
         private readonly byte[] currentBuffer = new byte[1024 * 1024]; // 1MB
+#endif
 
         public int currentBufferLength { get; private set; } = 0;
 

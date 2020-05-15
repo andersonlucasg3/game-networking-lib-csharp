@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <ReleaseVersion>0.1.0</ReleaseVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath></OutputPath>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+    <DebugType>embedded</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath></OutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Folder Include="Sources\Commons\" />
+    <Folder Include="Sources\GameNetworking\" />
+    <Folder Include="Sources\GameNetworking\Client\" />
+    <Folder Include="Sources\GameNetworking\Server\" />
+    <Folder Include="Sources\GameNetworking\Client\Executors\" />
+    <Folder Include="Sources\GameNetworking\Client\Messages\" />
+    <Folder Include="Sources\GameNetworking\Server\Executors\" />
+    <Folder Include="Sources\GameNetworking\Server\Messages\" />
+    <Folder Include="Sources\Networking\" />
+    <Folder Include="Sources\Networking\Channels\" />
+    <Folder Include="Sources\Networking\Sockets\" />
+    <Folder Include="Sources\Networking\Messages\" />
+    <Folder Include="Sources\Networking\Commons\" />
+  </ItemGroup>
+</Project>
+

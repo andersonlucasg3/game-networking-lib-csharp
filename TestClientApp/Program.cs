@@ -91,7 +91,9 @@ namespace TestClientApp {
         }
 
         private void Send() {
-            this.client.Send(new Message(this.playerId.Value, this.counter++), Channel.unreliable);
+            var message = new Message(this.playerId.Value, this.counter++);
+            this.client.Send(message, Channel.unreliable);
+            this.client.Send(message, Channel.reliable);
         }
     }
 

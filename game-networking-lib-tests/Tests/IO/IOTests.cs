@@ -268,10 +268,10 @@ namespace Tests.IO {
 
             int value = 15395;
             byte[] bigEndianBytes = BitConverter.GetBytes(value);
-            Array.Reverse(bigEndianBytes);
 
-            IntByteArrayConverter converter = new IntByteArrayConverter();
-            converter.array = bigEndianBytes;
+            IntByteArrayConverter converter = new IntByteArrayConverter {
+                array = bigEndianBytes
+            };
 
             Assert.AreEqual(value, converter.value);
         }

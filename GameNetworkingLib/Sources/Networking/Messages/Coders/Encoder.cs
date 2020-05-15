@@ -32,21 +32,21 @@ namespace GameNetworking.Messages.Coders {
         private static readonly ObjectPool<MemoryStream> _memoryStreamPool
             = new ObjectPool<MemoryStream>(() => new MemoryStream());
         private static readonly ObjectPool<ShortByteArrayConverter> _shortConverterPool
-            = new ObjectPool<ShortByteArrayConverter>(() => new ShortByteArrayConverter());
+            = new ObjectPool<ShortByteArrayConverter>(() => new ShortByteArrayConverter(0));
         private static readonly ObjectPool<UShortByteArrayConverter> _ushortConverterPool
-            = new ObjectPool<UShortByteArrayConverter>(() => new UShortByteArrayConverter());
+            = new ObjectPool<UShortByteArrayConverter>(() => new UShortByteArrayConverter(0));
         private static readonly ObjectPool<IntByteArrayConverter> _intConverterPool
-            = new ObjectPool<IntByteArrayConverter>(() => new IntByteArrayConverter());
+            = new ObjectPool<IntByteArrayConverter>(() => new IntByteArrayConverter(0));
         private static readonly ObjectPool<UIntByteArrayConverter> _uintConverterPool
-            = new ObjectPool<UIntByteArrayConverter>(() => new UIntByteArrayConverter());
+            = new ObjectPool<UIntByteArrayConverter>(() => new UIntByteArrayConverter(0U));
         private static readonly ObjectPool<LongByteArrayConverter> _longConverterPool
-            = new ObjectPool<LongByteArrayConverter>(() => new LongByteArrayConverter());
+            = new ObjectPool<LongByteArrayConverter>(() => new LongByteArrayConverter(0L));
         private static readonly ObjectPool<ULongByteArrayConverter> _ulongConverterPool
-            = new ObjectPool<ULongByteArrayConverter>(() => new ULongByteArrayConverter());
+            = new ObjectPool<ULongByteArrayConverter>(() => new ULongByteArrayConverter(0UL));
         private static readonly ObjectPool<FloatByteArrayConverter> _floatConverterPool
-            = new ObjectPool<FloatByteArrayConverter>(() => new FloatByteArrayConverter());
+            = new ObjectPool<FloatByteArrayConverter>(() => new FloatByteArrayConverter(0F));
         private static readonly ObjectPool<DoubleByteArrayConverter> _doubleConverterPool
-            = new ObjectPool<DoubleByteArrayConverter>(() => new DoubleByteArrayConverter());
+            = new ObjectPool<DoubleByteArrayConverter>(() => new DoubleByteArrayConverter(0F));
         private static readonly ObjectPool<byte[]> _boolBufferPool
             = new ObjectPool<byte[]>(() => new byte[1]);
 

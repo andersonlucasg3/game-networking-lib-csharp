@@ -41,7 +41,7 @@ namespace GameNetworking.Messages.Streams {
         }
 
         private bool IsValidChecksum(int messageEndIndex) {
-            var checksum = CoderHelper.CalculateChecksum(this.currentBuffer, 0, messageEndIndex - 32);
+            var checksum = CoderHelper.CalculateChecksum(this.currentBuffer, 0, messageEndIndex - 16);
             var index = ArraySearch.IndexOf(this.currentBuffer, checksum, messageEndIndex);
             return index != -1;
         }

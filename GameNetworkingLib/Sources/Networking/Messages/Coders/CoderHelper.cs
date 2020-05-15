@@ -6,8 +6,6 @@ using System.Security.Cryptography;
 
 namespace GameNetworking.Messages.Coders {
     public static class CoderHelper {
-        private static readonly MD5 md5 = MD5.Create();
-        private static readonly byte[] md5Content = new byte[32];
         private static IntByteArrayConverter _intConverter = new IntByteArrayConverter(0);
         public static byte[] delimiter = Encoding.ASCII.GetBytes("chupacudegoianinha");
 
@@ -28,7 +26,11 @@ namespace GameNetworking.Messages.Coders {
             var delimiterEndIndex = delimiterIndex + delimiter.Length;
             var newLength = count - delimiterEndIndex;
             if (newLength > 0) {
-                Array.Copy(buffer, delimiterEndIndex, buffer, 0, newLength);
+                for (int fromIndex = delimiterEndIndex; fromIndex < count; fromIndex++) {
+                    var idx = fromIndex - delimiterEndIndex;
+                    byte value = buffer[fromIndex];
+                    buffer[idx] = value;
+                }
             }
             return newLength;
         }
@@ -45,13 +47,16 @@ namespace GameNetworking.Messages.Coders {
         }
 
         public static int AddChecksum(byte[] data, int index, int length) {
-            var count = md5.TransformBlock(data, index, length, data, length);
-            return length + count;
+            var hash = CalculateChecksum(data, index, length - index);
+            Array.Copy(hash, 0, data, length, hash.Length);
+            return hash.Length;
         }
 
         public static byte[] CalculateChecksum(byte[] data, int index, int length) {
-            md5.TransformBlock(data, index, length, md5Content, 0);
-            return md5Content;
+            MD5 md5 = new MD5CryptoServiceProvider();
+            byte[] hash = md5.ComputeHash(data, index, length);
+            md5.Dispose();
+            return hash;
         }
     }
 

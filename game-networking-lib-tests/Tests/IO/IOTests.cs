@@ -212,7 +212,7 @@ namespace Tests.IO {
 
             int index = 0;
             this.Measure(() => {
-                index = ArraySearch.IndexOf(bytes, delimiter, bytes.Length);
+                index = ArraySearch.IndexOf(delimiter, delimiter.Length, bytes, bytes.Length);
             }, "ArraySearch-\\r");
 
             Console.WriteLine($"Location index: {index}");
@@ -254,7 +254,7 @@ namespace Tests.IO {
 
             int index = 0;
             this.Measure(() => {
-                index = ArraySearch.IndexOf(bytes, delimiter, bytes.Length);
+                index = ArraySearch.IndexOf(delimiter, delimiter.Length, bytes, bytes.Length);
             }, "ArraySearchLong");
 
             Console.WriteLine($"Location index: {index}");
@@ -288,16 +288,10 @@ namespace Tests.IO {
 
             var calculatedChecksum = CoderHelper.CalculateChecksum(bytes, 0, bytes.Length);
 
-            var md5 = MD5.Create();
-            byte[] checksum = md5.ComputeHash(bytes);
+            var newLength = CoderHelper.AddChecksum(bigBytes, 0, bytes.Length) + bytes.Length;
 
-            Assert.AreEqual(checksum, calculatedChecksum);
-
-            var newLength = CoderHelper.AddChecksum(bigBytes, 0, bytes.Length);
-
-            byte[] checksumInBigBytes = new byte[16];
-            Array.Copy(bigBytes, bytes.Length, checksumInBigBytes, 0, 16);
-
+            byte checksumInBigBytes = bigBytes[bytes.Length];
+            
             Assert.AreEqual(checksumInBigBytes, calculatedChecksum);
 
             var writer = new MessageStreamWriter();

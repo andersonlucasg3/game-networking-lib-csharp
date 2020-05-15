@@ -1,7 +1,6 @@
 ﻿#if !UNITY_64
 
 using System;
-using System.Threading;
 using System.Collections.Generic;
 using GameNetworking.Channels;
 using GameNetworking.Client;

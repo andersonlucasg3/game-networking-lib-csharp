@@ -7,6 +7,7 @@ namespace GameNetworking.Messages.Streams {
     public class MessageStreamReader : IStreamReader {
         private readonly object lockToken = new object();
         private readonly byte[] currentBuffer = new byte[1024 * 1024]; // 1MB
+        private readonly byte[] checksumBuffer = new byte[16];
 
         public int currentBufferLength { get; private set; }
 
@@ -26,9 +27,7 @@ namespace GameNetworking.Messages.Streams {
                 int delimiterIndex = CoderHelper.CheckForDelimiter(this.currentBuffer, this.currentBufferLength);
                 if (delimiterIndex != -1) {
                     if (this.IsValidChecksum(delimiterIndex)) {
-                        var packageBuffer = MessageContainer.GetBuffer();
-                        CoderHelper.PackageBytes(delimiterIndex, this.currentBuffer, packageBuffer);
-                        var container = new MessageContainer(packageBuffer, delimiterIndex);
+                        var container = new MessageContainer(this.currentBuffer, delimiterIndex);
                         this.currentBufferLength = CoderHelper.SliceBuffer(delimiterIndex, this.currentBuffer, this.currentBufferLength);
                         return container;
                     } else {
@@ -42,8 +41,15 @@ namespace GameNetworking.Messages.Streams {
 
         private bool IsValidChecksum(int messageEndIndex) {
             var checksum = CoderHelper.CalculateChecksum(this.currentBuffer, 0, messageEndIndex - 16);
-            var index = ArraySearch.IndexOf(this.currentBuffer, checksum, messageEndIndex);
-            return index != -1;
+            Array.Copy(this.currentBuffer, messageEndIndex - 16, this.checksumBuffer, 0, 16);
+            unchecked {
+                for (int index = 0; index < checksum.Length; index++) {
+                    if (checksum[index] != this.checksumBuffer[index]) {
+                        return false;
+                    }
+                }
+            }
+            return true;
         }
     }
 }

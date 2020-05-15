@@ -3,12 +3,14 @@ using System.Text;
 using System.Collections.Generic;
 using GameNetworking.Messages.Coders.Converters;
 using System.Security.Cryptography;
+using GameNetworking.Commons;
 
 namespace GameNetworking.Messages.Coders {
     public static class CoderHelper {
+        private static readonly ObjectPool<IntByteArrayConverter> _intConverterPool
+            = new ObjectPool<IntByteArrayConverter>(() => new IntByteArrayConverter(0));
         private static readonly MD5 md5 = MD5.Create();
-        private static IntByteArrayConverter _intConverter = new IntByteArrayConverter(0);
-        public static byte[] delimiter = Encoding.ASCII.GetBytes("chupacudegoianinha");
+        public static readonly byte[] delimiter = Encoding.ASCII.GetBytes("chupacudegoianinha");
 
         public static int InsertDelimiter(byte[] buffer, int index) {
             Array.Copy(delimiter, 0, buffer, index, delimiter.Length);
@@ -32,8 +34,10 @@ namespace GameNetworking.Messages.Coders {
 
         public static int WriteInt(int value, byte[] buffer, int index) {
             var headerSize = sizeof(int);
-            _intConverter.value = value;
-            Array.Copy(_intConverter.array, 0, buffer, index, headerSize);
+            var converter = _intConverterPool.Rent();
+            converter.value = value;
+            Array.Copy(converter.array, 0, buffer, index, headerSize);
+            _intConverterPool.Pay(converter);
             return headerSize;
         }
 

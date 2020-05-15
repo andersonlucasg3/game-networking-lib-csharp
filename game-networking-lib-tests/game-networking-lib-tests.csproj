@@ -6,6 +6,7 @@
         <RootNamespace>GameServerLibTests</RootNamespace>
         <StartupObject></StartupObject>
         <OutputType>Library</OutputType>
+        <ReleaseVersion>0.1.0</ReleaseVersion>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="nunit" Version="3.12.0" />

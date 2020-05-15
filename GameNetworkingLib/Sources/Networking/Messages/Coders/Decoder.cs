@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using GameNetworking.Commons;
 using GameNetworking.Messages.Coders.Converters;
 
 namespace GameNetworking.Messages.Coders {
@@ -26,21 +27,38 @@ namespace GameNetworking.Messages.Coders {
         TDecodable? GetObject<TDecodable>() where TDecodable : struct, IDecodable;
     }
 
-    sealed class _Decoder : IDecoder, IDisposable {
-        private ShortByteArrayConverter _shortConverter = new ShortByteArrayConverter(0);
-        private UShortByteArrayConverter _ushortConverter = new UShortByteArrayConverter(0);
-        private IntByteArrayConverter _intConverter = new IntByteArrayConverter(0);
-        private UIntByteArrayConverter _uintConverter = new UIntByteArrayConverter(0);
-        private LongByteArrayConverter _longConverter = new LongByteArrayConverter(0L);
-        private ULongByteArrayConverter _ulongConverter = new ULongByteArrayConverter(0L);
-        private FloatByteArrayConverter _floatConverter = new FloatByteArrayConverter(0F);
-        private DoubleByteArrayConverter _doubleConverter = new DoubleByteArrayConverter(0F);
-        private readonly byte[] _boolBuffer = new byte[1];
-        private readonly MemoryStream _memoryStream;
+    struct _Decoder : IDecoder {
+        private static readonly ObjectPool<MemoryStream> _memoryStreamPool
+            = new ObjectPool<MemoryStream>(() => new MemoryStream());
+        private static readonly ObjectPool<ShortByteArrayConverter> _shortConverterPool
+            = new ObjectPool<ShortByteArrayConverter>(() => new ShortByteArrayConverter());
+        private static readonly ObjectPool<UShortByteArrayConverter> _ushortConverterPool
+            = new ObjectPool<UShortByteArrayConverter>(() => new UShortByteArrayConverter());
+        private static readonly ObjectPool<IntByteArrayConverter> _intConverterPool
+            = new ObjectPool<IntByteArrayConverter>(() => new IntByteArrayConverter());
+        private static readonly ObjectPool<UIntByteArrayConverter> _uintConverterPool
+            = new ObjectPool<UIntByteArrayConverter>(() => new UIntByteArrayConverter());
+        private static readonly ObjectPool<LongByteArrayConverter> _longConverterPool
+            = new ObjectPool<LongByteArrayConverter>(() => new LongByteArrayConverter());
+        private static readonly ObjectPool<ULongByteArrayConverter> _ulongConverterPool
+            = new ObjectPool<ULongByteArrayConverter>(() => new ULongByteArrayConverter());
+        private static readonly ObjectPool<FloatByteArrayConverter> _floatConverterPool
+            = new ObjectPool<FloatByteArrayConverter>(() => new FloatByteArrayConverter());
+        private static readonly ObjectPool<DoubleByteArrayConverter> _doubleConverterPool
+            = new ObjectPool<DoubleByteArrayConverter>(() => new DoubleByteArrayConverter());
+        private static readonly ObjectPool<byte[]> _boolBufferPool
+            = new ObjectPool<byte[]>(() => new byte[1]);
 
-        public _Decoder() {
-            this._memoryStream = new MemoryStream();
-        }
+        private MemoryStream _memoryStream;
+        private ShortByteArrayConverter _shortConverter;
+        private UShortByteArrayConverter _ushortConverter;
+        private IntByteArrayConverter _intConverter;
+        private UIntByteArrayConverter _uintConverter;
+        private LongByteArrayConverter _longConverter;
+        private ULongByteArrayConverter _ulongConverter;
+        private FloatByteArrayConverter _floatConverter;
+        private DoubleByteArrayConverter _doubleConverter;
+        private byte[] _boolBuffer;
 
         public void SetBuffer(byte[] bytes, int offset, int length) {
             this._memoryStream.SetLength(0);
@@ -130,19 +148,41 @@ namespace GameNetworking.Messages.Coders {
             return null;
         }
 
-        public void Dispose() {
-            this._memoryStream.Dispose();
+        internal void Rent() {
+            this._memoryStream = _memoryStreamPool.Rent();
+            this._shortConverter = _shortConverterPool.Rent();
+            this._ushortConverter = _ushortConverterPool.Rent();
+            this._intConverter = _intConverterPool.Rent();
+            this._uintConverter = _uintConverterPool.Rent();
+            this._longConverter = _longConverterPool.Rent();
+            this._ulongConverter = _ulongConverterPool.Rent();
+            this._floatConverter = _floatConverterPool.Rent();
+            this._doubleConverter = _doubleConverterPool.Rent();
+            this._boolBuffer = _boolBufferPool.Rent();
+        }
+
+        internal void Pay() {
+            _memoryStreamPool.Pay(this._memoryStream);
+            _shortConverterPool.Pay(this._shortConverter);
+            _ushortConverterPool.Pay(this._ushortConverter);
+            _intConverterPool.Pay(this._intConverter);
+            _uintConverterPool.Pay(this._uintConverter);
+            _longConverterPool.Pay(this._longConverter);
+            _ulongConverterPool.Pay(this._ulongConverter);
+            _floatConverterPool.Pay(this._floatConverter);
+            _doubleConverterPool.Pay(this._doubleConverter);
+            _boolBufferPool.Pay(this._boolBuffer);
         }
     }
 
     public static class BinaryDecoder {
-        public static readonly IDecoder shared = new _Decoder();
-
         public static TMessage Decode<TMessage>(byte[] fromBuffer, int index, int length) where TMessage : struct, IDecodable {
-            var decoder = (_Decoder)shared;
+            var decoder = new _Decoder();
+            decoder.Rent();
             decoder.SetBuffer(fromBuffer, index, length);
             TMessage message = new TMessage();
-            message.Decode(shared);
+            message.Decode(decoder);
+            decoder.Pay();
             return message;
         }
     }

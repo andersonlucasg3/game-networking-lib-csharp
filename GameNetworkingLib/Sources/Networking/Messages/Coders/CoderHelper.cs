@@ -6,6 +6,7 @@ using System.Security.Cryptography;
 
 namespace GameNetworking.Messages.Coders {
     public static class CoderHelper {
+        private static readonly MD5 md5 = MD5.Create();
         private static IntByteArrayConverter _intConverter = new IntByteArrayConverter(0);
         public static byte[] delimiter = Encoding.ASCII.GetBytes("chupacudegoianinha");
 
@@ -53,10 +54,7 @@ namespace GameNetworking.Messages.Coders {
         }
 
         public static byte[] CalculateChecksum(byte[] data, int index, int length) {
-            MD5 md5 = new MD5CryptoServiceProvider();
-            byte[] hash = md5.ComputeHash(data, index, length);
-            md5.Dispose();
-            return hash;
+            return md5.ComputeHash(data, index, length);
         }
     }
 

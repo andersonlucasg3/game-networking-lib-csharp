@@ -26,13 +26,7 @@ namespace GameNetworking.Messages.Coders {
         public static int SliceBuffer(int delimiterIndex, byte[] buffer, int count) {
             var delimiterEndIndex = delimiterIndex + delimiter.Length;
             var newLength = count - delimiterEndIndex;
-            if (newLength > 0) {
-                for (int fromIndex = delimiterEndIndex; fromIndex < count; fromIndex++) {
-                    var idx = fromIndex - delimiterEndIndex;
-                    byte value = buffer[fromIndex];
-                    buffer[idx] = value;
-                }
-            }
+            if (newLength > 0) { Array.Copy(buffer, delimiterEndIndex, buffer, 0, newLength); }
             return newLength;
         }
 

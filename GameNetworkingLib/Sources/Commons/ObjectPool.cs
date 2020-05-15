@@ -9,6 +9,7 @@ namespace GameNetworking.Commons {
         public ObjectPool(Func<T> factory) {
             bag = new ConcurrentBag<T>();
             this.factory = factory ?? throw new ArgumentNullException(nameof(factory));
+            this.Pay(this.Rent());
         }
 
         public T Rent() {

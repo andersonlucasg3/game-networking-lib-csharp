@@ -25,18 +25,16 @@ namespace GameNetworking.Messages.Models {
             return type == this.type;
         }
 
-        public TMessage Parse<TMessage>() where TMessage : struct, IDecodable {
-            var message = BinaryDecoder.Decode<TMessage>(this._buffer, sizeof(int), this._length);
-            ReturnBuffer(this._buffer);
-            return message;
-        }
+        public TMessage Parse<TMessage>() where TMessage : struct, IDecodable
+            => BinaryDecoder.Decode<TMessage>(this._buffer, sizeof(int), this._length - sizeof(int));
 
         #region Buffers
 
-        private static readonly ObjectPool<byte[]> bufferPool = new ObjectPool<byte[]>(() => new byte[Consts.bufferSize]);
+        private static readonly ObjectPool<byte[]> bufferPool
+            = new ObjectPool<byte[]>(() => new byte[Consts.bufferSize]);
 
-        public static byte[] GetBuffer() => bufferPool.Rent();
-        private static void ReturnBuffer(byte[] buffer) => bufferPool.Pay(buffer);
+        internal static byte[] GetBuffer() => bufferPool.Rent();
+        internal void ReturnBuffer() => bufferPool.Pay(this._buffer);
 
         #endregion
     }

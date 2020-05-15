@@ -13,6 +13,7 @@ using GameNetworking.Commons;
 using System.Linq;
 using System.Text;
 using GameNetworking.Messages.Coders.Converters;
+using System.Security.Cryptography;
 
 namespace Tests.IO {
     public class IOTests {
@@ -267,12 +268,100 @@ namespace Tests.IO {
 
             int value = 15395;
             byte[] bigEndianBytes = BitConverter.GetBytes(value);
-            Array.Reverse(bigEndianBytes);
 
-            IntByteArrayConverter converter = new IntByteArrayConverter();
-            converter.array = bigEndianBytes;
+            IntByteArrayConverter converter = new IntByteArrayConverter {
+                array = bigEndianBytes
+            };
 
             Assert.AreEqual(value, converter.value);
+        }
+
+        [Test]
+        public void TestMessageChecksum() {
+            byte[] bytes = new byte[] {
+                4,6,4,6,6,46,6,34,64,2,64,62,47,27,247,
+                4,6,4,6,6,46,6,34,64,2,64,62,47,27,247
+            };
+
+            byte[] bigBytes = new byte[8 * 1024];
+            Array.Copy(bytes, bigBytes, bytes.Length);
+
+            var calculatedChecksum = CoderHelper.CalculateChecksum(bytes, 0, bytes.Length);
+
+            var md5 = MD5.Create();
+            byte[] checksum = md5.ComputeHash(bytes);
+
+            Assert.AreEqual(checksum, calculatedChecksum);
+
+            var newLength = CoderHelper.AddChecksum(bigBytes, 0, bytes.Length);
+
+            byte[] checksumInBigBytes = new byte[16];
+            Array.Copy(bigBytes, bytes.Length, checksumInBigBytes, 0, 16);
+
+            Assert.AreEqual(checksumInBigBytes, calculatedChecksum);
+
+            var writer = new MessageStreamWriter();
+            var reader = new MessageStreamReader();
+
+            var loginRequest = new LoginRequest() { accessToken = "alsdjflakjsdf", username = "meu username" };
+            var matchRequest = new MatchRequest() { value1 = 1, value2 = 2, value3 = 3, value4 = 4 };
+
+            writer.Write(loginRequest);
+            writer.Write(matchRequest);
+            writer.Use((buffer, len) => {
+                reader.Add(buffer, len);
+                var message = reader.Decode();
+                Assert.IsTrue(message.Value.Is(200));
+                Assert.AreEqual(loginRequest, message.Value.Parse<LoginRequest>());
+                message = reader.Decode();
+                Assert.IsTrue(message.Value.Is(201));
+                Assert.AreEqual(matchRequest, message.Value.Parse<MatchRequest>());
+                writer.DidWrite(len);
+            });
+
+            writer.Write(loginRequest);
+            writer.Write(matchRequest);
+            writer.currentBuffer[0] = 23;
+            writer.Use((buffer, len) => {
+                reader.Add(buffer, len);
+                var message = reader.Decode();
+                Assert.IsFalse(message.HasValue);
+                Assert.IsTrue(message == null);
+                message = reader.Decode();
+                Assert.IsTrue(message.Value.Is(201));
+                Assert.AreEqual(matchRequest, message.Value.Parse<MatchRequest>());
+                writer.DidWrite(len);
+            });
+        }
+
+        [Test]
+        public void TestMultithreadReadAndWrite() {
+            var loginRequest = new LoginRequest() { accessToken = "askldfaljksdf", username = "anderson" };
+
+            var reader = new MessageStreamReader();
+            var writer = new MessageStreamWriter();
+
+            for (int reading = 0; reading < 50; reading++) {
+                for (int write = 0; write < 2; write++) {
+                    writer.Write(loginRequest);
+                    Logger.Log($"Did Write loginRequest {write * reading}");
+                }
+
+                writer.Use((buffer, len) => {
+                    Logger.Log($"Using buffer with len: {len}");
+                    reader.Add(buffer, len);
+                    MessageContainer? message = null;
+                    while ((message = reader.Decode()).HasValue) {
+                        Logger.Log($"Decoded message: {message.Value.type}");
+                        Assert.AreEqual(loginRequest, message.Value.Parse<LoginRequest>());
+                    }
+                    writer.DidWrite(len);
+                    Logger.Log($"Did Write len: {len}");
+                });
+            }
+
+            Assert.AreEqual(0, writer.currentBufferLength);
+            Assert.AreEqual(0, reader.currentBufferLength);
         }
     }
 
@@ -296,9 +385,24 @@ namespace Tests.IO {
     struct MatchRequest : ITypedMessage {
         int ITypedMessage.type => 201;
 
-        public void Encode(IEncoder encoder) { }
+        public int value1;
+        public int value2;
+        public int value3;
+        public int value4;
 
-        public void Decode(IDecoder decoder) { }
+        public void Encode(IEncoder encoder) {
+            encoder.Encode(this.value1);
+            encoder.Encode(this.value2);
+            encoder.Encode(this.value3);
+            encoder.Encode(this.value4);
+        }
+
+        public void Decode(IDecoder decoder) {
+            this.value1 = decoder.GetInt();
+            this.value2 = decoder.GetInt();
+            this.value3 = decoder.GetInt();
+            this.value4 = decoder.GetInt();
+        }
     }
 
     struct ConnectGameInstanceResponse : ITypedMessage {

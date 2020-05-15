@@ -9,7 +9,11 @@ namespace GameNetworking.Messages.Streams {
 
     public class MessageStreamWriter : IStreamWriter {
         private readonly object lockToken = new object();
+#if !UNITY_64
+        public readonly byte[] currentBuffer = new byte[1024 * 1024]; // 1MB
+#else
         private readonly byte[] currentBuffer = new byte[1024 * 1024]; // 1MB
+#endif
 
         public int currentBufferLength { get; private set; } = 0;
 
@@ -17,8 +21,10 @@ namespace GameNetworking.Messages.Streams {
 
         public void Write<TMessage>(TMessage message) where TMessage : ITypedMessage {
             lock (this.lockToken) {
-                this.currentBufferLength += CoderHelper.WriteHeader(message.type, this.currentBuffer, this.currentBufferLength);
+                var startIndex = this.currentBufferLength;
+                this.currentBufferLength += CoderHelper.WriteInt(message.type, this.currentBuffer, this.currentBufferLength);
                 this.currentBufferLength += BinaryEncoder.Encode(message, this.currentBuffer, this.currentBufferLength);
+                this.currentBufferLength += CoderHelper.AddChecksum(this.currentBuffer, startIndex, this.currentBufferLength);
                 this.currentBufferLength += CoderHelper.InsertDelimiter(this.currentBuffer, this.currentBufferLength);
             }
         }
@@ -31,16 +37,14 @@ namespace GameNetworking.Messages.Streams {
         }
 
         public void DidWrite(int count) {
-            lock (this.lockToken) {
-                if (count <= 0) { return; }
-                if (count == this.currentBufferLength) {
-                    this.currentBufferLength = 0;
-                    return;
-                }
-                var newLength = this.currentBufferLength - count;
-                Array.Copy(this.currentBuffer, count, this.currentBuffer, 0, newLength);
-                this.currentBufferLength = newLength;
+            if (count <= 0) { return; }
+            if (count == this.currentBufferLength) {
+                this.currentBufferLength = 0;
+                return;
             }
+            var newLength = this.currentBufferLength - count;
+            Array.Copy(this.currentBuffer, count, this.currentBuffer, 0, newLength);
+            this.currentBufferLength = newLength;
         }
     }
 }

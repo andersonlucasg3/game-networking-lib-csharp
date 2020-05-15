@@ -1,10 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
+using System.Collections.Generic;
 using GameNetworking.Messages.Coders.Converters;
+using System.Security.Cryptography;
 
 namespace GameNetworking.Messages.Coders {
     public static class CoderHelper {
+        private static readonly MD5 md5 = MD5.Create();
         private static IntByteArrayConverter _intConverter = new IntByteArrayConverter(0);
         public static byte[] delimiter = Encoding.ASCII.GetBytes("chupacudegoianinha");
 
@@ -24,17 +26,29 @@ namespace GameNetworking.Messages.Coders {
         public static int SliceBuffer(int delimiterIndex, byte[] buffer, int count) {
             var delimiterEndIndex = delimiterIndex + delimiter.Length;
             var newLength = count - delimiterEndIndex;
-            if (newLength > 0) {
-                Array.Copy(buffer, delimiterEndIndex, buffer, 0, newLength);
-            }
+            if (newLength > 0) { Array.Copy(buffer, delimiterEndIndex, buffer, 0, newLength); }
             return newLength;
         }
 
-        public static int WriteHeader(int type, byte[] buffer, int index) {
+        public static int WriteInt(int value, byte[] buffer, int index) {
             var headerSize = sizeof(int);
-            _intConverter.value = type;
+            _intConverter.value = value;
             Array.Copy(_intConverter.array, 0, buffer, index, headerSize);
             return headerSize;
+        }
+
+        public static int WriteByte(byte value, byte[] buffer, int index) {
+            buffer[index] = value; return 1;
+        }
+
+        public static int AddChecksum(byte[] data, int index, int length) {
+            var hash = CalculateChecksum(data, index, length - index);
+            Array.Copy(hash, 0, data, length, hash.Length);
+            return hash.Length;
+        }
+
+        public static byte[] CalculateChecksum(byte[] data, int index, int length) {
+            return md5.ComputeHash(data, index, length);
         }
     }
 

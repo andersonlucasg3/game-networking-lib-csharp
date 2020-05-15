@@ -27,10 +27,10 @@ namespace GameNetworking.Commons.Client {
 
         public virtual void Route(MessageContainer container) {
             switch ((MessageType)container.type) {
-            case MessageType.connectedPlayer: this.EnqueueConnectedPlayer(container.Parse<ConnectedPlayerMessage>()); break;
-            case MessageType.ping: this.EnqueuePing(container.Parse<PingRequestMessage>()); break;
-            case MessageType.pingResult: this.EnqueuePingResult(container.Parse<PingResultRequestMessage>()); break;
-            case MessageType.disconnectedPlayer: this.EnqueueDisconnectedPlayer(container.Parse<DisconnectedPlayerMessage>()); break;
+            case MessageType.connectedPlayer: this.EnqueueConnectedPlayer(container); break;
+            case MessageType.ping: this.EnqueuePing(container); break;
+            case MessageType.pingResult: this.EnqueuePingResult(container); break;
+            case MessageType.disconnectedPlayer: this.EnqueueDisconnectedPlayer(container); break;
             default: this.game?.listener?.GameClientDidReceiveMessage(container); break;
             }
         }
@@ -41,7 +41,7 @@ namespace GameNetworking.Commons.Client {
             dispatcher.Enqueue(executor.Execute);
         }
 
-        private void EnqueueConnectedPlayer(ConnectedPlayerMessage message) {
+        private void EnqueueConnectedPlayer(MessageContainer message) {
             var executor = new Executor<
                 ConnectedPlayerExecutor,
                 IRemoteClientListener,
@@ -49,7 +49,7 @@ namespace GameNetworking.Commons.Client {
             this.Execute(executor);
         }
 
-        private void EnqueuePing(PingRequestMessage message) {
+        private void EnqueuePing(MessageContainer message) {
             var executor = new Executor<
                 PingRequestExecutor<TPlayer>,
                 GameClient<TPlayer>,
@@ -58,7 +58,7 @@ namespace GameNetworking.Commons.Client {
             this.Execute(executor);
         }
 
-        private void EnqueuePingResult(PingResultRequestMessage message) {
+        private void EnqueuePingResult(MessageContainer message) {
             var executor = new Executor<
                 PingResultRequestExecutor<TPlayer>,
                 GameClient<TPlayer>,
@@ -67,7 +67,7 @@ namespace GameNetworking.Commons.Client {
             this.Execute(executor);
         }
 
-        private void EnqueueDisconnectedPlayer(DisconnectedPlayerMessage message) {
+        private void EnqueueDisconnectedPlayer(MessageContainer message) {
             var executor = new Executor<
                 DisconnectedPlayerExecutor,
                 IRemoteClientListener,

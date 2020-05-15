@@ -1,6 +1,7 @@
 ﻿using System;
 using GameNetworking.Messages.Coders;
 using GameNetworking.Messages.Models;
+using Logging;
 
 namespace GameNetworking.Messages.Streams {
     public class MessageStreamReader : IStreamReader {
@@ -24,14 +25,25 @@ namespace GameNetworking.Messages.Streams {
 
                 int delimiterIndex = CoderHelper.CheckForDelimiter(this.currentBuffer, this.currentBufferLength);
                 if (delimiterIndex != -1) {
-                    var packageBuffer = MessageContainer.GetBuffer();
-                    CoderHelper.PackageBytes(delimiterIndex, this.currentBuffer, packageBuffer);
-                    var container = new MessageContainer(packageBuffer, delimiterIndex);
-                    this.currentBufferLength = CoderHelper.SliceBuffer(delimiterIndex, this.currentBuffer, this.currentBufferLength);
-                    return container;
+                    if (this.IsValidChecksum(delimiterIndex)) {
+                        var packageBuffer = MessageContainer.GetBuffer();
+                        CoderHelper.PackageBytes(delimiterIndex, this.currentBuffer, packageBuffer);
+                        var container = new MessageContainer(packageBuffer, delimiterIndex);
+                        this.currentBufferLength = CoderHelper.SliceBuffer(delimiterIndex, this.currentBuffer, this.currentBufferLength);
+                        return container;
+                    } else {
+                        this.currentBufferLength = CoderHelper.SliceBuffer(delimiterIndex, this.currentBuffer, this.currentBufferLength);
+                        if (Logger.IsLoggingEnabled) { Logger.Log($"Discarded currupted message!"); }
+                    }
                 }
                 return null;
             }
+        }
+
+        private bool IsValidChecksum(int messageEndIndex) {
+            var checksum = CoderHelper.CalculateChecksum(this.currentBuffer, 0, messageEndIndex - 16);
+            var index = ArraySearch.IndexOf(this.currentBuffer, checksum, messageEndIndex);
+            return index != -1;
         }
     }
 }

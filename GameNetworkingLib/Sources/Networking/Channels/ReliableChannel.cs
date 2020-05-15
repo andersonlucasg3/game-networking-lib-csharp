@@ -1,3 +1,4 @@
+using GameNetworking.Commons;
 using GameNetworking.Messages.Models;
 using GameNetworking.Messages.Streams;
 using GameNetworking.Networking.Sockets;
@@ -39,18 +40,32 @@ namespace GameNetworking.Channels {
         }
 
         public static void Add(ReliableChannel channel) {
+            ThreadChecker.AssertReliableChannel();
+
             lock (socketLock) { aliveSockets.Add(channel); }
         }
 
         public static void Remove(ReliableChannel channel) {
+            ThreadChecker.AssertReliableChannel();
+
             lock (socketLock) { aliveSockets.Remove(channel); }
         }
 
-        public void CloseChannel() => this.socket.Disconnect();
-        public void Send(ITypedMessage message) => this.writer.Write(message);
+        public void CloseChannel() {
+            ThreadChecker.AssertMainThread();
+
+            this.socket.Disconnect();
+        }
+
+        public void Send(ITypedMessage message) {
+            ThreadChecker.AssertMainThread();
+
+            this.writer.Write(message);
+        }
 
         private static void ThreadPoolWorker(object state) {
             Thread.CurrentThread.Name = "ReliableChannel Thread";
+            ThreadChecker.ConfigureReliable(Thread.CurrentThread);
             ReliableChannel[] channels = new ReliableChannel[100];
             int channelCount = 0;
             do {
@@ -72,6 +87,7 @@ namespace GameNetworking.Channels {
                 }
             } while (ioRunning);
             Logging.Logger.Log("ReliableChannel ThreadPool EXITING");
+            ThreadChecker.ConfigureReliable(null);
         }
 
         void ITcpSocketIOListener<TcpSocket>.SocketDidReceiveBytes(TcpSocket socket, byte[] bytes, int count) {

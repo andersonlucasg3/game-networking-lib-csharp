@@ -56,7 +56,7 @@ namespace TestServerApp {
 
         private void Send(Player player, Message message) {
             Logger.Log($"Received message from playerId-{message.playerId}, as playerId-{player.playerId}, messageId-{message.messageId}");
-            player.Send(new Message(player.playerId, message.messageId), Channel.unreliable);
+            this.server.SendBroadcast(message, Channel.reliable);
         }
     }
 

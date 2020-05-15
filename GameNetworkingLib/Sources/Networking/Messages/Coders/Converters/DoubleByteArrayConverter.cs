@@ -29,7 +29,7 @@ namespace GameNetworking.Messages.Coders.Converters {
                 this._array[5] = this._converter.byte5;
                 this._array[6] = this._converter.byte6;
                 this._array[7] = this._converter.byte7;
-                if (BitConverter.IsLittleEndian) {
+                if (!BitConverter.IsLittleEndian) {
                     Array.Reverse(this._array);
                 }
                 return this._array;
@@ -37,7 +37,7 @@ namespace GameNetworking.Messages.Coders.Converters {
 
             set {
                 this._array = value;
-                if (BitConverter.IsLittleEndian) {
+                if (!BitConverter.IsLittleEndian) {
                     Array.Reverse(this._array);
                 }
                 this._converter.byte0 = this._array[0];

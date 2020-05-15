@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
+using GameNetworking.Commons;
 using GameNetworking.Messages.Models;
 using GameNetworking.Messages.Streams;
 using GameNetworking.Networking.Sockets;
@@ -52,11 +53,14 @@ namespace GameNetworking.Channels {
         }
 
         public void Send(ITypedMessage message, NetEndPoint to) {
+            ThreadChecker.AssertMainThread();
+
             this.sendInfoCollection.Enqueue(new SendInfo { message = message, to = to });
         }
 
         private void ThreadPoolWorker(object state) {
             Thread.CurrentThread.Name = "UnreliableChannel Thread";
+            ThreadChecker.ConfigureUnreliable(Thread.CurrentThread);
             bool shouldRun = true;
 
             NetEndPoint to = new NetEndPoint();
@@ -105,9 +109,12 @@ namespace GameNetworking.Channels {
             } while (shouldRun);
 
             Logger.Log("UnreliableChannel ThreadPool EXITING");
+            ThreadChecker.ConfigureUnreliable(null);
         }
 
         void IUdpSocketIOListener.SocketDidReceiveBytes(UdpSocket socket, byte[] bytes, int count, NetEndPoint from) {
+            ThreadChecker.AssertUnreliableChannel();
+
             if (!this.readerCollection.TryGetValue(from, out MessageStreamReader reader)) {
                 reader = new MessageStreamReader();
                 this.readerCollection.TryAdd(from, reader);
@@ -121,6 +128,8 @@ namespace GameNetworking.Channels {
         }
 
         void IUdpSocketIOListener.SocketDidWriteBytes(UdpSocket socket, int count, NetEndPoint to) {
+            ThreadChecker.AssertUnreliableChannel();
+
             if (this.writerCollection.TryGetValue(to, out MessageStreamWriter writer)) {
                 writer.DidWrite(count);
             } else {

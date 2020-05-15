@@ -23,7 +23,7 @@ namespace GameNetworking.Server {
             var type = (MessageType)container.type;
 
             switch (type) {
-            case MessageType.pong: this.EnqueuePong(player, container.Parse<PongRequestMessage>()); break;
+            case MessageType.pong: this.EnqueuePong(player, container); break;
             default: this.server.listener?.GameServerDidReceiveClientMessage(container, player); break;
             }
         }
@@ -38,7 +38,7 @@ namespace GameNetworking.Server {
             dispatcher.Enqueue(executor.Execute);
         }
 
-        private void EnqueuePong(TPlayer player, PongRequestMessage message) {
+        private void EnqueuePong(TPlayer player, MessageContainer message) {
             var executor = new Executor<
                 PongRequestExecutor<TPlayer>,
                 ServerModel<TPlayer>,

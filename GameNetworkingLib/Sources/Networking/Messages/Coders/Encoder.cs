@@ -65,7 +65,6 @@ namespace GameNetworking.Messages.Coders {
             var memBuff = this._memoryStream.GetBuffer();
             var length = (int)this._memoryStream.Length;
             Array.Copy(memBuff, 0, buffer, index, length);
-            this._memoryStream.SetLength(0);
             return length;
         }
 
@@ -146,6 +145,8 @@ namespace GameNetworking.Messages.Coders {
             this._floatConverter = _floatConverterPool.Rent();
             this._doubleConverter = _doubleConverterPool.Rent();
             this._boolBuffer = _boolBufferPool.Rent();
+
+            this._memoryStream.SetLength(0);
         }
 
         internal void Pay() {

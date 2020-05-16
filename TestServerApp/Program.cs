@@ -50,13 +50,12 @@ namespace TestServerApp {
         public void GameServerDidReceiveClientMessage(MessageContainer container, Player player) {
             Logger.Log($"GameServerDidReceiveClientMessage - type {container.type}");
             if (container.type == 1001) {
-                this.Send(player, container.Parse<Message>());
+                this.Send(container);
             }
         }
 
-        private void Send(Player player, Message message) {
-            Logger.Log($"Received message from playerId-{message.playerId}, as playerId-{player.playerId}, messageId-{message.messageId}");
-            this.server.SendBroadcast(message, Channel.reliable);
+        private void Send(MessageContainer message) {
+            this.Enqueue(new Executor<Executor, GameServer<Player>, Message>(this.server, message).Execute);
         }
     }
 
@@ -79,6 +78,15 @@ namespace TestServerApp {
         public void Encode(IEncoder encoder) {
             encoder.Encode(this.playerId);
             encoder.Encode(this.messageId);
+        }
+    }
+
+    struct Executor : IExecutor<GameServer<Player>, Message> {
+        void IExecutor<GameServer<Player>, Message>.Execute(GameServer<Player> model, Message message) {
+            var player = model.playerCollection.FindPlayer(message.playerId);
+            Logger.Log($"Received message from playerId-{message.playerId}, as playerId-{player.playerId}, messageId-{message.messageId}");
+            model.SendBroadcast(message, Channel.reliable);
+            model.SendBroadcast(message, Channel.unreliable);
         }
     }
 }

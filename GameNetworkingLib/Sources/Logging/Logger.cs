@@ -16,6 +16,10 @@ namespace Logging {
             if (index > 0) {
                 var realIndex = index + 1;
                 fileName = filePath.Substring(realIndex, filePath.Length - realIndex - 3); // 3 for .cs
+            } else {
+                index = filePath.LastIndexOf("/", StringComparison.OrdinalIgnoreCase);
+                var realIndex = index + 1;
+                fileName = filePath.Substring(realIndex, filePath.Length - realIndex - 3);
             }
 
             var messageString = $"[{fileName}.{memberName}() : {lineNumber}] {message}";

@@ -8,7 +8,7 @@ namespace GameNetworking.Messages.Coders {
     public static class CoderHelper {
         private static readonly ObjectPool<IntByteArrayConverter> _intConverterPool
             = new ObjectPool<IntByteArrayConverter>(() => new IntByteArrayConverter(0));
-        public static readonly byte[] delimiter = Encoding.ASCII.GetBytes("\r\r\r");
+        public static readonly byte[] delimiter = Encoding.ASCII.GetBytes("\r\t\r\t\r");
 
         public static int InsertDelimiter(byte[] buffer, int index) {
             Array.Copy(delimiter, 0, buffer, index, delimiter.Length);

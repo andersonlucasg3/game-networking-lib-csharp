@@ -34,42 +34,42 @@ namespace GameNetworking.Messages.Coders.Converters {
 
         public byte[] array {
             get {
-                this._array[0] = this._converter.byte0;
-                this._array[1] = this._converter.byte1;
-                this._array[2] = this._converter.byte2;
-                this._array[3] = this._converter.byte3;
-                this._array[4] = this._converter.byte4;
-                this._array[5] = this._converter.byte5;
-                this._array[6] = this._converter.byte6;
-                this._array[7] = this._converter.byte7;
+                _array[0] = _converter.byte0;
+                _array[1] = _converter.byte1;
+                _array[2] = _converter.byte2;
+                _array[3] = _converter.byte3;
+                _array[4] = _converter.byte4;
+                _array[5] = _converter.byte5;
+                _array[6] = _converter.byte6;
+                _array[7] = _converter.byte7;
                 if (!BitConverter.IsLittleEndian) {
-                    Array.Reverse(this._array);
+                    Array.Reverse(_array);
                 }
-                return this._array;
+                return _array;
             }
 
             set {
-                this._array = value;
+                _array = value;
                 if (!BitConverter.IsLittleEndian) {
-                    Array.Reverse(this._array);
+                    Array.Reverse(_array);
                 }
-                this._converter.byte0 = this._array[0];
-                this._converter.byte1 = this._array[1];
-                this._converter.byte2 = this._array[2];
-                this._converter.byte3 = this._array[3];
-                this._converter.byte4 = this._array[4];
-                this._converter.byte5 = this._array[5];
-                this._converter.byte6 = this._array[6];
-                this._converter.byte7 = this._array[7];
+                _converter.byte0 = _array[0];
+                _converter.byte1 = _array[1];
+                _converter.byte2 = _array[2];
+                _converter.byte3 = _array[3];
+                _converter.byte4 = _array[4];
+                _converter.byte5 = _array[5];
+                _converter.byte6 = _array[6];
+                _converter.byte7 = _array[7];
             }
         }
 
-        public long value { get => this._converter.value; set => this._converter.value = value; }
+        public long value { get => _converter.value; set => _converter.value = value; }
 
         public LongByteArrayConverter(long value) {
-            this._array = new byte[sizeof(long)];
-            this._converter = new LongConverter();
-            this._converter.value = value;
+            _array = new byte[sizeof(long)];
+            _converter = new LongConverter();
+            _converter.value = value;
         }
     }
 
@@ -79,42 +79,42 @@ namespace GameNetworking.Messages.Coders.Converters {
 
         public byte[] array {
             get {
-                this._array[0] = this._converter.byte0;
-                this._array[1] = this._converter.byte1;
-                this._array[2] = this._converter.byte2;
-                this._array[3] = this._converter.byte3;
-                this._array[4] = this._converter.byte4;
-                this._array[5] = this._converter.byte5;
-                this._array[6] = this._converter.byte6;
-                this._array[7] = this._converter.byte7;
+                _array[0] = _converter.byte0;
+                _array[1] = _converter.byte1;
+                _array[2] = _converter.byte2;
+                _array[3] = _converter.byte3;
+                _array[4] = _converter.byte4;
+                _array[5] = _converter.byte5;
+                _array[6] = _converter.byte6;
+                _array[7] = _converter.byte7;
                 if (!BitConverter.IsLittleEndian) {
-                    Array.Reverse(this._array);
+                    Array.Reverse(_array);
                 }
-                return this._array;
+                return _array;
             }
 
             set {
-                this._array = value;
+                _array = value;
                 if (!BitConverter.IsLittleEndian) {
-                    Array.Reverse(this._array);
+                    Array.Reverse(_array);
                 }
-                this._converter.byte0 = this._array[0];
-                this._converter.byte1 = this._array[1];
-                this._converter.byte2 = this._array[2];
-                this._converter.byte3 = this._array[3];
-                this._converter.byte4 = this._array[4];
-                this._converter.byte5 = this._array[5];
-                this._converter.byte6 = this._array[6];
-                this._converter.byte7 = this._array[7];
+                _converter.byte0 = _array[0];
+                _converter.byte1 = _array[1];
+                _converter.byte2 = _array[2];
+                _converter.byte3 = _array[3];
+                _converter.byte4 = _array[4];
+                _converter.byte5 = _array[5];
+                _converter.byte6 = _array[6];
+                _converter.byte7 = _array[7];
             }
         }
 
-        public ulong value { get => this._converter.value; set => this._converter.value = value; }
+        public ulong value { get => _converter.value; set => _converter.value = value; }
 
         public ULongByteArrayConverter(ulong value) {
-            this._array = new byte[sizeof(ulong)];
-            this._converter = new ULongConverter();
-            this._converter.value = value;
+            _array = new byte[sizeof(ulong)];
+            _converter = new ULongConverter();
+            _converter.value = value;
         }
     }
 }

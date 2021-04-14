@@ -28,10 +28,10 @@ namespace GameNetworking.Channels {
             this.socket = socket;
             this.socket.listener = this;
 
-            this.readerCollection = new ConcurrentDictionary<NetEndPoint, MessageStreamReader>();
-            this.writerCollection = new ConcurrentDictionary<NetEndPoint, MessageStreamWriter>();
-            this.netEndPointWriters = new List<NetEndPoint>();
-            this.sendInfoCollection = new ConcurrentQueue<SendInfo>();
+            readerCollection = new ConcurrentDictionary<NetEndPoint, MessageStreamReader>();
+            writerCollection = new ConcurrentDictionary<NetEndPoint, MessageStreamWriter>();
+            netEndPointWriters = new List<NetEndPoint>();
+            sendInfoCollection = new ConcurrentQueue<SendInfo>();
         }
 
         internal void StartIO() {
@@ -40,22 +40,22 @@ namespace GameNetworking.Channels {
 
         internal void StopIO() {
             lock (this) {
-                this.socket.Close();
-                this.socket = null;
+                socket.Close();
+                socket = null;
             }
         }
 
         public void CloseChannel(NetEndPoint endPoint) {
-            this.writerCollection.TryRemove(endPoint, out _);
-            lock (this.lockToken) {
-                this.netEndPointWriters.Remove(endPoint);
+            writerCollection.TryRemove(endPoint, out _);
+            lock (lockToken) {
+                netEndPointWriters.Remove(endPoint);
             }
         }
 
         public void Send(ITypedMessage message, NetEndPoint to) {
             ThreadChecker.AssertMainThread();
 
-            this.sendInfoCollection.Enqueue(new SendInfo { message = message, to = to });
+            sendInfoCollection.Enqueue(new SendInfo { message = message, to = to });
         }
 
         private void ThreadPoolWorker(object state) {
@@ -65,40 +65,40 @@ namespace GameNetworking.Channels {
 
             NetEndPoint to = new NetEndPoint();
             void SendTo(byte[] bytes, int count) {
-                this.socket.Send(bytes, count, to);
+                socket.Send(bytes, count, to);
             }
 
             NetEndPoint[] endPoints = new NetEndPoint[100];
             int endPointCount = 0;
 
             do {
-                lock (this) { shouldRun = this.socket != null; }
+                lock (this) { shouldRun = socket != null; }
 
                 try {
-                    this.socket.Receive();
+                    socket.Receive();
 
-                    if (this.sendInfoCollection.TryDequeue(out SendInfo info)) {
+                    if (sendInfoCollection.TryDequeue(out SendInfo info)) {
                         var message = info.message;
                         to = info.to;
 
-                        if (!this.writerCollection.TryGetValue(to, out MessageStreamWriter writer)) {
+                        if (!writerCollection.TryGetValue(to, out MessageStreamWriter writer)) {
                             writer = new MessageStreamWriter();
-                            this.writerCollection.TryAdd(to, writer);
-                            lock (this.lockToken) {
-                                this.netEndPointWriters.Add(to);
+                            writerCollection.TryAdd(to, writer);
+                            lock (lockToken) {
+                                netEndPointWriters.Add(to);
                             }
                         }
                         writer.Write(message);
                     }
 
-                    lock (this.lockToken) {
-                        this.netEndPointWriters.CopyTo(endPoints);
-                        endPointCount = this.netEndPointWriters.Count;
+                    lock (lockToken) {
+                        netEndPointWriters.CopyTo(endPoints);
+                        endPointCount = netEndPointWriters.Count;
                     }
 
                     for (int index = 0; index < endPointCount; index++) {
                         to = endPoints[index];
-                        var writer = this.writerCollection[to];
+                        var writer = writerCollection[to];
                         writer.Use(SendTo);
                     }
                 } catch (ObjectDisposedException) {
@@ -115,22 +115,22 @@ namespace GameNetworking.Channels {
         void IUdpSocketIOListener.SocketDidReceiveBytes(UdpSocket socket, byte[] bytes, int count, NetEndPoint from) {
             ThreadChecker.AssertUnreliableChannel();
 
-            if (!this.readerCollection.TryGetValue(from, out MessageStreamReader reader)) {
+            if (!readerCollection.TryGetValue(from, out MessageStreamReader reader)) {
                 reader = new MessageStreamReader();
-                this.readerCollection.TryAdd(from, reader);
+                readerCollection.TryAdd(from, reader);
             }
             reader.Add(bytes, count);
 
             MessageContainer? container;
             while ((container = reader.Decode()) != null) {
-                this.listener?.ChannelDidReceiveMessage(this, container.Value, from);
+                listener?.ChannelDidReceiveMessage(this, container.Value, from);
             }
         }
 
         void IUdpSocketIOListener.SocketDidWriteBytes(UdpSocket socket, int count, NetEndPoint to) {
             ThreadChecker.AssertUnreliableChannel();
 
-            if (this.writerCollection.TryGetValue(to, out MessageStreamWriter writer)) {
+            if (writerCollection.TryGetValue(to, out MessageStreamWriter writer)) {
                 writer.DidWrite(count);
             } else {
                 if (Logger.IsLoggingEnabled) { Logger.Log($"SocketDidWriteBytes did not find writer for endPoint-{to}"); }

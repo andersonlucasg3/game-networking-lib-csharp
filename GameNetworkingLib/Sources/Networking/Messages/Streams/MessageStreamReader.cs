@@ -13,24 +13,24 @@ namespace GameNetworking.Messages.Streams {
         public MessageStreamReader() { }
 
         public void Add(byte[] buffer, int count) {
-            lock (this.lockToken) {
-                Array.Copy(buffer, 0, this.currentBuffer, this.currentBufferLength, count);
-                this.currentBufferLength += count;
+            lock (lockToken) {
+                Array.Copy(buffer, 0, currentBuffer, currentBufferLength, count);
+                currentBufferLength += count;
             }
         }
 
         public MessageContainer? Decode() {
-            lock (this.lockToken) {
-                if (this.currentBufferLength == 0) { return null; }
+            lock (lockToken) {
+                if (currentBufferLength == 0) { return null; }
 
-                int delimiterIndex = CoderHelper.CheckForDelimiter(this.currentBuffer, this.currentBufferLength);
+                int delimiterIndex = CoderHelper.CheckForDelimiter(currentBuffer, currentBufferLength);
                 if (delimiterIndex != -1) {
-                    if (this.IsValidChecksum(delimiterIndex)) {
-                        var container = new MessageContainer(this.currentBuffer, delimiterIndex - 1);
-                        this.currentBufferLength = CoderHelper.SliceBuffer(delimiterIndex, this.currentBuffer, this.currentBufferLength);
+                    if (IsValidChecksum(delimiterIndex)) {
+                        var container = new MessageContainer(currentBuffer, delimiterIndex - 1);
+                        currentBufferLength = CoderHelper.SliceBuffer(delimiterIndex, currentBuffer, currentBufferLength);
                         return container;
                     } else {
-                        this.currentBufferLength = CoderHelper.SliceBuffer(delimiterIndex, this.currentBuffer, this.currentBufferLength);
+                        currentBufferLength = CoderHelper.SliceBuffer(delimiterIndex, currentBuffer, currentBufferLength);
                         if (Logger.IsLoggingEnabled) { Logger.Log($"Discarded currupted message!"); }
                     }
                 }
@@ -39,8 +39,8 @@ namespace GameNetworking.Messages.Streams {
         }
 
         private bool IsValidChecksum(int messageEndIndex) {
-            var checksum = CoderHelper.CalculateChecksum(this.currentBuffer, 0, messageEndIndex - 1);
-            byte messageChecksum = this.currentBuffer[messageEndIndex - 1];
+            var checksum = CoderHelper.CalculateChecksum(currentBuffer, 0, messageEndIndex - 1);
+            byte messageChecksum = currentBuffer[messageEndIndex - 1];
             return checksum == messageChecksum;
         }
     }

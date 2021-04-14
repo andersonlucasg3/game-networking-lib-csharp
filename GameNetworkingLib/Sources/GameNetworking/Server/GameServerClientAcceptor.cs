@@ -18,12 +18,12 @@ namespace GameNetworking.Server {
 
         public IGameServerClientAcceptorListener<TPlayer> listener { get; set; }
 
-        public GameServerClientAcceptor() => this.channelCollection = new ConcurrentDictionary<ReliableChannel, TPlayer>();
+        public GameServerClientAcceptor() => channelCollection = new ConcurrentDictionary<ReliableChannel, TPlayer>();
 
         public void AcceptClient(TPlayer player) {
-            this.listener.ClientAcceptorPlayerDidConnect(player);
+            listener.ClientAcceptorPlayerDidConnect(player);
 
-            var players = this.listener.playerCollection.values;
+            var players = listener.playerCollection.values;
             for (int i = 0; i < players.Count; i++) {
                 TPlayer each = players[i];
 
@@ -44,31 +44,31 @@ namespace GameNetworking.Server {
                 player.Send(connectedSelf, Channel.reliable);
             }
 
-            if (Logger.IsLoggingEnabled) { Logger.Log($"(AcceptClient) count {this.listener.playerCollection.count}"); }
+            if (Logger.IsLoggingEnabled) { Logger.Log($"(AcceptClient) count {listener.playerCollection.count}"); }
         }
 
         public void Disconnect(TPlayer player) {
-            if (Logger.IsLoggingEnabled) { Logger.Log($"(Disconnect) count {this.listener.playerCollection.count}"); }
+            if (Logger.IsLoggingEnabled) { Logger.Log($"(Disconnect) count {listener.playerCollection.count}"); }
 
             if (player != null) {
-                this.listener.ClientAcceptorPlayerDidDisconnect(player);
-                this.listener.SendBroadcast(new DisconnectedPlayerMessage { playerId = player.playerId }, Channel.reliable);
+                listener.ClientAcceptorPlayerDidDisconnect(player);
+                listener.SendBroadcast(new DisconnectedPlayerMessage { playerId = player.playerId }, Channel.reliable);
             }
         }
 
         public void NetworkServerDidAcceptPlayer(ReliableChannel reliable, UnreliableChannel unreliable) {
             var player = new TPlayer();
-            player.Configure(this.playerIdCounter++);
+            player.Configure(playerIdCounter++);
             player.Configure(reliable, unreliable);
 
-            this.channelCollection[reliable] = player;
+            channelCollection[reliable] = player;
 
-            this.AcceptClient(player);
+            AcceptClient(player);
         }
 
         public void NetworkServerPlayerDidDisconnect(ReliableChannel channel) {
-            if (this.channelCollection.TryRemove(channel, out TPlayer player)) {
-                this.Disconnect(player);
+            if (channelCollection.TryRemove(channel, out TPlayer player)) {
+                Disconnect(player);
             }
         }
     }

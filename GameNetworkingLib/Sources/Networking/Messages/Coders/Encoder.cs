@@ -62,72 +62,72 @@ namespace GameNetworking.Messages.Coders {
         private byte[] _boolBuffer;
 
         public int PutBytes(byte[] buffer, int index) {
-            var memBuff = this._memoryStream.GetBuffer();
-            var length = (int)this._memoryStream.Length;
+            var memBuff = _memoryStream.GetBuffer();
+            var length = (int)_memoryStream.Length;
             Array.Copy(memBuff, 0, buffer, index, length);
             return length;
         }
 
         public void Encode(int value) {
-            this._intConverter.value = value;
-            this._memoryStream.Write(this._intConverter.array, 0, sizeof(int));
+            _intConverter.value = value;
+            _memoryStream.Write(_intConverter.array, 0, sizeof(int));
         }
 
         public void Encode(short value) {
-            this._shortConverter.value = value;
-            this._memoryStream.Write(this._shortConverter.array, 0, sizeof(short));
+            _shortConverter.value = value;
+            _memoryStream.Write(_shortConverter.array, 0, sizeof(short));
         }
 
         public void Encode(long value) {
-            this._longConverter.value = value;
-            this._memoryStream.Write(this._longConverter.array, 0, sizeof(long));
+            _longConverter.value = value;
+            _memoryStream.Write(_longConverter.array, 0, sizeof(long));
         }
 
         public void Encode(uint value) {
-            this._uintConverter.value = value;
-            this._memoryStream.Write(this._uintConverter.array, 0, sizeof(uint));
+            _uintConverter.value = value;
+            _memoryStream.Write(_uintConverter.array, 0, sizeof(uint));
         }
 
         public void Encode(ushort value) {
-            this._ushortConverter.value = value;
-            this._memoryStream.Write(this._ushortConverter.array, 0, sizeof(ushort));
+            _ushortConverter.value = value;
+            _memoryStream.Write(_ushortConverter.array, 0, sizeof(ushort));
         }
 
         public void Encode(ulong value) {
-            this._ulongConverter.value = value;
-            this._memoryStream.Write(this._ulongConverter.array, 0, sizeof(ulong));
+            _ulongConverter.value = value;
+            _memoryStream.Write(_ulongConverter.array, 0, sizeof(ulong));
         }
 
         public void Encode(float value) {
-            this._floatConverter.value = value;
-            this._memoryStream.Write(this._floatConverter.array, 0, sizeof(float));
+            _floatConverter.value = value;
+            _memoryStream.Write(_floatConverter.array, 0, sizeof(float));
         }
 
         public void Encode(double value) {
-            this._doubleConverter.value = value;
-            this._memoryStream.Write(this._doubleConverter.array, 0, sizeof(double));
+            _doubleConverter.value = value;
+            _memoryStream.Write(_doubleConverter.array, 0, sizeof(double));
         }
 
         public void Encode(string value) {
             var bytes = Encoding.ASCII.GetBytes(value);
-            this.Encode(bytes);
+            Encode(bytes);
         }
 
         public void Encode(byte[] value) {
-            this._intConverter.value = value.Length;
-            this._memoryStream.Write(this._intConverter.array, 0, sizeof(int));
+            _intConverter.value = value.Length;
+            _memoryStream.Write(_intConverter.array, 0, sizeof(int));
 
-            this._memoryStream.Write(value, 0, value.Length);
+            _memoryStream.Write(value, 0, value.Length);
         }
 
         public void Encode(bool value) {
-            this._boolBuffer[0] = Convert.ToByte(value);
-            this._memoryStream.Write(this._boolBuffer, 0, 1);
+            _boolBuffer[0] = Convert.ToByte(value);
+            _memoryStream.Write(_boolBuffer, 0, 1);
         }
 
         public void Encode(IEncodable value) {
             bool hasValue = value != null;
-            this.Encode(hasValue);
+            Encode(hasValue);
 
             if (hasValue) {
                 value.Encode(this);
@@ -135,31 +135,31 @@ namespace GameNetworking.Messages.Coders {
         }
 
         internal void Rent() {
-            this._memoryStream = _memoryStreamPool.Rent();
-            this._shortConverter = _shortConverterPool.Rent();
-            this._ushortConverter = _ushortConverterPool.Rent();
-            this._intConverter = _intConverterPool.Rent();
-            this._uintConverter = _uintConverterPool.Rent();
-            this._longConverter = _longConverterPool.Rent();
-            this._ulongConverter = _ulongConverterPool.Rent();
-            this._floatConverter = _floatConverterPool.Rent();
-            this._doubleConverter = _doubleConverterPool.Rent();
-            this._boolBuffer = _boolBufferPool.Rent();
+            _memoryStream = _memoryStreamPool.Rent();
+            _shortConverter = _shortConverterPool.Rent();
+            _ushortConverter = _ushortConverterPool.Rent();
+            _intConverter = _intConverterPool.Rent();
+            _uintConverter = _uintConverterPool.Rent();
+            _longConverter = _longConverterPool.Rent();
+            _ulongConverter = _ulongConverterPool.Rent();
+            _floatConverter = _floatConverterPool.Rent();
+            _doubleConverter = _doubleConverterPool.Rent();
+            _boolBuffer = _boolBufferPool.Rent();
 
-            this._memoryStream.SetLength(0);
+            _memoryStream.SetLength(0);
         }
 
         internal void Pay() {
-            _memoryStreamPool.Pay(this._memoryStream);
-            _shortConverterPool.Pay(this._shortConverter);
-            _ushortConverterPool.Pay(this._ushortConverter);
-            _intConverterPool.Pay(this._intConverter);
-            _uintConverterPool.Pay(this._uintConverter);
-            _longConverterPool.Pay(this._longConverter);
-            _ulongConverterPool.Pay(this._ulongConverter);
-            _floatConverterPool.Pay(this._floatConverter);
-            _doubleConverterPool.Pay(this._doubleConverter);
-            _boolBufferPool.Pay(this._boolBuffer);
+            _memoryStreamPool.Pay(_memoryStream);
+            _shortConverterPool.Pay(_shortConverter);
+            _ushortConverterPool.Pay(_ushortConverter);
+            _intConverterPool.Pay(_intConverter);
+            _uintConverterPool.Pay(_uintConverter);
+            _longConverterPool.Pay(_longConverter);
+            _ulongConverterPool.Pay(_ulongConverter);
+            _floatConverterPool.Pay(_floatConverter);
+            _doubleConverterPool.Pay(_doubleConverter);
+            _boolBufferPool.Pay(_boolBuffer);
         }
     }
 

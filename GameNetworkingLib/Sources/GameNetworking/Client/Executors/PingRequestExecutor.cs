@@ -6,7 +6,7 @@ using GameNetworking.Messages.Server;
 
 namespace GameNetworking.Executors.Client {
     struct PingRequestExecutor<TPlayer> : IExecutor<GameClient<TPlayer>, PingRequestMessage>
-        where TPlayer : GameNetworking.Client.Player, new() {
+        where TPlayer : Player, new() {
         public void Execute(GameClient<TPlayer> model, PingRequestMessage message) {
             if (model.localPlayer != null) {
                 model.localPlayer.lastReceivedPingRequest = TimeUtils.CurrentTime();

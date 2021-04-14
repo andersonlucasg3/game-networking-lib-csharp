@@ -22,29 +22,29 @@ namespace GameNetworking.Messages.Coders.Converters {
 
         public byte[] array {
             get {
-                this._array[0] = this._converter.byte0;
-                this._array[1] = this._converter.byte1;
+                _array[0] = _converter.byte0;
+                _array[1] = _converter.byte1;
                 if (!BitConverter.IsLittleEndian) {
-                    Array.Reverse(this._array);
+                    Array.Reverse(_array);
                 }
-                return this._array;
+                return _array;
             }
 
             set {
-                this._array = value;
+                _array = value;
                 if (!BitConverter.IsLittleEndian) {
-                    Array.Reverse(this._array);
+                    Array.Reverse(_array);
                 }
-                this._converter.byte0 = this._array[0];
-                this._converter.byte1 = this._array[1];
+                _converter.byte0 = _array[0];
+                _converter.byte1 = _array[1];
             }
         }
 
-        public short value { get => this._converter.value; set => this._converter.value = value; }
+        public short value { get => _converter.value; set => _converter.value = value; }
 
         public ShortByteArrayConverter(short value) {
-            this._array = new byte[sizeof(short)];
-            this._converter = new ShortConverter { value = value };
+            _array = new byte[sizeof(short)];
+            _converter = new ShortConverter { value = value };
         }
     }
 
@@ -54,29 +54,29 @@ namespace GameNetworking.Messages.Coders.Converters {
 
         public byte[] array {
             get {
-                this._array[0] = this._converter.byte0;
-                this._array[1] = this._converter.byte1;
+                _array[0] = _converter.byte0;
+                _array[1] = _converter.byte1;
                 if (!BitConverter.IsLittleEndian) {
-                    Array.Reverse(this._array);
+                    Array.Reverse(_array);
                 }
-                return this._array;
+                return _array;
             }
 
             set {
-                this._array = value;
+                _array = value;
                 if (!BitConverter.IsLittleEndian) {
-                    Array.Reverse(this._array);
+                    Array.Reverse(_array);
                 }
-                this._converter.byte0 = this._array[0];
-                this._converter.byte1 = this._array[1];
+                _converter.byte0 = _array[0];
+                _converter.byte1 = _array[1];
             }
         }
 
-        public ushort value { get => this._converter.value; set => this._converter.value = value; }
+        public ushort value { get => _converter.value; set => _converter.value = value; }
 
         public UShortByteArrayConverter(ushort value) {
-            this._array = new byte[sizeof(ushort)];
-            this._converter = new UShortConverter { value = value };
+            _array = new byte[sizeof(ushort)];
+            _converter = new UShortConverter { value = value };
         }
     }
 }

@@ -61,86 +61,86 @@ namespace GameNetworking.Messages.Coders {
         private byte[] _boolBuffer;
 
         public void SetBuffer(byte[] bytes, int offset, int length) {
-            this._memoryStream.SetLength(0);
-            this._memoryStream.Write(bytes, offset, length);
-            this._memoryStream.Seek(0, SeekOrigin.Begin);
+            _memoryStream.SetLength(0);
+            _memoryStream.Write(bytes, offset, length);
+            _memoryStream.Seek(0, SeekOrigin.Begin);
         }
 
         public int GetInt() {
-            var array = this._intConverter.array;
-            this._memoryStream.Read(array, 0, sizeof(int));
-            this._intConverter.array = array;
-            return this._intConverter.value;
+            var array = _intConverter.array;
+            _memoryStream.Read(array, 0, sizeof(int));
+            _intConverter.array = array;
+            return _intConverter.value;
         }
 
         public short GetShort() {
-            var array = this._shortConverter.array;
-            this._memoryStream.Read(array, 0, sizeof(short));
-            this._shortConverter.array = array;
-            return this._shortConverter.value;
+            var array = _shortConverter.array;
+            _memoryStream.Read(array, 0, sizeof(short));
+            _shortConverter.array = array;
+            return _shortConverter.value;
         }
 
         public long GetLong() {
-            var array = this._longConverter.array;
-            this._memoryStream.Read(array, 0, sizeof(long));
-            this._longConverter.array = array;
-            return this._longConverter.value;
+            var array = _longConverter.array;
+            _memoryStream.Read(array, 0, sizeof(long));
+            _longConverter.array = array;
+            return _longConverter.value;
         }
 
         public uint GetUInt() {
-            var array = this._uintConverter.array;
-            this._memoryStream.Read(array, 0, sizeof(uint));
-            this._uintConverter.array = array;
-            return this._uintConverter.value;
+            var array = _uintConverter.array;
+            _memoryStream.Read(array, 0, sizeof(uint));
+            _uintConverter.array = array;
+            return _uintConverter.value;
         }
 
         public ushort GetUShort() {
-            var array = this._ushortConverter.array;
-            this._memoryStream.Read(array, 0, sizeof(ushort));
-            this._ushortConverter.array = array;
-            return this._ushortConverter.value;
+            var array = _ushortConverter.array;
+            _memoryStream.Read(array, 0, sizeof(ushort));
+            _ushortConverter.array = array;
+            return _ushortConverter.value;
         }
 
         public ulong GetULong() {
-            var array = this._ulongConverter.array;
-            this._memoryStream.Read(array, 0, sizeof(ulong));
-            this._ulongConverter.array = array;
-            return this._ulongConverter.value;
+            var array = _ulongConverter.array;
+            _memoryStream.Read(array, 0, sizeof(ulong));
+            _ulongConverter.array = array;
+            return _ulongConverter.value;
         }
 
         public float GetFloat() {
-            var array = this._floatConverter.array;
-            this._memoryStream.Read(array, 0, sizeof(float));
-            this._floatConverter.array = array;
-            return this._floatConverter.value;
+            var array = _floatConverter.array;
+            _memoryStream.Read(array, 0, sizeof(float));
+            _floatConverter.array = array;
+            return _floatConverter.value;
         }
 
         public double GetDouble() {
-            var array = this._doubleConverter.array;
-            this._memoryStream.Read(array, 0, sizeof(double));
-            this._doubleConverter.array = array;
-            return this._doubleConverter.value;
+            var array = _doubleConverter.array;
+            _memoryStream.Read(array, 0, sizeof(double));
+            _doubleConverter.array = array;
+            return _doubleConverter.value;
         }
 
         public string GetString() {
-            var bytes = this.GetBytes();
+            var bytes = GetBytes();
             return System.Text.Encoding.ASCII.GetString(bytes);
         }
 
         public byte[] GetBytes() {
-            int length = this.GetInt();
+            int length = GetInt();
             byte[] bytes = new byte[length];
-            this._memoryStream.Read(bytes, 0, length);
+            _memoryStream.Read(bytes, 0, length);
             return bytes;
         }
 
         public bool GetBool() {
-            this._memoryStream.Read(this._boolBuffer, 0, 1);
-            return Convert.ToBoolean(this._boolBuffer[0]);
+            _memoryStream.Read(_boolBuffer, 0, 1);
+            return Convert.ToBoolean(_boolBuffer[0]);
         }
 
         public T? GetObject<T>() where T : struct, IDecodable {
-            if (this.GetBool()) {
+            if (GetBool()) {
                 T value = new T();
                 value.Decode(this);
                 return value;
@@ -149,29 +149,29 @@ namespace GameNetworking.Messages.Coders {
         }
 
         internal void Rent() {
-            this._memoryStream = _memoryStreamPool.Rent();
-            this._shortConverter = _shortConverterPool.Rent();
-            this._ushortConverter = _ushortConverterPool.Rent();
-            this._intConverter = _intConverterPool.Rent();
-            this._uintConverter = _uintConverterPool.Rent();
-            this._longConverter = _longConverterPool.Rent();
-            this._ulongConverter = _ulongConverterPool.Rent();
-            this._floatConverter = _floatConverterPool.Rent();
-            this._doubleConverter = _doubleConverterPool.Rent();
-            this._boolBuffer = _boolBufferPool.Rent();
+            _memoryStream = _memoryStreamPool.Rent();
+            _shortConverter = _shortConverterPool.Rent();
+            _ushortConverter = _ushortConverterPool.Rent();
+            _intConverter = _intConverterPool.Rent();
+            _uintConverter = _uintConverterPool.Rent();
+            _longConverter = _longConverterPool.Rent();
+            _ulongConverter = _ulongConverterPool.Rent();
+            _floatConverter = _floatConverterPool.Rent();
+            _doubleConverter = _doubleConverterPool.Rent();
+            _boolBuffer = _boolBufferPool.Rent();
         }
 
         internal void Pay() {
-            _memoryStreamPool.Pay(this._memoryStream);
-            _shortConverterPool.Pay(this._shortConverter);
-            _ushortConverterPool.Pay(this._ushortConverter);
-            _intConverterPool.Pay(this._intConverter);
-            _uintConverterPool.Pay(this._uintConverter);
-            _longConverterPool.Pay(this._longConverter);
-            _ulongConverterPool.Pay(this._ulongConverter);
-            _floatConverterPool.Pay(this._floatConverter);
-            _doubleConverterPool.Pay(this._doubleConverter);
-            _boolBufferPool.Pay(this._boolBuffer);
+            _memoryStreamPool.Pay(_memoryStream);
+            _shortConverterPool.Pay(_shortConverter);
+            _ushortConverterPool.Pay(_ushortConverter);
+            _intConverterPool.Pay(_intConverter);
+            _uintConverterPool.Pay(_uintConverter);
+            _longConverterPool.Pay(_longConverter);
+            _ulongConverterPool.Pay(_ulongConverter);
+            _floatConverterPool.Pay(_floatConverter);
+            _doubleConverterPool.Pay(_doubleConverter);
+            _boolBufferPool.Pay(_boolBuffer);
         }
     }
 

@@ -24,9 +24,9 @@ namespace GameNetworking.Server {
         }
 
         public void Update() {
-            if (this.pingPlayersArray == null) { return; }
-            for (int index = 0; index < this.pingPlayersArray.Length; index++) {
-                this.VerifyAndSendPing(this.pingPlayersArray[index]);
+            if (pingPlayersArray == null) { return; }
+            for (int index = 0; index < pingPlayersArray.Length; index++) {
+                VerifyAndSendPing(pingPlayersArray[index]);
             }
         }
 
@@ -40,7 +40,7 @@ namespace GameNetworking.Server {
         public float PongReceived(TPlayer from, long pingRequestId) {
             from.lastReceivedPongRequest = TimeUtils.CurrentTime();
 
-            if (this.pingPlayers.TryGetValue(from.playerId, out PingPlayer<TPlayer> pingPlayer)) {
+            if (pingPlayers.TryGetValue(from.playerId, out PingPlayer<TPlayer> pingPlayer)) {
                 pingPlayer.ReceivedPong(pingRequestId);
                 return from.mostRecentPingValue;
             }
@@ -48,19 +48,19 @@ namespace GameNetworking.Server {
         }
 
         void IPlayerCollectionListener<TPlayer>.PlayerStorageDidAdd(TPlayer player) {
-            this.pingPlayers[player.playerId] = new PingPlayer<TPlayer>(player) { pingController = this };
-            this.UpdateArray();
+            pingPlayers[player.playerId] = new PingPlayer<TPlayer>(player) { pingController = this };
+            UpdateArray();
         }
 
         void IPlayerCollectionListener<TPlayer>.PlayerStorageDidRemove(TPlayer player) {
-            if (this.pingPlayers.ContainsKey(player.playerId)) {
-                this.pingPlayers.Remove(player.playerId);
-                this.UpdateArray();
+            if (pingPlayers.ContainsKey(player.playerId)) {
+                pingPlayers.Remove(player.playerId);
+                UpdateArray();
             }
         }
 
         private void UpdateArray() {
-            this.pingPlayersArray = new List<PingPlayer<TPlayer>>(this.pingPlayers.Values).ToArray();
+            pingPlayersArray = new List<PingPlayer<TPlayer>>(pingPlayers.Values).ToArray();
         }
     }
 
@@ -69,42 +69,42 @@ namespace GameNetworking.Server {
         private Queue<double> pingValues = new Queue<double>();
         private double pingSentTime;
         private long pingRequestId = 0;
-        private double pingElapsedTime { get { return TimeUtils.CurrentTime() - this.pingSentTime; } }
+        private double pingElapsedTime { get { return TimeUtils.CurrentTime() - pingSentTime; } }
 
         internal GameServerPingController<TPlayer> pingController { get; set; }
         internal bool pingSent { get; private set; }
         internal bool canSendNextPing {
             get {
                 var isPlayerIdentified = player.remoteIdentifiedEndPoint.HasValue;
-                return isPlayerIdentified && this.pingElapsedTime > (pingController?.pingInterval ?? 0.5F);
+                return isPlayerIdentified && pingElapsedTime > (pingController?.pingInterval ?? 0.5F);
             }
         }
         internal TPlayer player { get; }
 
         internal PingPlayer(TPlayer instance) {
-            this.player = instance;
+            player = instance;
         }
 
-        internal void Checkup() => this.pingSent = this.canSendNextPing;
+        internal void Checkup() => pingSent = canSendNextPing;
 
         internal void SendingPing() {
-            this.pingSent = true;
-            this.pingSentTime = TimeUtils.CurrentTime();
-            this.player.Send(new PingRequestMessage(this.pingRequestId++), Channel.unreliable);
+            pingSent = true;
+            pingSentTime = TimeUtils.CurrentTime();
+            player.Send(new PingRequestMessage(pingRequestId++), Channel.unreliable);
         }
 
         internal void ReceivedPong(long pingRequestId) {
             if (pingRequestId < this.pingRequestId - 2) { return; } // allows one packet loss
 
-            this.pingSent = false;
+            pingSent = false;
 
-            if (this.pingValues.Count >= 10) {
-                this.pingValues.Dequeue();
+            if (pingValues.Count >= 10) {
+                pingValues.Dequeue();
             }
 
-            this.pingValues.Enqueue(this.pingElapsedTime);
+            pingValues.Enqueue(pingElapsedTime);
 
-            this.player.mostRecentPingValue = (float)(this.pingValues.Aggregate(0.0, (current, each) => current + each) / this.pingValues.Count);
+            player.mostRecentPingValue = (float)(pingValues.Aggregate(0.0, (current, each) => current + each) / pingValues.Count);
         }
 
         public override bool Equals(object obj) {

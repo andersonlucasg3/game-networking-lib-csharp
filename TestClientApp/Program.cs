@@ -49,7 +49,7 @@ namespace TestClientApp {
         }
 
         public void Enqueue(Action action) {
-            lock (this) { this.actions.Add(action); }
+            lock (this) { actions.Add(action); }
         }
 
         public void GameClientDidConnect(Channel channel) {
@@ -69,8 +69,8 @@ namespace TestClientApp {
             Logger.Log($"Identified as {player.playerId}");
             Logger.Log($"Is local player {player.isLocalPlayer}");
 
-            this.playerId = player.playerId;
-            this.Send();
+            playerId = player.playerId;
+            Send();
         }
 
         public void GameClientPlayerDidConnect(Player player) {
@@ -90,9 +90,9 @@ namespace TestClientApp {
         }
 
         private void Send() {
-            var message = new Message(this.playerId.Value, this.counter++);
-            this.client.Send(message, Channel.unreliable);
-            this.client.Send(message, Channel.reliable);
+            var message = new Message(playerId.Value, counter++);
+            client.Send(message, Channel.unreliable);
+            client.Send(message, Channel.reliable);
         }
     }
 
@@ -108,13 +108,13 @@ namespace TestClientApp {
         }
 
         public void Decode(IDecoder decoder) {
-            this.playerId = decoder.GetInt();
-            this.messageId = decoder.GetInt();
+            playerId = decoder.GetInt();
+            messageId = decoder.GetInt();
         }
 
         public void Encode(IEncoder encoder) {
-            encoder.Encode(this.playerId);
-            encoder.Encode(this.messageId);
+            encoder.Encode(playerId);
+            encoder.Encode(messageId);
         }
     }
 }

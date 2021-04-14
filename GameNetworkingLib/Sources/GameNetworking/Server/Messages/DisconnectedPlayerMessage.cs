@@ -8,11 +8,11 @@ namespace GameNetworking.Messages.Server {
         public int playerId { get; set; }
 
         void IDecodable.Decode(IDecoder decoder) {
-            this.playerId = decoder.GetInt();
+            playerId = decoder.GetInt();
         }
 
         void IEncodable.Encode(IEncoder encoder) {
-            encoder.Encode(this.playerId);
+            encoder.Encode(playerId);
         }
     }
 }

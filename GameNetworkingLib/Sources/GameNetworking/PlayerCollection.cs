@@ -32,53 +32,53 @@ namespace GameNetworking {
         private readonly ConcurrentDictionary<TKey, TPlayer> playersCollection = new ConcurrentDictionary<TKey, TPlayer>();
         private readonly List<TPlayer> _values = new List<TPlayer>();
 
-        public IReadOnlyList<TPlayer> values => this._values;
+        public IReadOnlyList<TPlayer> values => _values;
 
         public List<IPlayerCollectionListener<TPlayer>> listeners { get; } = new List<IPlayerCollectionListener<TPlayer>>();
 
-        public TPlayer this[TKey key] => this.playersCollection[key];
-        public int count => this.playersCollection.Count;
+        public TPlayer this[TKey key] => playersCollection[key];
+        public int count => playersCollection.Count;
 
         public PlayerCollection() { }
 
         public bool TryGetPlayer(TKey key, out TPlayer value) {
-            return this.playersCollection.TryGetValue(key, out value);
+            return playersCollection.TryGetValue(key, out value);
         }
 
         public void Add(TKey key, TPlayer player) {
-            if (this.playersCollection.TryAdd(key, player)) {
-                this._values.Add(player);
+            if (playersCollection.TryAdd(key, player)) {
+                _values.Add(player);
 
-                for (int i = 0; i < this.listeners.Count; i++) {
-                    this.listeners[i].PlayerStorageDidAdd(player);
+                for (int i = 0; i < listeners.Count; i++) {
+                    listeners[i].PlayerStorageDidAdd(player);
                 }
             }
         }
 
         public TPlayer Remove(TKey key) {
-            if (this.playersCollection.TryRemove(key, out TPlayer player)) {
-                this._values.Remove(player);
+            if (playersCollection.TryRemove(key, out TPlayer player)) {
+                _values.Remove(player);
 
-                for (int i = 0; i < this.listeners.Count; i++) {
-                    this.listeners[i].PlayerStorageDidRemove(player);
+                for (int i = 0; i < listeners.Count; i++) {
+                    listeners[i].PlayerStorageDidRemove(player);
                 }
             }
             return player;
         }
 
         public void Clear() {
-            for (int index_p = 0; index_p < this.values.Count; index_p++) {
-                for (int index_l = 0; index_l < this.listeners.Count; index_l++) {
-                    this.listeners[index_l].PlayerStorageDidRemove(values[index_p]);
+            for (int index_p = 0; index_p < values.Count; index_p++) {
+                for (int index_l = 0; index_l < listeners.Count; index_l++) {
+                    listeners[index_l].PlayerStorageDidRemove(values[index_p]);
                 }
             }
 
-            this.playersCollection.Clear();
-            this._values.Clear();
+            playersCollection.Clear();
+            _values.Clear();
         }
 
         public TPlayer FindPlayer(TKey key) {
-            if (this.playersCollection.TryGetValue(key, out TPlayer player)) {
+            if (playersCollection.TryGetValue(key, out TPlayer player)) {
                 return player;
             }
             return null;
@@ -86,8 +86,8 @@ namespace GameNetworking {
 
         public TPlayer FindPlayer(Func<TPlayer, bool> predicate) {
             TPlayer player = null;
-            for (int index = 0; index < this.values.Count; index++) {
-                var value = this.values[index];
+            for (int index = 0; index < values.Count; index++) {
+                var value = values[index];
                 if (predicate.Invoke(value)) {
                     player = value;
                     break;
@@ -97,17 +97,17 @@ namespace GameNetworking {
         }
 
         public void ForEach<TValue>(Action<TPlayer, TValue> action, TValue value) {
-            var p = this.values;
+            var p = values;
             var c = p.Count;
             for (int idx = 0; idx < c; idx++) { action(p[idx], value); }
         }
 
         public IEnumerator<TPlayer> GetEnumerator() {
-            return this.values.GetEnumerator();
+            return values.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator() {
-            return this.values.GetEnumerator();
+            return values.GetEnumerator();
         }
     }
 }

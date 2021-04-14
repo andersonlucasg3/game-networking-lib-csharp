@@ -13,25 +13,25 @@ namespace GameNetworking.Networking.Sockets {
 
         public override bool Equals(object obj) {
             if (obj is NetEndPoint other) {
-                return this.Equals(other);
+                return Equals(other);
             }
-            return object.Equals(this, obj);
+            return Equals(this, obj);
         }
 
         public bool Equals(NetEndPoint other) {
-            return this.address.Equals(other.address) && this.port == other.port;
+            return address.Equals(other.address) && port == other.port;
         }
 
         public override int GetHashCode() {
 #if !UNITY_64
-            return HashCode.Combine(this.address, this.port);
+            return HashCode.Combine(address, port);
 #else
             return this.address.GetHashCode() + this.port.GetHashCode();
 #endif
         }
 
         public override string ToString() {
-            return $"{{ ip: {this.address}, port: {this.port} }}";
+            return $"{{ ip: {address}, port: {port} }}";
         }
     }
 }

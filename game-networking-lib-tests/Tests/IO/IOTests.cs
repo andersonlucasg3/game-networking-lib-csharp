@@ -32,7 +32,7 @@ namespace Tests.IO {
         [Test]
         public void TestEncoder() {
             Value value = new Value(new SubValue(new SubSubValue("")), Value.bytes);
-            this.Measure(() => {
+            Measure(() => {
                 byte[] buffer = new byte[8 * 1024];
                 BinaryEncoder.Encode(value, buffer, 0);
             }, "Encoder");
@@ -44,7 +44,7 @@ namespace Tests.IO {
             byte[] buffer = new byte[8 * 1024];
             int length = BinaryEncoder.Encode(value, buffer, 0);
 
-            this.Measure(() => {
+            Measure(() => {
                 _ = BinaryDecoder.Decode<Value>(buffer, 0, length);
             }, "Decoder");
         }
@@ -55,7 +55,7 @@ namespace Tests.IO {
 
             Value decoded = new Value();
 
-            this.Measure(() => {
+            Measure(() => {
                 byte[] buffer = new byte[8 * 1024];
                 int length = BinaryEncoder.Encode(value, buffer, 0);
 
@@ -86,7 +86,7 @@ namespace Tests.IO {
 
             MemoryStream ms = new MemoryStream();
 
-            this.Measure(() => {
+            Measure(() => {
                 formatter.Serialize(ms, value);
 
                 Logger.Log($"Encoded message size: {ms.Length}");
@@ -140,7 +140,7 @@ namespace Tests.IO {
 
             var decoder = new MessageStreamReader();
 
-            this.Measure(() => {
+            Measure(() => {
                 var position = 0;
                 do {
                     var x = data.GetRange(position, 1).ToArray();
@@ -211,7 +211,7 @@ namespace Tests.IO {
             Array.Copy(delimiter, 0, bytes, 640, delimiter.Length);
 
             int index = 0;
-            this.Measure(() => {
+            Measure(() => {
                 index = ArraySearch.IndexOf(delimiter, delimiter.Length, bytes, bytes.Length);
             }, "ArraySearch-\\r");
 
@@ -253,7 +253,7 @@ namespace Tests.IO {
             Array.Copy(delimiter, 0, bytes, 640, delimiter.Length);
 
             int index = 0;
-            this.Measure(() => {
+            Measure(() => {
                 index = ArraySearch.IndexOf(delimiter, delimiter.Length, bytes, bytes.Length);
             }, "ArraySearchLong");
 
@@ -366,13 +366,13 @@ namespace Tests.IO {
         public string username;
 
         public void Encode(IEncoder encoder) {
-            encoder.Encode(this.accessToken);
-            encoder.Encode(this.username);
+            encoder.Encode(accessToken);
+            encoder.Encode(username);
         }
 
         public void Decode(IDecoder decoder) {
-            this.accessToken = decoder.GetString();
-            this.username = decoder.GetString();
+            accessToken = decoder.GetString();
+            username = decoder.GetString();
         }
     }
 
@@ -385,17 +385,17 @@ namespace Tests.IO {
         public int value4;
 
         public void Encode(IEncoder encoder) {
-            encoder.Encode(this.value1);
-            encoder.Encode(this.value2);
-            encoder.Encode(this.value3);
-            encoder.Encode(this.value4);
+            encoder.Encode(value1);
+            encoder.Encode(value2);
+            encoder.Encode(value3);
+            encoder.Encode(value4);
         }
 
         public void Decode(IDecoder decoder) {
-            this.value1 = decoder.GetInt();
-            this.value2 = decoder.GetInt();
-            this.value3 = decoder.GetInt();
-            this.value4 = decoder.GetInt();
+            value1 = decoder.GetInt();
+            value2 = decoder.GetInt();
+            value3 = decoder.GetInt();
+            value4 = decoder.GetInt();
         }
     }
 
@@ -407,21 +407,21 @@ namespace Tests.IO {
         public short port;
 
         public void Encode(IEncoder encoder) {
-            encoder.Encode(this.token);
-            encoder.Encode(this.ip);
-            encoder.Encode(this.port);
+            encoder.Encode(token);
+            encoder.Encode(ip);
+            encoder.Encode(port);
         }
 
         public void Decode(IDecoder decoder) {
-            this.token = decoder.GetString();
-            this.ip = decoder.GetString();
-            this.port = decoder.GetShort();
+            token = decoder.GetString();
+            ip = decoder.GetString();
+            port = decoder.GetShort();
         }
     }
 
     [Serializable]
     struct Value : ITypedMessage {
-        public static readonly byte[] bytes = System.Text.Encoding.ASCII.GetBytes("Minha string preferida em bytes");
+        public static readonly byte[] bytes = Encoding.ASCII.GetBytes("Minha string preferida em bytes");
 
         int ITypedMessage.type => 100;
 
@@ -452,26 +452,26 @@ namespace Tests.IO {
         }
 
         public void Encode(IEncoder encoder) {
-            encoder.Encode(this.intVal);
-            encoder.Encode(this.shortVal);
-            encoder.Encode(this.longVal);
-            encoder.Encode(this.uintVal);
-            encoder.Encode(this.ushortVal);
-            encoder.Encode(this.ulongVal);
-            encoder.Encode(this.stringVal);
-            encoder.Encode(this.bytesVal);
-            encoder.Encode(this.subValue);
+            encoder.Encode(intVal);
+            encoder.Encode(shortVal);
+            encoder.Encode(longVal);
+            encoder.Encode(uintVal);
+            encoder.Encode(ushortVal);
+            encoder.Encode(ulongVal);
+            encoder.Encode(stringVal);
+            encoder.Encode(bytesVal);
+            encoder.Encode(subValue);
         }
 
         public void Decode(IDecoder decoder) {
-            this.intVal = decoder.GetInt();
-            this.shortVal = decoder.GetShort();
-            this.longVal = decoder.GetLong();
-            this.uintVal = decoder.GetUInt();
-            this.ushortVal = decoder.GetUShort();
-            this.ulongVal = decoder.GetULong();
-            this.stringVal = decoder.GetString();
-            this.bytesVal = decoder.GetBytes();
+            intVal = decoder.GetInt();
+            shortVal = decoder.GetShort();
+            longVal = decoder.GetLong();
+            uintVal = decoder.GetUInt();
+            ushortVal = decoder.GetUShort();
+            ulongVal = decoder.GetULong();
+            stringVal = decoder.GetString();
+            bytesVal = decoder.GetBytes();
             var subValue = decoder.GetObject<SubValue>();
             if (subValue.HasValue) {
                 this.subValue = subValue.Value;
@@ -500,18 +500,18 @@ namespace Tests.IO {
         }
 
         public void Encode(IEncoder encoder) {
-            encoder.Encode(this.name);
-            encoder.Encode(this.age);
-            encoder.Encode(this.height);
-            encoder.Encode(this.weight);
-            encoder.Encode(this.subSubValue);
+            encoder.Encode(name);
+            encoder.Encode(age);
+            encoder.Encode(height);
+            encoder.Encode(weight);
+            encoder.Encode(subSubValue);
         }
 
         public void Decode(IDecoder decoder) {
-            this.name = decoder.GetString();
-            this.age = decoder.GetInt();
-            this.height = decoder.GetFloat();
-            this.weight = decoder.GetDouble();
+            name = decoder.GetString();
+            age = decoder.GetInt();
+            height = decoder.GetFloat();
+            weight = decoder.GetDouble();
             var subSubValue = decoder.GetObject<SubSubValue>();
             if (subSubValue.HasValue) {
                 this.subSubValue = subSubValue.Value;
@@ -520,14 +520,14 @@ namespace Tests.IO {
 
         public override bool Equals(object obj) {
             if (obj is SubValue other) {
-                return this.name == other.name &&
-                    this.age == other.age;
+                return name == other.name &&
+                    age == other.age;
             }
-            return object.ReferenceEquals(this, obj);
+            return ReferenceEquals(this, obj);
         }
 
         public override int GetHashCode() {
-            return HashCode.Combine(this.name, this.age, this.height, this.weight);
+            return HashCode.Combine(name, age, height, weight);
         }
     }
 
@@ -542,11 +542,11 @@ namespace Tests.IO {
         }
 
         public void Encode(IEncoder encoder) {
-            encoder.Encode(this.empty);
+            encoder.Encode(empty);
         }
 
         public void Decode(IDecoder decoder) {
-            this.empty = decoder.GetString();
+            empty = decoder.GetString();
         }
     }
 }

@@ -9,13 +9,13 @@ namespace GameNetworking.Messages.Server {
         public bool isMe { get; set; }
 
         void IDecodable.Decode(IDecoder decoder) {
-            this.playerId = decoder.GetInt();
-            this.isMe = decoder.GetBool();
+            playerId = decoder.GetInt();
+            isMe = decoder.GetBool();
         }
 
         void IEncodable.Encode(IEncoder encoder) {
-            encoder.Encode(this.playerId);
-            encoder.Encode(this.isMe);
+            encoder.Encode(playerId);
+            encoder.Encode(isMe);
         }
     }
 }

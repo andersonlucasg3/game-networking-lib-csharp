@@ -23,13 +23,13 @@ namespace GameNetworking.Server {
             var type = (MessageType)container.type;
 
             switch (type) {
-            case MessageType.pong: this.EnqueuePong(player, container); break;
-            default: this.server.listener?.GameServerDidReceiveClientMessage(container, player); break;
+            case MessageType.pong: EnqueuePong(player, container); break;
+            default: server.listener?.GameServerDidReceiveClientMessage(container, player); break;
             }
         }
 
         void IPlayerMessageListener.PlayerDidReceiveMessage(MessageContainer container, IPlayer from) {
-            this.Route(container, from as TPlayer);
+            Route(container, from as TPlayer);
         }
 
         protected void Execute<TExecutor, TModel, TMessage>(Executor<TExecutor, TModel, TMessage> executor)
@@ -43,8 +43,8 @@ namespace GameNetworking.Server {
                 PongRequestExecutor<TPlayer>,
                 ServerModel<TPlayer>,
                 PongRequestMessage
-                >(new ServerModel<TPlayer>(this.server, player), message);
-            this.Execute(executor);
+                >(new ServerModel<TPlayer>(server, player), message);
+            Execute(executor);
         }
 
         public struct ServerModel<TModel> {

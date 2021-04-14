@@ -31,16 +31,16 @@ namespace GameNetworking {
             public int playerId { get; internal set; }
             public float mostRecentPingValue { get; internal set; }
 
-            public Player() { this.lastReceivedPongRequest = TimeUtils.CurrentTime(); }
+            public Player() { lastReceivedPongRequest = TimeUtils.CurrentTime(); }
 
             #region Internal methods
 
             internal void Configure(int playerId) => this.playerId = playerId;
             internal void Configure(ReliableChannel reliable, UnreliableChannel unreliable) {
-                this.reliableChannel = reliable;
-                this.unreliableChannel = unreliable;
+                reliableChannel = reliable;
+                unreliableChannel = unreliable;
 
-                this.reliableChannel.listener = this;
+                reliableChannel.listener = this;
             }
 
             #endregion
@@ -49,17 +49,17 @@ namespace GameNetworking {
 
             public void Send(ITypedMessage message, Channel channel) {
                 switch (channel) {
-                    case Channel.reliable: this.reliableChannel.Send(message); break;
+                    case Channel.reliable: reliableChannel.Send(message); break;
                     case Channel.unreliable:
-                        if (!this.remoteIdentifiedEndPoint.HasValue) { break; }
-                        this.unreliableChannel.Send(message, this.remoteIdentifiedEndPoint.Value); break;
+                        if (!remoteIdentifiedEndPoint.HasValue) { break; }
+                        unreliableChannel.Send(message, remoteIdentifiedEndPoint.Value); break;
                 }
             }
 
             public void Disconnect() {
-                this.reliableChannel.CloseChannel();
-                if (this.remoteIdentifiedEndPoint.HasValue) {
-                    this.unreliableChannel.CloseChannel(this.remoteIdentifiedEndPoint.Value);
+                reliableChannel.CloseChannel();
+                if (remoteIdentifiedEndPoint.HasValue) {
+                    unreliableChannel.CloseChannel(remoteIdentifiedEndPoint.Value);
                 }
             }
 
@@ -67,17 +67,17 @@ namespace GameNetworking {
 
             #region IEquatable
 
-            bool IEquatable<IPlayer>.Equals(IPlayer other) => this.playerId == other.playerId;
-            public override int GetHashCode() => this.playerId.GetHashCode();
+            bool IEquatable<IPlayer>.Equals(IPlayer other) => playerId == other.playerId;
+            public override int GetHashCode() => playerId.GetHashCode();
 
             #endregion
 
             void IReliableChannelListener.ChannelDidReceiveMessage(ReliableChannel channel, MessageContainer container) {
-                this.listener?.PlayerDidReceiveMessage(container, this);
+                listener?.PlayerDidReceiveMessage(container, this);
             }
 
             void INetworkServerMessageListener.NetworkServerDidReceiveMessage(MessageContainer container) {
-                this.listener?.PlayerDidReceiveMessage(container, this);
+                listener?.PlayerDidReceiveMessage(container, this);
             }
         }
     }
@@ -97,7 +97,7 @@ namespace GameNetworking {
             public bool isLocalPlayer { get; internal set; }
             public float mostRecentPingValue { get; internal set; }
 
-            public Player() : base() => this.lastReceivedPingRequest = TimeUtils.CurrentTime();
+            public Player() : base() => lastReceivedPingRequest = TimeUtils.CurrentTime();
 
             internal void Configure(int playerId, bool isLocalPlayer) {
                 this.playerId = playerId;

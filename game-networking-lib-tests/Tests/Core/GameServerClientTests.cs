@@ -45,13 +45,13 @@ namespace Tests.Core {
 
         #region IGameClientListener
 
-        void IGameClientListener<ClientPlayer>.GameClientDidConnect(Channel _) => this.connectedCalled = true;
-        void IGameClientListener<ClientPlayer>.GameClientConnectDidTimeout() => this.connectTimeoutCalled = true;
-        void IGameClientListener<ClientPlayer>.GameClientDidDisconnect() => this.disconnectCalled = true;
-        void IGameClientListener<ClientPlayer>.GameClientDidIdentifyLocalPlayer(ClientPlayer player) => this.localPlayer = player;
-        void IGameClientListener<ClientPlayer>.GameClientDidReceiveMessage(MessageContainer container) => this.receivedMessages.Add(container);
-        void IGameClientListener<ClientPlayer>.GameClientPlayerDidConnect(ClientPlayer player) => this.connectedPlayers.Add(player);
-        void IGameClientListener<ClientPlayer>.GameClientPlayerDidDisconnect(ClientPlayer player) => this.disconnectedPlayers.Add(player);
+        void IGameClientListener<ClientPlayer>.GameClientDidConnect(Channel _) => connectedCalled = true;
+        void IGameClientListener<ClientPlayer>.GameClientConnectDidTimeout() => connectTimeoutCalled = true;
+        void IGameClientListener<ClientPlayer>.GameClientDidDisconnect() => disconnectCalled = true;
+        void IGameClientListener<ClientPlayer>.GameClientDidIdentifyLocalPlayer(ClientPlayer player) => localPlayer = player;
+        void IGameClientListener<ClientPlayer>.GameClientDidReceiveMessage(MessageContainer container) => receivedMessages.Add(container);
+        void IGameClientListener<ClientPlayer>.GameClientPlayerDidConnect(ClientPlayer player) => connectedPlayers.Add(player);
+        void IGameClientListener<ClientPlayer>.GameClientPlayerDidDisconnect(ClientPlayer player) => disconnectedPlayers.Add(player);
 
         #endregion
     }
@@ -75,30 +75,30 @@ namespace Tests.Core {
     public class GameServerClientTests {
         private const string hostIp = "127.0.0.1";
 
-        private NetworkClient NewClient() => new NetworkClient(new TcpSocket(), new UdpSocket());
-        private NetworkServer NewServer() => new NetworkServer(new TcpSocket(), new UdpSocket());
+        private static NetworkClient NewClient() => new NetworkClient(new TcpSocket(), new UdpSocket());
+        private static NetworkServer NewServer() => new NetworkServer(new TcpSocket(), new UdpSocket());
 
         private void NewServer(out GameServer<ServerPlayer> server, out ServerListener listener) {
-            this.NewServer(out server, out listener, out _);
+            NewServer(out server, out listener, out _);
         }
 
         private void NewServer(out GameServer<ServerPlayer> server, out ServerListener listener, out NetworkServer networkServer) {
             var newListener = new ServerListener();
-            networkServer = this.NewServer();
+            networkServer = NewServer();
             server = new GameServer<ServerPlayer>(networkServer, new GameServerMessageRouter<ServerPlayer>(new MainThreadDispatcher())) { listener = newListener };
             listener = newListener;
         }
 
         private void NewClient(out GameClient<ClientPlayer> client, out ClientListener listener) {
             var newListener = new ClientListener();
-            client = new GameClient<ClientPlayer>(this.NewClient(), new GameClientMessageRouter<ClientPlayer>(new MainThreadDispatcher())) { listener = newListener };
+            client = new GameClient<ClientPlayer>(NewClient(), new GameClientMessageRouter<ClientPlayer>(new MainThreadDispatcher())) { listener = newListener };
             listener = newListener;
         }
 
         [Test]
         public void TestConnectDisconnect() {
-            this.NewServer(out GameServer<ServerPlayer> server, out ServerListener serverListener);
-            this.NewClient(out GameClient<ClientPlayer> client, out ClientListener clientListener);
+            NewServer(out GameServer<ServerPlayer> server, out ServerListener serverListener);
+            NewClient(out GameClient<ClientPlayer> client, out ClientListener clientListener);
 
             server.Start(5000);
 
@@ -161,10 +161,10 @@ namespace Tests.Core {
 
         [Test]
         public void TestMultiPlayerConnectDisconnect() {
-            this.NewClient(out GameClient<ClientPlayer> client1, out ClientListener clientListener1);
-            this.NewClient(out GameClient<ClientPlayer> client2, out ClientListener clientListener2);
-            this.NewClient(out GameClient<ClientPlayer> client3, out ClientListener clientListener3);
-            this.NewServer(out GameServer<ServerPlayer> server, out ServerListener serverListener);
+            NewClient(out GameClient<ClientPlayer> client1, out ClientListener clientListener1);
+            NewClient(out GameClient<ClientPlayer> client2, out ClientListener clientListener2);
+            NewClient(out GameClient<ClientPlayer> client3, out ClientListener clientListener3);
+            NewServer(out GameServer<ServerPlayer> server, out ServerListener serverListener);
 
             void UpdateAction() {
                 server.Update();
@@ -265,9 +265,9 @@ namespace Tests.Core {
 
         [Test]
         public void TestClientReconnect() {
-            this.NewClient(out GameClient<ClientPlayer> client1, out ClientListener listener1_c);
-            this.NewClient(out GameClient<ClientPlayer> client2, out _);
-            this.NewServer(out GameServer<ServerPlayer> server, out _);
+            NewClient(out GameClient<ClientPlayer> client1, out ClientListener listener1_c);
+            NewClient(out GameClient<ClientPlayer> client2, out _);
+            NewServer(out GameServer<ServerPlayer> server, out _);
 
             void Update() {
                 server.Update();
@@ -301,7 +301,7 @@ namespace Tests.Core {
             Update();
 
             Assert.IsNull(server.playerCollection.FindPlayer(player2.playerId));
-            this.NewClient(out client2, out ClientListener listener2_c);
+            NewClient(out client2, out ClientListener listener2_c);
 
             client2.Connect(hostIp, 5000);
 
@@ -319,9 +319,9 @@ namespace Tests.Core {
 
         [Test]
         public void TestClientPingBroadcast() {
-            this.NewClient(out GameClient<ClientPlayer> client1, out _);
-            this.NewClient(out GameClient<ClientPlayer> client2, out _);
-            this.NewServer(out GameServer<ServerPlayer> server, out _);
+            NewClient(out GameClient<ClientPlayer> client1, out _);
+            NewClient(out GameClient<ClientPlayer> client2, out _);
+            NewServer(out GameServer<ServerPlayer> server, out _);
 
             void Update() {
                 server.Update();
@@ -382,8 +382,8 @@ namespace Tests.Core {
 
         [Test]
         public void TestOneClientDisconnectAndReconnect() {
-            this.NewClient(out GameClient<ClientPlayer> client1, out ClientListener clientListener);
-            this.NewServer(out GameServer<ServerPlayer> server, out ServerListener _);
+            NewClient(out GameClient<ClientPlayer> client1, out ClientListener clientListener);
+            NewServer(out GameServer<ServerPlayer> server, out ServerListener _);
 
             void Update() {
                 server.Update();
@@ -407,7 +407,7 @@ namespace Tests.Core {
 
             Update();
 
-            this.NewClient(out client1, out clientListener);
+            NewClient(out client1, out clientListener);
 
             client1.Connect(hostIp, 5000);
 

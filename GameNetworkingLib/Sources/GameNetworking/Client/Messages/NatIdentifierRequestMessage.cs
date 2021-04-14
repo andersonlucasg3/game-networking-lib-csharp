@@ -17,15 +17,15 @@ namespace GameNetworking.Messages.Client {
         }
 
         void IDecodable.Decode(IDecoder decoder) {
-            this.playerId = decoder.GetInt();
-            this.remoteIp = decoder.GetString();
-            this.port = decoder.GetInt();
+            playerId = decoder.GetInt();
+            remoteIp = decoder.GetString();
+            port = decoder.GetInt();
         }
 
         void IEncodable.Encode(IEncoder encoder) {
-            encoder.Encode(this.playerId);
-            encoder.Encode(this.remoteIp);
-            encoder.Encode(this.port);
+            encoder.Encode(playerId);
+            encoder.Encode(remoteIp);
+            encoder.Encode(port);
         }
     }
 }

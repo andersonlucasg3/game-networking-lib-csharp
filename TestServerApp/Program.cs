@@ -36,7 +36,7 @@ namespace TestServerApp {
         }
 
         public void Enqueue(Action action) {
-            lock (this) { this.actions.Add(action); }
+            lock (this) { actions.Add(action); }
         }
 
         public void GameServerPlayerDidConnect(Player player, Channel channel) {
@@ -50,12 +50,12 @@ namespace TestServerApp {
         public void GameServerDidReceiveClientMessage(MessageContainer container, Player player) {
             Logger.Log($"GameServerDidReceiveClientMessage - type {container.type}");
             if (container.type == 1001) {
-                this.Send(container);
+                Send(container);
             }
         }
 
         private void Send(MessageContainer message) {
-            this.Enqueue(new Executor<Executor, GameServer<Player>, Message>(this.server, message).Execute);
+            Enqueue(new Executor<Executor, GameServer<Player>, Message>(server, message).Execute);
         }
     }
 
@@ -71,13 +71,13 @@ namespace TestServerApp {
         }
 
         public void Decode(IDecoder decoder) {
-            this.playerId = decoder.GetInt();
-            this.messageId = decoder.GetInt();
+            playerId = decoder.GetInt();
+            messageId = decoder.GetInt();
         }
 
         public void Encode(IEncoder encoder) {
-            encoder.Encode(this.playerId);
-            encoder.Encode(this.messageId);
+            encoder.Encode(playerId);
+            encoder.Encode(messageId);
         }
     }
 

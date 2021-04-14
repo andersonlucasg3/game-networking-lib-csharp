@@ -17,21 +17,21 @@ namespace GameNetworking.Commons {
 
         public Executor(TModel model, MessageContainer message) {
             ThreadChecker.AssertMainThread(false);
-            this.forwarding = new TExecutor();
+            forwarding = new TExecutor();
             this.model = model;
             this.message = message;
-            this.unpackedMessage = message.Parse<TMessage>();
+            unpackedMessage = message.Parse<TMessage>();
         }
 
         public void Execute() {
             ThreadChecker.AssertMainThread();
 
-            this.forwarding.Execute(this.model, this.unpackedMessage);
+            forwarding.Execute(model, unpackedMessage);
 
-            if (this.unpackedMessage is IDisposable disposable) {
+            if (unpackedMessage is IDisposable disposable) {
                 disposable.Dispose();
             }
-            this.message.ReturnBuffer();
+            message.ReturnBuffer();
         }
     }
 }

@@ -42,7 +42,7 @@ namespace GameNetworking.Server {
         internal readonly PlayerCollection<int, TPlayer> _playerCollection;
 
         public NetworkServer networkServer { get; private set; }
-        public IReadOnlyPlayerCollection<int, TPlayer> playerCollection => this._playerCollection;
+        public IReadOnlyPlayerCollection<int, TPlayer> playerCollection => _playerCollection;
         public IGameServerPingController<TPlayer> pingController { get; }
 
         public IGameServerListener<TPlayer> listener { get; set; }
@@ -50,13 +50,13 @@ namespace GameNetworking.Server {
         public GameServer(NetworkServer networkServer, GameServerMessageRouter<TPlayer> router) {
             ThreadChecker.AssertMainThread();
 
-            this.clientAcceptor = new GameServerClientAcceptor<TPlayer>() { listener = this };
+            clientAcceptor = new GameServerClientAcceptor<TPlayer>() { listener = this };
 
             this.networkServer = networkServer;
             this.networkServer.listener = this;
 
-            this._playerCollection = new PlayerCollection<int, TPlayer>();
-            this.pingController = new GameServerPingController<TPlayer>(this._playerCollection);
+            _playerCollection = new PlayerCollection<int, TPlayer>();
+            pingController = new GameServerPingController<TPlayer>(_playerCollection);
 
             this.router = router;
             this.router.Configure(this);
@@ -65,26 +65,26 @@ namespace GameNetworking.Server {
         public void Start(int port) {
             ThreadChecker.AssertMainThread();
 
-            this.networkServer.Start(new NetEndPoint(IPAddress.Any, port));
+            networkServer.Start(new NetEndPoint(IPAddress.Any, port));
         }
 
         public void Stop() {
             ThreadChecker.AssertMainThread();
 
-            this.networkServer.Stop();
+            networkServer.Stop();
         }
 
         public void Update() {
             ThreadChecker.AssertMainThread();
 
-            this.pingController.Update();
+            pingController.Update();
         }
 
         public void SendBroadcast(ITypedMessage message, Channel channel) {
             ThreadChecker.AssertMainThread();
 
             var sendValue = new SendValue() { message = message, channel = channel };
-            this._playerCollection.ForEach(Send, sendValue);
+            _playerCollection.ForEach(Send, sendValue);
         }
 
         private void Send(TPlayer player, SendValue value) {
@@ -97,7 +97,7 @@ namespace GameNetworking.Server {
             ThreadChecker.AssertMainThread();
 
             var sendValue = new SendValue() { message = message, predicate = predicate, channel = channel };
-            this._playerCollection.ForEach(SendPredicate, sendValue);
+            _playerCollection.ForEach(SendPredicate, sendValue);
         }
 
         private void SendPredicate(TPlayer player, SendValue value) {
@@ -109,30 +109,30 @@ namespace GameNetworking.Server {
         void IGameServerClientAcceptorListener<TPlayer>.ClientAcceptorPlayerDidConnect(TPlayer player) {
             ThreadChecker.AssertReliableChannel();
 
-            player.listener = this.router;
-            this._playerCollection.Add(player.playerId, player);
-            this.router.dispatcher.Enqueue(() => this.listener?.GameServerPlayerDidConnect(player, Channel.reliable));
+            player.listener = router;
+            _playerCollection.Add(player.playerId, player);
+            router.dispatcher.Enqueue(() => listener?.GameServerPlayerDidConnect(player, Channel.reliable));
         }
 
         void IGameServerClientAcceptorListener<TPlayer>.ClientAcceptorPlayerDidDisconnect(TPlayer player) {
             ThreadChecker.AssertReliableChannel();
 
             player.listener = null;
-            this._playerCollection.Remove(player.playerId);
-            if (player.remoteIdentifiedEndPoint.HasValue) { this.networkServer.Unregister(player.remoteIdentifiedEndPoint.Value); }
-            this.router.dispatcher.Enqueue(() => this.listener?.GameServerPlayerDidDisconnect(player));
+            _playerCollection.Remove(player.playerId);
+            if (player.remoteIdentifiedEndPoint.HasValue) { networkServer.Unregister(player.remoteIdentifiedEndPoint.Value); }
+            router.dispatcher.Enqueue(() => listener?.GameServerPlayerDidDisconnect(player));
         }
 
         void INetworkServerListener.NetworkServerDidAcceptPlayer(ReliableChannel reliable, UnreliableChannel unreliable) {
             ThreadChecker.AssertReliableChannel();
 
-            this.clientAcceptor.NetworkServerDidAcceptPlayer(reliable, unreliable);
+            clientAcceptor.NetworkServerDidAcceptPlayer(reliable, unreliable);
         }
 
         void INetworkServerListener.NetworkServerPlayerDidDisconnect(ReliableChannel channel) {
             ThreadChecker.AssertReliableChannel();
 
-            this.clientAcceptor.NetworkServerPlayerDidDisconnect(channel);
+            clientAcceptor.NetworkServerPlayerDidDisconnect(channel);
         }
 
         void INetworkServerListener.NetworkServerDidReceiveUnidentifiedMessage(MessageContainer container, NetEndPoint from) {
@@ -144,7 +144,7 @@ namespace GameNetworking.Server {
                     GameServerMessageRouter<TPlayer>.ServerModel<NetEndPoint>,
                     NatIdentifierRequestMessage
                     >(new GameServerMessageRouter<TPlayer>.ServerModel<NetEndPoint>(this, from), container);
-                this.router.dispatcher.Enqueue(executor.Execute);
+                router.dispatcher.Enqueue(executor.Execute);
             }
         }
 

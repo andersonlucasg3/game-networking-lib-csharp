@@ -32,44 +32,44 @@ namespace GameNetworking.Networking.Commons {
         public MessageAckHelper(UnreliableChannel sender, IClientMessageRouter rerouter, int maxRetryCount = 3, double intervalBetweenRetries = 1.0) {
             this.sender = sender;
             this.rerouter = rerouter;
-            this.retryCount = maxRetryCount;
-            this.interval = intervalBetweenRetries;
-            this.referenceMessage = new TIngoingMessage();
+            retryCount = maxRetryCount;
+            interval = intervalBetweenRetries;
+            referenceMessage = new TIngoingMessage();
         }
 
         public void Start(TOutgoingMessage message, NetEndPoint to) {
             this.message = message;
             this.to = to;
 
-            this.retryIndex = 0;
-            this.startedTime = TimeUtils.CurrentTime();
-            this.Send();
-            this.started = true;
+            retryIndex = 0;
+            startedTime = TimeUtils.CurrentTime();
+            Send();
+            started = true;
         }
 
         public void Update() {
-            if (this.started && TimeUtils.IsOverdue(this.startedTime, this.interval)) {
-                if (this.retryIndex >= this.retryCount) {
-                    this.listener?.MessageAckHelperFailed();
+            if (started && TimeUtils.IsOverdue(startedTime, interval)) {
+                if (retryIndex >= retryCount) {
+                    listener?.MessageAckHelperFailed();
                 } else {
-                    this.Send();
+                    Send();
                 }
             }
         }
 
         public void Route(NetEndPoint from, MessageContainer container) {
-            if (container.Is(this.referenceMessage.type)) {
-                this.started = false;
-                this.listener?.MessageAckHelperReceivedExpectedResponse(from, container.Parse<TIngoingMessage>());
+            if (container.Is(referenceMessage.type)) {
+                started = false;
+                listener?.MessageAckHelperReceivedExpectedResponse(from, container.Parse<TIngoingMessage>());
             } else {
-                this.rerouter.Route(container);
+                rerouter.Route(container);
             }
         }
 
         private void Send() {
-            this.sender.Send(this.message, this.to);
-            this.startedTime = TimeUtils.CurrentTime();
-            this.retryIndex++;
+            sender.Send(message, to);
+            startedTime = TimeUtils.CurrentTime();
+            retryIndex++;
         }
     }
 }

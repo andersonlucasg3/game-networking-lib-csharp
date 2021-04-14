@@ -6,7 +6,7 @@ using GameNetworking.Server;
 
 namespace GameNetworking.Executors.Server {
     struct PongRequestExecutor<TPlayer> : IExecutor<GameServerMessageRouter<TPlayer>.ServerModel<TPlayer>, PongRequestMessage>
-        where TPlayer : GameNetworking.Server.Player, new() {
+        where TPlayer : Player, new() {
         public void Execute(GameServerMessageRouter<TPlayer>.ServerModel<TPlayer> model, PongRequestMessage message) {
             model.server.pingController.PongReceived(model.model, message.pingRequestId);
 

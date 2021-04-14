@@ -26,8 +26,8 @@ namespace GameNetworking.Channels {
             this.socket = socket;
             this.socket.ioListener = this;
 
-            this.reader = new MessageStreamReader();
-            this.writer = new MessageStreamWriter();
+            reader = new MessageStreamReader();
+            writer = new MessageStreamWriter();
         }
 
         public static void StartIO() {
@@ -54,13 +54,13 @@ namespace GameNetworking.Channels {
         public void CloseChannel() {
             ThreadChecker.AssertMainThread();
 
-            this.socket.Disconnect();
+            socket.Disconnect();
         }
 
         public void Send(ITypedMessage message) {
             ThreadChecker.AssertMainThread();
 
-            this.writer.Write(message);
+            writer.Write(message);
         }
 
         private static void ThreadPoolWorker(object state) {
@@ -91,14 +91,14 @@ namespace GameNetworking.Channels {
         }
 
         void ITcpSocketIOListener<TcpSocket>.SocketDidReceiveBytes(TcpSocket socket, byte[] bytes, int count) {
-            this.reader.Add(bytes, count);
+            reader.Add(bytes, count);
 
             MessageContainer? container;
-            while ((container = this.reader.Decode()).HasValue) {
-                this.listener?.ChannelDidReceiveMessage(this, container.Value);
+            while ((container = reader.Decode()).HasValue) {
+                listener?.ChannelDidReceiveMessage(this, container.Value);
             }
         }
 
-        void ITcpSocketIOListener<TcpSocket>.SocketDidSendBytes(TcpSocket socket, int count) => this.writer.DidWrite(count);
+        void ITcpSocketIOListener<TcpSocket>.SocketDidSendBytes(TcpSocket socket, int count) => writer.DidWrite(count);
     }
 }

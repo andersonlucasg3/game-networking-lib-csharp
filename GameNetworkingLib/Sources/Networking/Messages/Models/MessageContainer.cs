@@ -13,15 +13,15 @@ namespace GameNetworking.Messages.Models {
         public int type { get; private set; }
 
         public MessageContainer(byte[] buffer, int length) {
-            this._buffer = bufferPool.Rent();
-            CoderHelper.PackageBytes(length, buffer, this._buffer);
-            this._length = length;
+            _buffer = bufferPool.Rent();
+            CoderHelper.PackageBytes(length, buffer, _buffer);
+            _length = length;
 
             var converter = _intConverterPool.Rent();
             var array = converter.array;
             Array.Copy(buffer, array, sizeof(int));
             converter.array = array;
-            this.type = converter.value;
+            type = converter.value;
             _intConverterPool.Pay(converter);
         }
 
@@ -30,14 +30,14 @@ namespace GameNetworking.Messages.Models {
         }
 
         public TMessage Parse<TMessage>() where TMessage : struct, IDecodable
-            => BinaryDecoder.Decode<TMessage>(this._buffer, sizeof(int), this._length - sizeof(int));
+            => BinaryDecoder.Decode<TMessage>(_buffer, sizeof(int), _length - sizeof(int));
 
         #region Buffers
 
         private static readonly ObjectPool<byte[]> bufferPool
             = new ObjectPool<byte[]>(() => new byte[Consts.bufferSize]);
 
-        internal void ReturnBuffer() => bufferPool.Pay(this._buffer);
+        internal void ReturnBuffer() => bufferPool.Pay(_buffer);
 
         #endregion
     }

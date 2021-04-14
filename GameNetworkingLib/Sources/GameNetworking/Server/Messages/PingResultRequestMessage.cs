@@ -10,17 +10,17 @@ namespace GameNetworking.Messages.Server {
 
         public PingResultRequestMessage(int playerId, float value) {
             this.playerId = playerId;
-            this.pingValue = value;
+            pingValue = value;
         }
 
         public void Encode(IEncoder encoder) {
-            encoder.Encode(this.playerId);
-            encoder.Encode(this.pingValue);
+            encoder.Encode(playerId);
+            encoder.Encode(pingValue);
         }
 
         public void Decode(IDecoder decoder) {
-            this.playerId = decoder.GetInt();
-            this.pingValue = decoder.GetFloat();
+            playerId = decoder.GetInt();
+            pingValue = decoder.GetFloat();
         }
     }
 }

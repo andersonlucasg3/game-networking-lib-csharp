@@ -10,11 +10,11 @@ namespace GameNetworking.Messages.Server {
         public PingRequestMessage(long pingRequestId) => this.pingRequestId = pingRequestId;
 
         public void Encode(IEncoder encoder) {
-            encoder.Encode(this.pingRequestId);
+            encoder.Encode(pingRequestId);
         }
 
         public void Decode(IDecoder decoder) {
-            this.pingRequestId = decoder.GetLong();
+            pingRequestId = decoder.GetLong();
         }
     }
 }

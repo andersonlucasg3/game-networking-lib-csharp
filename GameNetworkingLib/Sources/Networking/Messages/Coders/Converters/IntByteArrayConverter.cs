@@ -27,33 +27,33 @@ namespace GameNetworking.Messages.Coders.Converters {
 
         public byte[] array {
             get {
-                this._array[0] = this._converter.byte0;
-                this._array[1] = this._converter.byte1;
-                this._array[2] = this._converter.byte2;
-                this._array[3] = this._converter.byte3;
+                _array[0] = _converter.byte0;
+                _array[1] = _converter.byte1;
+                _array[2] = _converter.byte2;
+                _array[3] = _converter.byte3;
                 if (!BitConverter.IsLittleEndian) {
-                    Array.Reverse(this._array);
+                    Array.Reverse(_array);
                 }
-                return this._array;
+                return _array;
             }
 
             set {
-                this._array = value;
+                _array = value;
                 if (!BitConverter.IsLittleEndian) {
-                    Array.Reverse(this._array);
+                    Array.Reverse(_array);
                 }
-                this._converter.byte0 = this._array[0];
-                this._converter.byte1 = this._array[1];
-                this._converter.byte2 = this._array[2];
-                this._converter.byte3 = this._array[3];
+                _converter.byte0 = _array[0];
+                _converter.byte1 = _array[1];
+                _converter.byte2 = _array[2];
+                _converter.byte3 = _array[3];
             }
         }
 
-        public int value { get => this._converter.value; set => this._converter.value = value; }
+        public int value { get => _converter.value; set => _converter.value = value; }
 
         public IntByteArrayConverter(int value) {
-            this._array = new byte[sizeof(int)];
-            this._converter = new IntConverter {
+            _array = new byte[sizeof(int)];
+            _converter = new IntConverter {
                 value = value
             };
         }
@@ -65,33 +65,33 @@ namespace GameNetworking.Messages.Coders.Converters {
 
         public byte[] array {
             get {
-                this._array[0] = this._converter.byte0;
-                this._array[1] = this._converter.byte1;
-                this._array[2] = this._converter.byte2;
-                this._array[3] = this._converter.byte3;
+                _array[0] = _converter.byte0;
+                _array[1] = _converter.byte1;
+                _array[2] = _converter.byte2;
+                _array[3] = _converter.byte3;
                 if (!BitConverter.IsLittleEndian) {
-                    Array.Reverse(this._array);
+                    Array.Reverse(_array);
                 }
-                return this._array;
+                return _array;
             }
 
             set {
-                this._array = value;
+                _array = value;
                 if (!BitConverter.IsLittleEndian) {
-                    Array.Reverse(this._array);
+                    Array.Reverse(_array);
                 }
-                this._converter.byte0 = this._array[0];
-                this._converter.byte1 = this._array[1];
-                this._converter.byte2 = this._array[2];
-                this._converter.byte3 = this._array[3];
+                _converter.byte0 = _array[0];
+                _converter.byte1 = _array[1];
+                _converter.byte2 = _array[2];
+                _converter.byte3 = _array[3];
             }
         }
 
-        public uint value { get => this._converter.value; set => this._converter.value = value; }
+        public uint value { get => _converter.value; set => _converter.value = value; }
 
         public UIntByteArrayConverter(uint value) {
-            this._array = new byte[sizeof(int)];
-            this._converter = new UIntConverter {
+            _array = new byte[sizeof(int)];
+            _converter = new UIntConverter {
                 value = value
             };
         }

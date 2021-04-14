@@ -35,6 +35,8 @@ namespace GameNetworking.Networking
             _socketCollection = new PlayerCollection<ITcpSocket, ReliableChannel>();
             _identifiedCollection = new PlayerCollection<NetEndPoint, INetworkServerMessageListener>();
 
+            if (_udpSocket == null) return;
+            
             unreliableChannel = new UnreliableChannel(_udpSocket) {listener = this};
         }
 
@@ -91,7 +93,8 @@ namespace GameNetworking.Networking
             listeningOnEndPoint = _tcpSocket.localEndPoint;
 
             ReliableChannel.StartIO();
-            unreliableChannel.StartIO();
+
+            unreliableChannel?.StartIO();
         }
 
         public void Stop()
@@ -100,7 +103,7 @@ namespace GameNetworking.Networking
 
             ReliableChannel.StopIO();
             _tcpSocket.Stop();
-            unreliableChannel.StopIO();
+            unreliableChannel?.StopIO();
         }
 
         public void Close()

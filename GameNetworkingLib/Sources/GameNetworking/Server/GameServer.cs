@@ -11,7 +11,7 @@ using GameNetworking.Networking.Sockets;
 
 namespace GameNetworking.Server
 {
-    public interface IGameServerListener<TPlayer>
+    public interface IGameServerListener<in TPlayer>
         where TPlayer : IPlayer
     {
         void GameServerPlayerDidConnect(TPlayer player, Channel channel);

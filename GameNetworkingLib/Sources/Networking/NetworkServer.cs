@@ -17,11 +17,11 @@ namespace GameNetworking.Networking
         void NetworkServerDidReceiveMessage(MessageContainer container);
     }
 
-    public class NetworkServer : ITcpServerListener<TcpSocket>, IUnreliableChannelListener
+    public class NetworkServer : ITcpServerListener, IUnreliableChannelListener
     {
         private readonly PlayerCollection<NetEndPoint, INetworkServerMessageListener> _identifiedCollection;
 
-        private readonly PlayerCollection<TcpSocket, ReliableChannel> _socketCollection;
+        private readonly PlayerCollection<ITcpSocket, ReliableChannel> _socketCollection;
         private readonly TcpSocket _tcpSocket;
         private readonly UdpSocket _udpSocket;
 
@@ -32,7 +32,7 @@ namespace GameNetworking.Networking
 
             _tcpSocket.serverListener = this;
 
-            _socketCollection = new PlayerCollection<TcpSocket, ReliableChannel>();
+            _socketCollection = new PlayerCollection<ITcpSocket, ReliableChannel>();
             _identifiedCollection = new PlayerCollection<NetEndPoint, INetworkServerMessageListener>();
 
             unreliableChannel = new UnreliableChannel(_udpSocket) {listener = this};
@@ -43,7 +43,7 @@ namespace GameNetworking.Networking
 
         public INetworkServerListener listener { get; set; }
 
-        void ITcpServerListener<TcpSocket>.SocketDidAccept(TcpSocket socket)
+        void ITcpServerListener.SocketDidAccept(ITcpSocket socket)
         {
             ThreadChecker.AssertAcceptThread();
 
@@ -58,7 +58,7 @@ namespace GameNetworking.Networking
             listener?.NetworkServerDidAcceptPlayer(reliable, unreliableChannel);
         }
 
-        void ITcpServerListener<TcpSocket>.SocketDidDisconnect(TcpSocket socket)
+        void ITcpServerListener.SocketDidDisconnect(ITcpSocket socket)
         {
             ThreadChecker.AssertReliableChannel();
 

@@ -6,8 +6,7 @@ using Logging;
 
 namespace GameNetworking.Networking.Sockets
 {
-    public interface IUdpSocket<TDerived> : ISocket<TDerived>
-        where TDerived : IUdpSocket<TDerived>
+    public interface IUdpSocket : ISocket
     {
         void Receive();
         void Send(byte[] bytes, int count, NetEndPoint to);
@@ -19,7 +18,7 @@ namespace GameNetworking.Networking.Sockets
         void SocketDidWriteBytes(UdpSocket socket, int count, NetEndPoint to);
     }
 
-    public sealed class UdpSocket : IUdpSocket<UdpSocket>
+    public sealed class UdpSocket : IUdpSocket
     {
         private const int SIO_UDP_CONN_RESET = -1744830452;
 
@@ -56,11 +55,11 @@ namespace GameNetworking.Networking.Sockets
             localEndPoint = endPoint;
             isConnected = true;
 
-            var ipep = ipEndPointPool.Rent();
-            ipep.Address = endPoint.address;
-            ipep.Port = endPoint.port;
-            Bind(ipep);
-            ipEndPointPool.Pay(ipep);
+            IPEndPoint ipEndPoint = ipEndPointPool.Rent();
+            ipEndPoint.Address = endPoint.address;
+            ipEndPoint.Port = endPoint.port;
+            Bind(ipEndPoint);
+            ipEndPointPool.Pay(ipEndPoint);
         }
 
         public void Connect(NetEndPoint endPoint)
@@ -97,7 +96,7 @@ namespace GameNetworking.Networking.Sockets
             }
             catch (Exception)
             {
-                Logger.Log("DontFragment not supported.");
+                Logger.Log("Don't Fragment not supported.");
             }
 
             try
@@ -106,7 +105,7 @@ namespace GameNetworking.Networking.Sockets
             }
             catch (Exception)
             {
-                Logger.Log("Error setting SIO_UDP_CONNRESET. Maybe not running on Windows.");
+                Logger.Log("Error setting SIO_UDP_CONN_RESET. Maybe not running on Windows.");
             }
 
             socket.Bind(endPoint);
@@ -128,20 +127,19 @@ namespace GameNetworking.Networking.Sockets
             lock (receiveLock)
             {
                 if (socket == null) return;
-                if (socket.Poll(1, SelectMode.SelectRead))
-                {
-                    var buffer = bufferPool.Rent();
-                    var endPoint = ipEndPointPool.Rent();
-                    endPoint.Address = IPAddress.Any;
-                    endPoint.Port = 0;
-                    EndPoint ep = endPoint;
+                if (!socket.Poll(1, SelectMode.SelectRead)) return;
+                
+                var buffer = bufferPool.Rent();
+                var endPoint = ipEndPointPool.Rent();
+                endPoint.Address = IPAddress.Any;
+                endPoint.Port = 0;
+                EndPoint ep = endPoint;
 
-                    var count = socket.ReceiveFrom(buffer, 0, Consts.bufferSize, SocketFlags.None, ref ep);
-                    if (count > 0) listener?.SocketDidReceiveBytes(this, buffer, count, From(ep));
+                var count = socket.ReceiveFrom(buffer, 0, Consts.bufferSize, SocketFlags.None, ref ep);
+                if (count > 0) listener?.SocketDidReceiveBytes(this, buffer, count, From(ep));
 
-                    bufferPool.Pay(buffer);
-                    ipEndPointPool.Pay(endPoint);
-                }
+                bufferPool.Pay(buffer);
+                ipEndPointPool.Pay(endPoint);
             }
         }
 
@@ -150,14 +148,13 @@ namespace GameNetworking.Networking.Sockets
             lock (sendLock)
             {
                 if (socket == null) return;
-                if (socket.Poll(1, SelectMode.SelectWrite))
-                {
-                    var endPoint = ipEndPointPool.Rent();
-                    From(to, ref endPoint);
-                    var written = socket.SendTo(bytes, 0, count, SocketFlags.None, endPoint);
-                    if (written > 0) listener?.SocketDidWriteBytes(this, written, to);
-                    ipEndPointPool.Pay(endPoint);
-                }
+                if (!socket.Poll(1, SelectMode.SelectWrite)) return;
+                
+                var endPoint = ipEndPointPool.Rent();
+                From(to, ref endPoint);
+                var written = socket.SendTo(bytes, 0, count, SocketFlags.None, endPoint);
+                if (written > 0) listener?.SocketDidWriteBytes(this, written, to);
+                ipEndPointPool.Pay(endPoint);
             }
         }
 
@@ -165,27 +162,22 @@ namespace GameNetworking.Networking.Sockets
 
         #region Equatable Methods
 
-        private void From(NetEndPoint ep, ref IPEndPoint endPoint)
+        private static void From(NetEndPoint ep, ref IPEndPoint endPoint)
         {
             endPoint.Address = ep.address;
             endPoint.Port = ep.port;
         }
 
-        private NetEndPoint From(EndPoint ep)
+        private static NetEndPoint From(EndPoint ep)
         {
             var endPoint = (IPEndPoint) ep;
             return new NetEndPoint(endPoint.Address, endPoint.Port);
         }
 
-        public bool Equals(IPEndPoint endPoint)
-        {
-            return remoteEndPoint.Equals(endPoint);
-        }
-
         public override bool Equals(object obj)
         {
-            if (obj is UdpSocket other) return Equals(other.remoteEndPoint);
-            return base.Equals(obj);
+            if (obj is UdpSocket other) return remoteEndPoint.Equals(other.remoteEndPoint);
+            return Equals(this, obj);
         }
 
         public override int GetHashCode()

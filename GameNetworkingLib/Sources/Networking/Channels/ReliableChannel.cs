@@ -14,17 +14,17 @@ namespace GameNetworking.Channels
         void ChannelDidReceiveMessage(ReliableChannel channel, MessageContainer container);
     }
 
-    public class ReliableChannel : ITcpSocketIOListener<TcpSocket>
+    public class ReliableChannel : ITcpSocketIOListener
     {
         private static bool ioRunning;
         private static readonly List<ReliableChannel> aliveSockets = new List<ReliableChannel>();
         private static readonly object socketLock = new object();
 
         private readonly MessageStreamReader reader;
-        private readonly TcpSocket socket;
+        private readonly ITcpSocket socket;
         private readonly MessageStreamWriter writer;
 
-        public ReliableChannel(TcpSocket socket)
+        public ReliableChannel(ITcpSocket socket)
         {
             this.socket = socket;
             this.socket.ioListener = this;
@@ -35,7 +35,7 @@ namespace GameNetworking.Channels
 
         public IReliableChannelListener listener { get; set; }
 
-        void ITcpSocketIOListener<TcpSocket>.SocketDidReceiveBytes(TcpSocket remoteSocket, byte[] bytes, int count)
+        void ITcpSocketIOListener.SocketDidReceiveBytes(ITcpSocket remoteSocket, byte[] bytes, int count)
         {
             reader.Add(bytes, count);
 
@@ -43,7 +43,7 @@ namespace GameNetworking.Channels
             while ((container = reader.Decode()).HasValue) listener?.ChannelDidReceiveMessage(this, container.Value);
         }
 
-        void ITcpSocketIOListener<TcpSocket>.SocketDidSendBytes(TcpSocket remoteSocket, int count)
+        void ITcpSocketIOListener.SocketDidSendBytes(ITcpSocket remoteSocket, int count)
         {
             writer.DidWrite(count);
         }

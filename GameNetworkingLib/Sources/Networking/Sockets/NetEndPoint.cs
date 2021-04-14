@@ -3,7 +3,7 @@ using System.Net;
 
 namespace GameNetworking.Networking.Sockets
 {
-    public struct NetEndPoint : IEquatable<NetEndPoint>
+    public readonly struct NetEndPoint : IEquatable<NetEndPoint>
     {
         public IPAddress address { get; }
         public int port { get; }
@@ -24,7 +24,7 @@ namespace GameNetworking.Networking.Sockets
         {
             return address.Equals(other.address) && port == other.port;
         }
-
+        
         public override int GetHashCode()
         {
 #if !UNITY_64

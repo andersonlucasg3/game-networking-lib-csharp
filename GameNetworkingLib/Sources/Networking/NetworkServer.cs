@@ -19,16 +19,11 @@ namespace GameNetworking.Networking
 
     public class NetworkServer : ITcpServerListener<TcpSocket>, IUnreliableChannelListener
     {
-        private readonly TcpSocket _tcpSocket;
-        private readonly UdpSocket _udpSocket;
-
-        private readonly PlayerCollection<TcpSocket, ReliableChannel> _socketCollection;
         private readonly PlayerCollection<NetEndPoint, INetworkServerMessageListener> _identifiedCollection;
 
-        public UnreliableChannel unreliableChannel { get; }
-        public NetEndPoint listeningOnEndPoint { get; private set; }
-
-        public INetworkServerListener listener { get; set; }
+        private readonly PlayerCollection<TcpSocket, ReliableChannel> _socketCollection;
+        private readonly TcpSocket _tcpSocket;
+        private readonly UdpSocket _udpSocket;
 
         public NetworkServer(TcpSocket tcpSocket, UdpSocket udpSocket)
         {
@@ -41,6 +36,47 @@ namespace GameNetworking.Networking
             _identifiedCollection = new PlayerCollection<NetEndPoint, INetworkServerMessageListener>();
 
             unreliableChannel = new UnreliableChannel(_udpSocket) {listener = this};
+        }
+
+        public UnreliableChannel unreliableChannel { get; }
+        public NetEndPoint listeningOnEndPoint { get; private set; }
+
+        public INetworkServerListener listener { get; set; }
+
+        void ITcpServerListener<TcpSocket>.SocketDidAccept(TcpSocket socket)
+        {
+            ThreadChecker.AssertAcceptThread();
+
+            if (socket == null) return;
+
+            socket.serverListener = this;
+
+            var reliable = new ReliableChannel(socket);
+            ReliableChannel.Add(reliable);
+
+            _socketCollection.Add(socket, reliable);
+            listener?.NetworkServerDidAcceptPlayer(reliable, unreliableChannel);
+        }
+
+        void ITcpServerListener<TcpSocket>.SocketDidDisconnect(TcpSocket socket)
+        {
+            ThreadChecker.AssertReliableChannel();
+
+            var channel = _socketCollection.Remove(socket);
+            if (channel == null) return;
+
+            ReliableChannel.Remove(channel);
+            listener?.NetworkServerPlayerDidDisconnect(channel);
+        }
+
+        void IUnreliableChannelListener.ChannelDidReceiveMessage(UnreliableChannel channel, MessageContainer container, NetEndPoint from)
+        {
+            ThreadChecker.AssertUnreliableChannel();
+
+            if (_identifiedCollection.TryGetPlayer(from, out var messageListener))
+                messageListener?.NetworkServerDidReceiveMessage(container);
+            else
+                listener?.NetworkServerDidReceiveUnidentifiedMessage(container, @from);
         }
 
         public void Start(NetEndPoint endPoint)
@@ -83,52 +119,6 @@ namespace GameNetworking.Networking
         public void Unregister(NetEndPoint endPoint)
         {
             _identifiedCollection.Remove(endPoint);
-        }
-
-        void ITcpServerListener<TcpSocket>.SocketDidAccept(TcpSocket socket)
-        {
-            ThreadChecker.AssertAcceptThread();
-
-            if (socket == null)
-            {
-                return;
-            }
-
-            socket.serverListener = this;
-
-            var reliable = new ReliableChannel(socket);
-            ReliableChannel.Add(reliable);
-
-            _socketCollection.Add(socket, reliable);
-            listener?.NetworkServerDidAcceptPlayer(reliable, unreliableChannel);
-        }
-
-        void ITcpServerListener<TcpSocket>.SocketDidDisconnect(TcpSocket socket)
-        {
-            ThreadChecker.AssertReliableChannel();
-
-            var channel = _socketCollection.Remove(socket);
-            if (channel == null)
-            {
-                return;
-            }
-
-            ReliableChannel.Remove(channel);
-            listener?.NetworkServerPlayerDidDisconnect(channel);
-        }
-
-        void IUnreliableChannelListener.ChannelDidReceiveMessage(UnreliableChannel channel, MessageContainer container, NetEndPoint from)
-        {
-            ThreadChecker.AssertUnreliableChannel();
-
-            if (_identifiedCollection.TryGetPlayer(from, out INetworkServerMessageListener messageListener))
-            {
-                messageListener?.NetworkServerDidReceiveMessage(container);
-            }
-            else
-            {
-                listener?.NetworkServerDidReceiveUnidentifiedMessage(container, from);
-            }
         }
     }
 }

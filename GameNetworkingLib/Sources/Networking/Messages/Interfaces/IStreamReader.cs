@@ -1,7 +1,9 @@
-﻿namespace GameNetworking.Messages.Streams {
-    using Models;
+﻿using GameNetworking.Messages.Models;
 
-    public interface IStreamReader {
+namespace GameNetworking.Messages.Streams
+{
+    public interface IStreamReader
+    {
         void Add(byte[] buffer, int count);
 
         MessageContainer? Decode();

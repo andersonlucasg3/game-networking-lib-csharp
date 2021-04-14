@@ -1,21 +1,25 @@
 using System;
 using GameNetworking.Messages.Models;
 
-namespace GameNetworking.Commons {
+namespace GameNetworking.Commons
+{
     public interface IExecutor<TModel, TMessage>
-        where TMessage : struct, ITypedMessage {
+        where TMessage : struct, ITypedMessage
+    {
         void Execute(TModel model, TMessage message);
     }
 
     public struct Executor<TExecutor, TModel, TMessage>
         where TExecutor : struct, IExecutor<TModel, TMessage>
-        where TMessage : struct, ITypedMessage {
-        readonly TExecutor forwarding;
-        readonly TModel model;
-        readonly MessageContainer message;
-        readonly TMessage unpackedMessage;
+        where TMessage : struct, ITypedMessage
+    {
+        private readonly TExecutor forwarding;
+        private readonly TModel model;
+        private readonly MessageContainer message;
+        private readonly TMessage unpackedMessage;
 
-        public Executor(TModel model, MessageContainer message) {
+        public Executor(TModel model, MessageContainer message)
+        {
             ThreadChecker.AssertMainThread(false);
             forwarding = new TExecutor();
             this.model = model;
@@ -23,14 +27,13 @@ namespace GameNetworking.Commons {
             unpackedMessage = message.Parse<TMessage>();
         }
 
-        public void Execute() {
+        public void Execute()
+        {
             ThreadChecker.AssertMainThread();
 
             forwarding.Execute(model, unpackedMessage);
 
-            if (unpackedMessage is IDisposable disposable) {
-                disposable.Dispose();
-            }
+            if (unpackedMessage is IDisposable disposable) disposable.Dispose();
             message.ReturnBuffer();
         }
     }

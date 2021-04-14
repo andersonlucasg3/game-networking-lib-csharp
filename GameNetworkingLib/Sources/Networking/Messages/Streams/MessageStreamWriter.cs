@@ -2,12 +2,15 @@
 using GameNetworking.Messages.Coders;
 using GameNetworking.Messages.Models;
 
-namespace GameNetworking.Messages.Streams {
-    public interface IStreamWriter {
+namespace GameNetworking.Messages.Streams
+{
+    public interface IStreamWriter
+    {
         void Write<TMessage>(TMessage message) where TMessage : ITypedMessage;
     }
 
-    public class MessageStreamWriter : IStreamWriter {
+    public class MessageStreamWriter : IStreamWriter
+    {
         private readonly object lockToken = new object();
 #if !UNITY_64
         public readonly byte[] currentBuffer = new byte[1024 * 1024]; // 1MB
@@ -15,12 +18,12 @@ namespace GameNetworking.Messages.Streams {
         private readonly byte[] currentBuffer = new byte[1024 * 1024]; // 1MB
 #endif
 
-        public int currentBufferLength { get; private set; } = 0;
+        public int currentBufferLength { get; private set; }
 
-        public MessageStreamWriter() { }
-
-        public void Write<TMessage>(TMessage message) where TMessage : ITypedMessage {
-            lock (lockToken) {
+        public void Write<TMessage>(TMessage message) where TMessage : ITypedMessage
+        {
+            lock (lockToken)
+            {
                 var startIndex = currentBufferLength;
                 currentBufferLength += CoderHelper.WriteInt(message.type, currentBuffer, currentBufferLength);
                 currentBufferLength += BinaryEncoder.Encode(message, currentBuffer, currentBufferLength);
@@ -29,19 +32,24 @@ namespace GameNetworking.Messages.Streams {
             }
         }
 
-        public void Use(Action<byte[], int> action) {
-            lock (lockToken) {
-                if (currentBufferLength == 0) { return; }
+        public void Use(Action<byte[], int> action)
+        {
+            lock (lockToken)
+            {
+                if (currentBufferLength == 0) return;
                 action?.Invoke(currentBuffer, currentBufferLength);
             }
         }
 
-        public void DidWrite(int count) {
-            if (count <= 0) { return; }
-            if (count == currentBufferLength) {
+        public void DidWrite(int count)
+        {
+            if (count <= 0) return;
+            if (count == currentBufferLength)
+            {
                 currentBufferLength = 0;
                 return;
             }
+
             var newLength = currentBufferLength - count;
             Array.Copy(currentBuffer, count, currentBuffer, 0, newLength);
             currentBufferLength = newLength;

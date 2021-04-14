@@ -1,63 +1,69 @@
 #if !UNITY_64
 
-using NUnit.Framework;
 using System;
-using System.IO;
 using System.Collections.Generic;
-using System.Runtime.Serialization.Formatters.Binary;
-using Logging;
-using GameNetworking.Messages.Models;
-using GameNetworking.Messages.Coders;
-using GameNetworking.Messages.Streams;
-using GameNetworking.Commons;
+using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using GameNetworking.Commons;
+using GameNetworking.Messages.Coders;
 using GameNetworking.Messages.Coders.Converters;
-using System.Security.Cryptography;
+using GameNetworking.Messages.Models;
+using GameNetworking.Messages.Streams;
+using Logging;
+using NUnit.Framework;
 
-namespace Tests.IO {
-    public class IOTests {
-        void Measure(Action action, string name) {
-            TimeSpan[] times = new TimeSpan[10];
-            for (int index = 0; index < times.Length; index++) {
-                DateTime start = DateTime.Now;
+namespace Tests.IO
+{
+    public class IOTests
+    {
+        private void Measure(Action action, string name)
+        {
+            var times = new TimeSpan[10];
+            for (var index = 0; index < times.Length; index++)
+            {
+                var start = DateTime.Now;
                 action.Invoke();
                 times[index] = DateTime.Now - start;
             }
 
-            TimeSpan timeItTook = times.Aggregate(TimeSpan.FromSeconds(0), (current, each) => current + each) / times.Length;
+            var timeItTook = times.Aggregate(TimeSpan.FromSeconds(0), (current, each) => current + each) / times.Length;
             Logger.Log($"{name} took (ms) {timeItTook.TotalMilliseconds}");
         }
 
         [Test]
-        public void TestEncoder() {
-            Value value = new Value(new SubValue(new SubSubValue("")), Value.bytes);
-            Measure(() => {
-                byte[] buffer = new byte[8 * 1024];
+        public void TestEncoder()
+        {
+            var value = new Value(new SubValue(new SubSubValue("")), Value.bytes);
+            Measure(() =>
+            {
+                var buffer = new byte[8 * 1024];
                 BinaryEncoder.Encode(value, buffer, 0);
             }, "Encoder");
         }
 
         [Test]
-        public void TestDecoder() {
-            Value value = new Value(new SubValue(new SubSubValue("")), Value.bytes);
-            byte[] buffer = new byte[8 * 1024];
-            int length = BinaryEncoder.Encode(value, buffer, 0);
+        public void TestDecoder()
+        {
+            var value = new Value(new SubValue(new SubSubValue("")), Value.bytes);
+            var buffer = new byte[8 * 1024];
+            var length = BinaryEncoder.Encode(value, buffer, 0);
 
-            Measure(() => {
-                _ = BinaryDecoder.Decode<Value>(buffer, 0, length);
-            }, "Decoder");
+            Measure(() => { _ = BinaryDecoder.Decode<Value>(buffer, 0, length); }, "Decoder");
         }
 
         [Test]
-        public void TestEncoderDecoder() {
-            Value value = new Value(new SubValue(new SubSubValue("")), Value.bytes);
+        public void TestEncoderDecoder()
+        {
+            var value = new Value(new SubValue(new SubSubValue("")), Value.bytes);
 
-            Value decoded = new Value();
+            var decoded = new Value();
 
-            Measure(() => {
-                byte[] buffer = new byte[8 * 1024];
-                int length = BinaryEncoder.Encode(value, buffer, 0);
+            Measure(() =>
+            {
+                var buffer = new byte[8 * 1024];
+                var length = BinaryEncoder.Encode(value, buffer, 0);
 
                 Logger.Log($"Encoded message size: {length}");
 
@@ -77,23 +83,25 @@ namespace Tests.IO {
         }
 
         [Test]
-        public void TestBinaryEncoder() {
-            BinaryFormatter formatter = new BinaryFormatter();
+        public void TestBinaryEncoder()
+        {
+            var formatter = new BinaryFormatter();
 
-            Value value = new Value();
+            var value = new Value();
 
             Value? decoded = null;
 
-            MemoryStream ms = new MemoryStream();
+            var ms = new MemoryStream();
 
-            Measure(() => {
+            Measure(() =>
+            {
                 formatter.Serialize(ms, value);
 
                 Logger.Log($"Encoded message size: {ms.Length}");
 
                 ms.Seek(0, SeekOrigin.Begin);
 
-                decoded = (Value)formatter.Deserialize(ms);
+                decoded = (Value) formatter.Deserialize(ms);
             }, "BinaryFormatter");
 
             Assert.AreEqual(value.intVal, decoded?.intVal);
@@ -108,29 +116,32 @@ namespace Tests.IO {
         }
 
         [Test]
-        public void TestPartialStreamingDecoding() {
+        public void TestPartialStreamingDecoding()
+        {
             var firstToken = "asldkfjalksdjfalkjsdf";
             var username = "andersonlucasg3";
             var secondToken = "asdlkfalksjdgklashdioohweg";
             var ip = "10.0.0.1";
-            var port = (short)6109;
+            var port = (short) 6109;
 
 
-            var loginRequest = new LoginRequest {
+            var loginRequest = new LoginRequest
+            {
                 accessToken = firstToken,
                 username = username
             };
 
             var matchRequest = new MatchRequest();
 
-            var connectRequest = new ConnectGameInstanceResponse {
+            var connectRequest = new ConnectGameInstanceResponse
+            {
                 token = secondToken,
                 ip = ip,
                 port = port
             };
 
             var encoder = new MessageStreamWriter();
-            List<byte> data = new List<byte>();
+            var data = new List<byte>();
             encoder.Write(loginRequest);
             encoder.Use((buffer, count) => data.AddRange(buffer, count));
             encoder.Write(matchRequest);
@@ -140,68 +151,84 @@ namespace Tests.IO {
 
             var decoder = new MessageStreamReader();
 
-            Measure(() => {
+            Measure(() =>
+            {
                 var position = 0;
-                do {
+                do
+                {
                     var x = data.GetRange(position, 1).ToArray();
                     decoder.Add(x, x.Length);
                     var container = decoder.Decode();
-                    if (container.HasValue) {
-                        if (container.Value.Is(200)) { // LoginRequest
+                    if (container.HasValue)
+                    {
+                        if (container.Value.Is(200))
+                        {
+                            // LoginRequest
                             var message = container.Value.Parse<LoginRequest>();
                             Assert.AreEqual(message.accessToken, firstToken);
                             Assert.AreEqual(message.username, username);
-                        } else if (container.Value.Is(201)) { // MatchRequest
+                        }
+                        else if (container.Value.Is(201))
+                        {
+                            // MatchRequest
                             var message = container.Value.Parse<MatchRequest>();
                             Assert.AreNotEqual(message, null);
-                        } else if (container.Value.Is(202)) { // ConnectGameInstanceResponse
+                        }
+                        else if (container.Value.Is(202))
+                        {
+                            // ConnectGameInstanceResponse
                             var message = container.Value.Parse<ConnectGameInstanceResponse>();
                             Assert.AreEqual(message.ip, ip);
                             Assert.AreEqual(message.port, port);
                             Assert.AreEqual(message.token, secondToken);
                         }
                     }
+
                     position += 1;
                 } while (position < data.Count);
             }, "Partial Stream Decoding");
         }
 
         [Test]
-        public void TestMessageSize() {
-            LoginRequest request = new LoginRequest {
+        public void TestMessageSize()
+        {
+            var request = new LoginRequest
+            {
                 accessToken = "asdfasdfasdf",
                 username = "andersonlucasg3"
             };
 
-            byte[] buffer = new byte[8 * 1024];
-            int size = BinaryEncoder.Encode(request, buffer, 0);
+            var buffer = new byte[8 * 1024];
+            var size = BinaryEncoder.Encode(request, buffer, 0);
             Logger.Log($"LoginRequest Message size: {size}");
         }
 
         [Test]
-        public void TestArraySearchComplexity() {
-            byte[] bytes = new byte[] {
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        public void TestArraySearchComplexity()
+        {
+            byte[] bytes =
+            {
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
             };
 
             Console.WriteLine($"Total bytes: {bytes.Length}");
@@ -210,10 +237,8 @@ namespace Tests.IO {
 
             Array.Copy(delimiter, 0, bytes, 640, delimiter.Length);
 
-            int index = 0;
-            Measure(() => {
-                index = ArraySearch.IndexOf(delimiter, delimiter.Length, bytes, bytes.Length);
-            }, "ArraySearch-\\r");
+            var index = 0;
+            Measure(() => { index = ArraySearch.IndexOf(delimiter, delimiter.Length, bytes, bytes.Length); }, "ArraySearch-\\r");
 
             Console.WriteLine($"Location index: {index}");
 
@@ -221,29 +246,31 @@ namespace Tests.IO {
         }
 
         [Test]
-        public void TestArraySearchLongComplexity() {
-            byte[] bytes = new byte[] {
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        public void TestArraySearchLongComplexity()
+        {
+            byte[] bytes =
+            {
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
             };
 
             Console.WriteLine($"Total bytes: {bytes.Length}");
@@ -252,10 +279,8 @@ namespace Tests.IO {
 
             Array.Copy(delimiter, 0, bytes, 640, delimiter.Length);
 
-            int index = 0;
-            Measure(() => {
-                index = ArraySearch.IndexOf(delimiter, delimiter.Length, bytes, bytes.Length);
-            }, "ArraySearchLong");
+            var index = 0;
+            Measure(() => { index = ArraySearch.IndexOf(delimiter, delimiter.Length, bytes, bytes.Length); }, "ArraySearchLong");
 
             Console.WriteLine($"Location index: {index}");
 
@@ -263,13 +288,15 @@ namespace Tests.IO {
         }
 
         [Test]
-        public void TestEndianess() {
+        public void TestEndianess()
+        {
             Console.WriteLine($"Is Little Endian: {BitConverter.IsLittleEndian}");
 
-            int value = 15395;
-            byte[] bigEndianBytes = BitConverter.GetBytes(value);
+            var value = 15395;
+            var bigEndianBytes = BitConverter.GetBytes(value);
 
-            IntByteArrayConverter converter = new IntByteArrayConverter {
+            var converter = new IntByteArrayConverter
+            {
                 array = bigEndianBytes
             };
 
@@ -277,32 +304,35 @@ namespace Tests.IO {
         }
 
         [Test]
-        public void TestMessageChecksum() {
-            byte[] bytes = new byte[] {
-                4,6,4,6,6,46,6,34,64,2,64,62,47,27,247,
-                4,6,4,6,6,46,6,34,64,2,64,62,47,27,247
+        public void TestMessageChecksum()
+        {
+            byte[] bytes =
+            {
+                4, 6, 4, 6, 6, 46, 6, 34, 64, 2, 64, 62, 47, 27, 247,
+                4, 6, 4, 6, 6, 46, 6, 34, 64, 2, 64, 62, 47, 27, 247
             };
 
-            byte[] bigBytes = new byte[8 * 1024];
+            var bigBytes = new byte[8 * 1024];
             Array.Copy(bytes, bigBytes, bytes.Length);
 
             var calculatedChecksum = CoderHelper.CalculateChecksum(bytes, 0, bytes.Length);
 
             var newLength = CoderHelper.AddChecksum(bigBytes, 0, bytes.Length) + bytes.Length;
 
-            byte checksumInBigBytes = bigBytes[bytes.Length];
-            
+            var checksumInBigBytes = bigBytes[bytes.Length];
+
             Assert.AreEqual(checksumInBigBytes, calculatedChecksum);
 
             var writer = new MessageStreamWriter();
             var reader = new MessageStreamReader();
 
-            var loginRequest = new LoginRequest() { accessToken = "alsdjflakjsdf", username = "meu username" };
-            var matchRequest = new MatchRequest() { value1 = 1, value2 = 2, value3 = 3, value4 = 4 };
+            var loginRequest = new LoginRequest {accessToken = "alsdjflakjsdf", username = "meu username"};
+            var matchRequest = new MatchRequest {value1 = 1, value2 = 2, value3 = 3, value4 = 4};
 
             writer.Write(loginRequest);
             writer.Write(matchRequest);
-            writer.Use((buffer, len) => {
+            writer.Use((buffer, len) =>
+            {
                 reader.Add(buffer, len);
                 var message = reader.Decode();
                 Assert.IsTrue(message.Value.Is(200));
@@ -316,7 +346,8 @@ namespace Tests.IO {
             writer.Write(loginRequest);
             writer.Write(matchRequest);
             writer.currentBuffer[0] = 23;
-            writer.Use((buffer, len) => {
+            writer.Use((buffer, len) =>
+            {
                 reader.Add(buffer, len);
                 var message = reader.Decode();
                 Assert.IsFalse(message.HasValue);
@@ -329,26 +360,32 @@ namespace Tests.IO {
         }
 
         [Test]
-        public void TestMultithreadReadAndWrite() {
-            var loginRequest = new LoginRequest() { accessToken = "askldfaljksdf", username = "anderson" };
+        public void TestMultithreadReadAndWrite()
+        {
+            var loginRequest = new LoginRequest {accessToken = "askldfaljksdf", username = "anderson"};
 
             var reader = new MessageStreamReader();
             var writer = new MessageStreamWriter();
 
-            for (int reading = 0; reading < 50; reading++) {
-                for (int write = 0; write < 2; write++) {
+            for (var reading = 0; reading < 50; reading++)
+            {
+                for (var write = 0; write < 2; write++)
+                {
                     writer.Write(loginRequest);
                     Logger.Log($"Did Write loginRequest {write * reading}");
                 }
 
-                writer.Use((buffer, len) => {
+                writer.Use((buffer, len) =>
+                {
                     Logger.Log($"Using buffer with len: {len}");
                     reader.Add(buffer, len);
                     MessageContainer? message = null;
-                    while ((message = reader.Decode()).HasValue) {
+                    while ((message = reader.Decode()).HasValue)
+                    {
                         Logger.Log($"Decoded message: {message.Value.type}");
                         Assert.AreEqual(loginRequest, message.Value.Parse<LoginRequest>());
                     }
+
                     writer.DidWrite(len);
                     Logger.Log($"Did Write len: {len}");
                 });
@@ -359,24 +396,28 @@ namespace Tests.IO {
         }
     }
 
-    struct LoginRequest : ITypedMessage {
+    internal struct LoginRequest : ITypedMessage
+    {
         int ITypedMessage.type => 200;
 
         public string accessToken;
         public string username;
 
-        public void Encode(IEncoder encoder) {
+        public void Encode(IEncoder encoder)
+        {
             encoder.Encode(accessToken);
             encoder.Encode(username);
         }
 
-        public void Decode(IDecoder decoder) {
+        public void Decode(IDecoder decoder)
+        {
             accessToken = decoder.GetString();
             username = decoder.GetString();
         }
     }
 
-    struct MatchRequest : ITypedMessage {
+    internal struct MatchRequest : ITypedMessage
+    {
         int ITypedMessage.type => 201;
 
         public int value1;
@@ -384,14 +425,16 @@ namespace Tests.IO {
         public int value3;
         public int value4;
 
-        public void Encode(IEncoder encoder) {
+        public void Encode(IEncoder encoder)
+        {
             encoder.Encode(value1);
             encoder.Encode(value2);
             encoder.Encode(value3);
             encoder.Encode(value4);
         }
 
-        public void Decode(IDecoder decoder) {
+        public void Decode(IDecoder decoder)
+        {
             value1 = decoder.GetInt();
             value2 = decoder.GetInt();
             value3 = decoder.GetInt();
@@ -399,20 +442,23 @@ namespace Tests.IO {
         }
     }
 
-    struct ConnectGameInstanceResponse : ITypedMessage {
+    internal struct ConnectGameInstanceResponse : ITypedMessage
+    {
         int ITypedMessage.type => 202;
 
         public string token;
         public string ip;
         public short port;
 
-        public void Encode(IEncoder encoder) {
+        public void Encode(IEncoder encoder)
+        {
             encoder.Encode(token);
             encoder.Encode(ip);
             encoder.Encode(port);
         }
 
-        public void Decode(IDecoder decoder) {
+        public void Decode(IDecoder decoder)
+        {
             token = decoder.GetString();
             ip = decoder.GetString();
             port = decoder.GetShort();
@@ -420,7 +466,8 @@ namespace Tests.IO {
     }
 
     [Serializable]
-    struct Value : ITypedMessage {
+    internal struct Value : ITypedMessage
+    {
         public static readonly byte[] bytes = Encoding.ASCII.GetBytes("Minha string preferida em bytes");
 
         int ITypedMessage.type => 100;
@@ -439,7 +486,8 @@ namespace Tests.IO {
 
         public Value(SubValue subValue, byte[] bytesVal, int intVal = 1, short shortVal = 2, long longVal = 3,
             uint uintVal = 4, ushort ushortVal = 5, ulong ulongVal = 6,
-            string stringVal = "Minha string preferida") {
+            string stringVal = "Minha string preferida")
+        {
             this.bytesVal = bytesVal;
             this.intVal = intVal;
             this.shortVal = shortVal;
@@ -451,7 +499,8 @@ namespace Tests.IO {
             this.subValue = subValue;
         }
 
-        public void Encode(IEncoder encoder) {
+        public void Encode(IEncoder encoder)
+        {
             encoder.Encode(intVal);
             encoder.Encode(shortVal);
             encoder.Encode(longVal);
@@ -463,7 +512,8 @@ namespace Tests.IO {
             encoder.Encode(subValue);
         }
 
-        public void Decode(IDecoder decoder) {
+        public void Decode(IDecoder decoder)
+        {
             intVal = decoder.GetInt();
             shortVal = decoder.GetShort();
             longVal = decoder.GetLong();
@@ -473,14 +523,13 @@ namespace Tests.IO {
             stringVal = decoder.GetString();
             bytesVal = decoder.GetBytes();
             var subValue = decoder.GetObject<SubValue>();
-            if (subValue.HasValue) {
-                this.subValue = subValue.Value;
-            }
+            if (subValue.HasValue) this.subValue = subValue.Value;
         }
     }
 
     [Serializable]
-    struct SubValue : ITypedMessage {
+    internal struct SubValue : ITypedMessage
+    {
         int ITypedMessage.type => 101;
 
         public string name;
@@ -491,7 +540,8 @@ namespace Tests.IO {
         public SubSubValue subSubValue;
 
         public SubValue(SubSubValue subSubValue, string name = "Meu nome", int age = 30, float height = 1.95F,
-            double weight = 110F) {
+            double weight = 110F)
+        {
             this.name = name;
             this.age = age;
             this.height = height;
@@ -499,7 +549,8 @@ namespace Tests.IO {
             this.subSubValue = subSubValue;
         }
 
-        public void Encode(IEncoder encoder) {
+        public void Encode(IEncoder encoder)
+        {
             encoder.Encode(name);
             encoder.Encode(age);
             encoder.Encode(height);
@@ -507,45 +558,49 @@ namespace Tests.IO {
             encoder.Encode(subSubValue);
         }
 
-        public void Decode(IDecoder decoder) {
+        public void Decode(IDecoder decoder)
+        {
             name = decoder.GetString();
             age = decoder.GetInt();
             height = decoder.GetFloat();
             weight = decoder.GetDouble();
             var subSubValue = decoder.GetObject<SubSubValue>();
-            if (subSubValue.HasValue) {
-                this.subSubValue = subSubValue.Value;
-            }
+            if (subSubValue.HasValue) this.subSubValue = subSubValue.Value;
         }
 
-        public override bool Equals(object obj) {
-            if (obj is SubValue other) {
+        public override bool Equals(object obj)
+        {
+            if (obj is SubValue other)
                 return name == other.name &&
-                    age == other.age;
-            }
+                       age == other.age;
             return ReferenceEquals(this, obj);
         }
 
-        public override int GetHashCode() {
+        public override int GetHashCode()
+        {
             return HashCode.Combine(name, age, height, weight);
         }
     }
 
     [Serializable]
-    struct SubSubValue : ITypedMessage {
+    internal struct SubSubValue : ITypedMessage
+    {
         int ITypedMessage.type => 102;
 
         public string empty;
 
-        public SubSubValue(string empty) {
+        public SubSubValue(string empty)
+        {
             this.empty = empty;
         }
 
-        public void Encode(IEncoder encoder) {
+        public void Encode(IEncoder encoder)
+        {
             encoder.Encode(empty);
         }
 
-        public void Decode(IDecoder decoder) {
+        public void Decode(IDecoder decoder)
+        {
             empty = decoder.GetString();
         }
     }

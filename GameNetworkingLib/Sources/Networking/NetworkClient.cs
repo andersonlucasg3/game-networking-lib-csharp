@@ -3,8 +3,10 @@ using GameNetworking.Channels;
 using GameNetworking.Messages.Models;
 using GameNetworking.Networking.Sockets;
 
-namespace GameNetworking.Networking {
-    public interface INetworkClientListener {
+namespace GameNetworking.Networking
+{
+    public interface INetworkClientListener
+    {
         void NetworkClientDidConnect();
         void NetworkClientConnectDidTimeout();
         void NetworkClientDidDisconnect();
@@ -12,20 +14,14 @@ namespace GameNetworking.Networking {
         void NetworkClientDidReceiveMessage(MessageContainer container);
         void NetworkClientDidReceiveMessage(MessageContainer container, NetEndPoint from);
     }
-    
-    public class NetworkClient : ITcpClientListener, IReliableChannelListener, IUnreliableChannelListener {
+
+    public class NetworkClient : ITcpClientListener, IReliableChannelListener, IUnreliableChannelListener
+    {
         private readonly TcpSocket tcpSocket;
         private readonly UdpSocket udpSocket;
 
-        public NetEndPoint localEndPoint => tcpSocket.localEndPoint;
-        public NetEndPoint remoteEndPoint => tcpSocket.remoteEndPoint;
-
-        public ReliableChannel reliableChannel { get; private set; }
-        public UnreliableChannel unreliableChannel { get; private set; }
-
-        public INetworkClientListener listener { get; set; }
-
-        public NetworkClient(TcpSocket tcpSocket, UdpSocket udpSocket) {
+        public NetworkClient(TcpSocket tcpSocket, UdpSocket udpSocket)
+        {
             this.tcpSocket = tcpSocket;
             this.udpSocket = udpSocket;
 
@@ -38,20 +34,21 @@ namespace GameNetworking.Networking {
             unreliableChannel.listener = this;
         }
 
-        public void Connect(string host, int port) {
-            tcpSocket.Connect(new NetEndPoint(IPAddress.Parse(host), port));
-            ReliableChannel.StartIO();
-            unreliableChannel.StartIO();
+        public NetEndPoint localEndPoint => tcpSocket.localEndPoint;
+        public NetEndPoint remoteEndPoint => tcpSocket.remoteEndPoint;
+
+        public ReliableChannel reliableChannel { get; }
+        public UnreliableChannel unreliableChannel { get; }
+
+        public INetworkClientListener listener { get; set; }
+
+        void IReliableChannelListener.ChannelDidReceiveMessage(ReliableChannel channel, MessageContainer container)
+        {
+            listener?.NetworkClientDidReceiveMessage(container);
         }
 
-        public void Disconnect() {
-            reliableChannel.CloseChannel();
-            unreliableChannel.CloseChannel(remoteEndPoint);
-            ReliableChannel.StopIO();
-            unreliableChannel.StopIO();
-        }
-
-        void ITcpClientListener.SocketDidConnect() {
+        void ITcpClientListener.SocketDidConnect()
+        {
             ReliableChannel.Add(reliableChannel);
 
             udpSocket.Bind(tcpSocket.localEndPoint);
@@ -60,13 +57,15 @@ namespace GameNetworking.Networking {
             listener?.NetworkClientDidConnect();
         }
 
-        void ITcpClientListener.SocketDidTimeout() {
+        void ITcpClientListener.SocketDidTimeout()
+        {
             listener?.NetworkClientConnectDidTimeout();
 
             tcpSocket.Close();
         }
 
-        void ITcpClientListener.SocketDidDisconnect() {
+        void ITcpClientListener.SocketDidDisconnect()
+        {
             ReliableChannel.Remove(reliableChannel);
 
             listener?.NetworkClientDidDisconnect();
@@ -74,12 +73,24 @@ namespace GameNetworking.Networking {
             tcpSocket.Close();
         }
 
-        void IReliableChannelListener.ChannelDidReceiveMessage(ReliableChannel channel, MessageContainer container) {
-            listener?.NetworkClientDidReceiveMessage(container);
+        void IUnreliableChannelListener.ChannelDidReceiveMessage(UnreliableChannel channel, MessageContainer container, NetEndPoint from)
+        {
+            listener?.NetworkClientDidReceiveMessage(container, from);
         }
 
-        void IUnreliableChannelListener.ChannelDidReceiveMessage(UnreliableChannel channel, MessageContainer container, NetEndPoint from) {
-            listener?.NetworkClientDidReceiveMessage(container, from);
+        public void Connect(string host, int port)
+        {
+            tcpSocket.Connect(new NetEndPoint(IPAddress.Parse(host), port));
+            ReliableChannel.StartIO();
+            unreliableChannel.StartIO();
+        }
+
+        public void Disconnect()
+        {
+            reliableChannel.CloseChannel();
+            unreliableChannel.CloseChannel(remoteEndPoint);
+            ReliableChannel.StopIO();
+            unreliableChannel.StopIO();
         }
     }
 }

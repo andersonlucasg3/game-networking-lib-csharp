@@ -12,15 +12,71 @@ using GameNetworking.Networking;
 using GameNetworking.Networking.Sockets;
 using Logging;
 
-namespace TestClientApp {
-    class Program : IMainThreadDispatcher, IGameClientListener<Player> {
+namespace TestClientApp
+{
+    internal class Program : IMainThreadDispatcher, IGameClientListener<Player>
+    {
         private readonly List<Action> actions = new List<Action>();
 
         private GameClient<Player> client;
-        private int counter = 0;
+        private int counter;
         private int? playerId;
 
-        static void Main(string[] _) {
+        public void GameClientDidConnect(Channel channel)
+        {
+            Logger.Log($"GameClientDidConnect - {channel}");
+        }
+
+        public void GameClientConnectDidTimeout()
+        {
+            Logger.Log("GameClientConnectDidTimeout");
+        }
+
+        public void GameClientDidDisconnect()
+        {
+            Logger.Log("GameClientDidDisconnect");
+        }
+
+        public void GameClientDidIdentifyLocalPlayer(Player player)
+        {
+            Logger.Log("GameClientDidIdentifyLocalPlayer");
+            Logger.Log($"Identified as {player.playerId}");
+            Logger.Log($"Is local player {player.isLocalPlayer}");
+
+            playerId = player.playerId;
+            Send();
+        }
+
+        public void GameClientPlayerDidConnect(Player player)
+        {
+            Logger.Log($"GameClientPlayerDidConnect player-{player}");
+        }
+
+        public void GameClientPlayerDidDisconnect(Player player)
+        {
+            Logger.Log($"GameClientPlayerDidDisconnect player-{player}");
+        }
+
+        public void GameClientDidReceiveMessage(MessageContainer container)
+        {
+            Logger.Log($"GameClientDidReceiveMessage - type: {container.type}");
+            if (container.type == 1001)
+            {
+                var message = container.Parse<Message>();
+                Logger.Log($"Received message to playerId-{message.playerId}, and I'm playerId-{playerId.Value}, with id-{message.messageId}");
+            }
+        }
+
+        public void Enqueue(Action action)
+        {
+            lock (this)
+            {
+                actions.Add(action);
+            }
+        }
+
+        private static void Main(string[] _)
+        {
             var program = new Program();
             program.client = new GameClient<Player>(new NetworkClient(new TcpSocket(), new UdpSocket()), new GameClientMessageRouter<Player>(program));
 
@@ -30,8 +86,10 @@ namespace TestClientApp {
 
             var startTime = DateTime.Now;
 
-            while (true) {
-                lock (program) {
+            while (true)
+            {
+                lock (program)
+                {
                     var copy = new List<Action>(program.actions);
                     program.actions.RemoveAll(_ => true);
                     copy.ForEach(each => each?.Invoke());
@@ -39,80 +97,43 @@ namespace TestClientApp {
                 }
 
                 var elapsed = DateTime.Now - startTime;
-                if (elapsed.TotalMilliseconds > 100) {
+                if (elapsed.TotalMilliseconds > 100)
+                {
                     startTime = DateTime.Now;
-                    if (program.playerId.HasValue) {
-                        program.Send();
-                    }
+                    if (program.playerId.HasValue) program.Send();
                 }
             }
         }
 
-        public void Enqueue(Action action) {
-            lock (this) { actions.Add(action); }
-        }
-
-        public void GameClientDidConnect(Channel channel) {
-            Logger.Log($"GameClientDidConnect - {channel}");
-        }
-
-        public void GameClientConnectDidTimeout() {
-            Logger.Log("GameClientConnectDidTimeout");
-        }
-
-        public void GameClientDidDisconnect() {
-            Logger.Log("GameClientDidDisconnect");
-        }
-
-        public void GameClientDidIdentifyLocalPlayer(Player player) {
-            Logger.Log("GameClientDidIdentifyLocalPlayer");
-            Logger.Log($"Identified as {player.playerId}");
-            Logger.Log($"Is local player {player.isLocalPlayer}");
-
-            playerId = player.playerId;
-            Send();
-        }
-
-        public void GameClientPlayerDidConnect(Player player) {
-            Logger.Log($"GameClientPlayerDidConnect player-{player}");
-        }
-
-        public void GameClientPlayerDidDisconnect(Player player) {
-            Logger.Log($"GameClientPlayerDidDisconnect player-{player}");
-        }
-
-        public void GameClientDidReceiveMessage(MessageContainer container) {
-            Logger.Log($"GameClientDidReceiveMessage - type: {container.type}");
-            if (container.type == 1001) {
-                var message = container.Parse<Message>();
-                Logger.Log($"Received message to playerId-{message.playerId}, and I'm playerId-{playerId.Value}, with id-{message.messageId}");
-            }
-        }
-
-        private void Send() {
+        private void Send()
+        {
             var message = new Message(playerId.Value, counter++);
             client.Send(message, Channel.unreliable);
             client.Send(message, Channel.reliable);
         }
     }
 
-    struct Message : ITypedMessage {
+    internal struct Message : ITypedMessage
+    {
         public int type => 1001;
 
         public int playerId;
         public int messageId;
 
-        public Message(int playerId, int messageId) {
+        public Message(int playerId, int messageId)
+        {
             this.playerId = playerId;
             this.messageId = messageId;
         }
 
-        public void Decode(IDecoder decoder) {
+        public void Decode(IDecoder decoder)
+        {
             playerId = decoder.GetInt();
             messageId = decoder.GetInt();
         }
 
-        public void Encode(IEncoder encoder) {
+        public void Encode(IEncoder encoder)
+        {
             encoder.Encode(playerId);
             encoder.Encode(messageId);
         }

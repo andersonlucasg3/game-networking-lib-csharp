@@ -6,18 +6,45 @@ using GameNetworking.Channels;
 using GameNetworking.Commons;
 using GameNetworking.Messages.Coders;
 using GameNetworking.Messages.Models;
-using GameNetworking.Server;
 using GameNetworking.Networking;
 using GameNetworking.Networking.Sockets;
+using GameNetworking.Server;
 using Logging;
 
-namespace TestServerApp {
-    class Program : IMainThreadDispatcher, IGameServerListener<Player> {
+namespace TestServerApp
+{
+    internal class Program : IMainThreadDispatcher, IGameServerListener<Player>
+    {
         private readonly List<Action> actions = new List<Action>();
 
         private GameServer<Player> server;
 
-        static void Main(string[] _) {
+        public void GameServerPlayerDidConnect(Player player, Channel channel)
+        {
+            Logger.Log($"GameServerPlayerDidConnect - {channel}");
+        }
+
+        public void GameServerPlayerDidDisconnect(Player player)
+        {
+            Logger.Log("GameServerPlayerDidDisconnect");
+        }
+
+        public void GameServerDidReceiveClientMessage(MessageContainer container, Player player)
+        {
+            Logger.Log($"GameServerDidReceiveClientMessage - type {container.type}");
+            if (container.type == 1001) Send(container);
+        }
+
+        public void Enqueue(Action action)
+        {
+            lock (this)
+            {
+                actions.Add(action);
+            }
+        }
+
+        private static void Main(string[] _)
+        {
             var program = new Program();
             program.server = new GameServer<Player>(new NetworkServer(new TcpSocket(), new UdpSocket()), new GameServerMessageRouter<Player>(program));
 
@@ -25,8 +52,10 @@ namespace TestServerApp {
 
             program.server.listener = program;
 
-            while (true) {
-                lock (program) {
+            while (true)
+            {
+                lock (program)
+                {
                     program.actions.ForEach(a => a.Invoke());
                     program.actions.RemoveAll(_ => true);
                 }
@@ -35,54 +64,42 @@ namespace TestServerApp {
             }
         }
 
-        public void Enqueue(Action action) {
-            lock (this) { actions.Add(action); }
-        }
-
-        public void GameServerPlayerDidConnect(Player player, Channel channel) {
-            Logger.Log($"GameServerPlayerDidConnect - {channel}");
-        }
-
-        public void GameServerPlayerDidDisconnect(Player player) {
-            Logger.Log("GameServerPlayerDidDisconnect");
-        }
-
-        public void GameServerDidReceiveClientMessage(MessageContainer container, Player player) {
-            Logger.Log($"GameServerDidReceiveClientMessage - type {container.type}");
-            if (container.type == 1001) {
-                Send(container);
-            }
-        }
-
-        private void Send(MessageContainer message) {
+        private void Send(MessageContainer message)
+        {
             Enqueue(new Executor<Executor, GameServer<Player>, Message>(server, message).Execute);
         }
     }
 
-    struct Message : ITypedMessage {
+    internal struct Message : ITypedMessage
+    {
         public int type => 1001;
 
         public int playerId;
         public int messageId;
 
-        public Message(int playerId, int messageId) {
+        public Message(int playerId, int messageId)
+        {
             this.playerId = playerId;
             this.messageId = messageId;
         }
 
-        public void Decode(IDecoder decoder) {
+        public void Decode(IDecoder decoder)
+        {
             playerId = decoder.GetInt();
             messageId = decoder.GetInt();
         }
 
-        public void Encode(IEncoder encoder) {
+        public void Encode(IEncoder encoder)
+        {
             encoder.Encode(playerId);
             encoder.Encode(messageId);
         }
     }
 
-    struct Executor : IExecutor<GameServer<Player>, Message> {
-        void IExecutor<GameServer<Player>, Message>.Execute(GameServer<Player> model, Message message) {
+    internal struct Executor : IExecutor<GameServer<Player>, Message>
+    {
+        void IExecutor<GameServer<Player>, Message>.Execute(GameServer<Player> model, Message message)
+        {
             var player = model.playerCollection.FindPlayer(message.playerId);
             Logger.Log($"Received message from playerId-{message.playerId}, as playerId-{player.playerId}, messageId-{message.messageId}");
             model.SendBroadcast(message, Channel.reliable);

@@ -5,12 +5,15 @@ using GameNetworking.Messages.Server;
 using GameNetworking.Networking.Sockets;
 using GameNetworking.Server;
 
-namespace GameNetworking.Executors.Server {
-    struct NatIdentifierRequestExecutor<TPlayer> :
+namespace GameNetworking.Executors.Server
+{
+    internal struct NatIdentifierRequestExecutor<TPlayer> :
         IExecutor<GameServerMessageRouter<TPlayer>.ServerModel<NetEndPoint>, NatIdentifierRequestMessage>
-        where TPlayer : Player, new() {
-        public void Execute(GameServerMessageRouter<TPlayer>.ServerModel<NetEndPoint> model, NatIdentifierRequestMessage message) {
-            if (!model.server.playerCollection.TryGetPlayer(message.playerId, out TPlayer player)) { return; }
+        where TPlayer : Player, new()
+    {
+        public void Execute(GameServerMessageRouter<TPlayer>.ServerModel<NetEndPoint> model, NatIdentifierRequestMessage message)
+        {
+            if (!model.server.playerCollection.TryGetPlayer(message.playerId, out var player)) return;
             player.remoteIdentifiedEndPoint = model.model;
             model.server.networkServer.Register(model.model, player);
 

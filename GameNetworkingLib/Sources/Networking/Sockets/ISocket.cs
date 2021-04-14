@@ -1,6 +1,8 @@
-﻿namespace GameNetworking.Networking.Sockets {
+﻿namespace GameNetworking.Networking.Sockets
+{
     public interface ISocket<TDerived>
-        where TDerived : ISocket<TDerived> {
+        where TDerived : ISocket<TDerived>
+    {
         NetEndPoint localEndPoint { get; }
         NetEndPoint remoteEndPoint { get; }
 

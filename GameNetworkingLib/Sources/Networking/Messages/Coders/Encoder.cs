@@ -4,12 +4,15 @@ using System.Text;
 using GameNetworking.Commons;
 using GameNetworking.Messages.Coders.Converters;
 
-namespace GameNetworking.Messages.Coders {
-    public interface IEncodable {
+namespace GameNetworking.Messages.Coders
+{
+    public interface IEncodable
+    {
         void Encode(IEncoder encoder);
     }
 
-    public interface IEncoder {
+    public interface IEncoder
+    {
         void Encode(int value);
         void Encode(short value);
         void Encode(long value);
@@ -28,25 +31,35 @@ namespace GameNetworking.Messages.Coders {
         void Encode(IEncodable value);
     }
 
-    struct _Encoder : IEncoder {
+    internal struct _Encoder : IEncoder
+    {
         private static readonly ObjectPool<MemoryStream> _memoryStreamPool
             = new ObjectPool<MemoryStream>(() => new MemoryStream());
+
         private static readonly ObjectPool<ShortByteArrayConverter> _shortConverterPool
             = new ObjectPool<ShortByteArrayConverter>(() => new ShortByteArrayConverter(0));
+
         private static readonly ObjectPool<UShortByteArrayConverter> _ushortConverterPool
             = new ObjectPool<UShortByteArrayConverter>(() => new UShortByteArrayConverter(0));
+
         private static readonly ObjectPool<IntByteArrayConverter> _intConverterPool
             = new ObjectPool<IntByteArrayConverter>(() => new IntByteArrayConverter(0));
+
         private static readonly ObjectPool<UIntByteArrayConverter> _uintConverterPool
             = new ObjectPool<UIntByteArrayConverter>(() => new UIntByteArrayConverter(0U));
+
         private static readonly ObjectPool<LongByteArrayConverter> _longConverterPool
             = new ObjectPool<LongByteArrayConverter>(() => new LongByteArrayConverter(0L));
+
         private static readonly ObjectPool<ULongByteArrayConverter> _ulongConverterPool
             = new ObjectPool<ULongByteArrayConverter>(() => new ULongByteArrayConverter(0UL));
+
         private static readonly ObjectPool<FloatByteArrayConverter> _floatConverterPool
             = new ObjectPool<FloatByteArrayConverter>(() => new FloatByteArrayConverter(0F));
+
         private static readonly ObjectPool<DoubleByteArrayConverter> _doubleConverterPool
             = new ObjectPool<DoubleByteArrayConverter>(() => new DoubleByteArrayConverter(0F));
+
         private static readonly ObjectPool<byte[]> _boolBufferPool
             = new ObjectPool<byte[]>(() => new byte[1]);
 
@@ -61,80 +74,92 @@ namespace GameNetworking.Messages.Coders {
         private DoubleByteArrayConverter _doubleConverter;
         private byte[] _boolBuffer;
 
-        public int PutBytes(byte[] buffer, int index) {
+        public int PutBytes(byte[] buffer, int index)
+        {
             var memBuff = _memoryStream.GetBuffer();
-            var length = (int)_memoryStream.Length;
+            var length = (int) _memoryStream.Length;
             Array.Copy(memBuff, 0, buffer, index, length);
             return length;
         }
 
-        public void Encode(int value) {
+        public void Encode(int value)
+        {
             _intConverter.value = value;
             _memoryStream.Write(_intConverter.array, 0, sizeof(int));
         }
 
-        public void Encode(short value) {
+        public void Encode(short value)
+        {
             _shortConverter.value = value;
             _memoryStream.Write(_shortConverter.array, 0, sizeof(short));
         }
 
-        public void Encode(long value) {
+        public void Encode(long value)
+        {
             _longConverter.value = value;
             _memoryStream.Write(_longConverter.array, 0, sizeof(long));
         }
 
-        public void Encode(uint value) {
+        public void Encode(uint value)
+        {
             _uintConverter.value = value;
             _memoryStream.Write(_uintConverter.array, 0, sizeof(uint));
         }
 
-        public void Encode(ushort value) {
+        public void Encode(ushort value)
+        {
             _ushortConverter.value = value;
             _memoryStream.Write(_ushortConverter.array, 0, sizeof(ushort));
         }
 
-        public void Encode(ulong value) {
+        public void Encode(ulong value)
+        {
             _ulongConverter.value = value;
             _memoryStream.Write(_ulongConverter.array, 0, sizeof(ulong));
         }
 
-        public void Encode(float value) {
+        public void Encode(float value)
+        {
             _floatConverter.value = value;
             _memoryStream.Write(_floatConverter.array, 0, sizeof(float));
         }
 
-        public void Encode(double value) {
+        public void Encode(double value)
+        {
             _doubleConverter.value = value;
             _memoryStream.Write(_doubleConverter.array, 0, sizeof(double));
         }
 
-        public void Encode(string value) {
+        public void Encode(string value)
+        {
             var bytes = Encoding.ASCII.GetBytes(value);
             Encode(bytes);
         }
 
-        public void Encode(byte[] value) {
+        public void Encode(byte[] value)
+        {
             _intConverter.value = value.Length;
             _memoryStream.Write(_intConverter.array, 0, sizeof(int));
 
             _memoryStream.Write(value, 0, value.Length);
         }
 
-        public void Encode(bool value) {
+        public void Encode(bool value)
+        {
             _boolBuffer[0] = Convert.ToByte(value);
             _memoryStream.Write(_boolBuffer, 0, 1);
         }
 
-        public void Encode(IEncodable value) {
-            bool hasValue = value != null;
+        public void Encode(IEncodable value)
+        {
+            var hasValue = value != null;
             Encode(hasValue);
 
-            if (hasValue) {
-                value.Encode(this);
-            }
+            if (hasValue) value.Encode(this);
         }
 
-        internal void Rent() {
+        internal void Rent()
+        {
             _memoryStream = _memoryStreamPool.Rent();
             _shortConverter = _shortConverterPool.Rent();
             _ushortConverter = _ushortConverterPool.Rent();
@@ -149,7 +174,8 @@ namespace GameNetworking.Messages.Coders {
             _memoryStream.SetLength(0);
         }
 
-        internal void Pay() {
+        internal void Pay()
+        {
             _memoryStreamPool.Pay(_memoryStream);
             _shortConverterPool.Pay(_shortConverter);
             _ushortConverterPool.Pay(_ushortConverter);
@@ -163,9 +189,11 @@ namespace GameNetworking.Messages.Coders {
         }
     }
 
-    public static class BinaryEncoder {
-        public static int Encode<TEncodable>(TEncodable encodable, byte[] intoBuffer, int index) where TEncodable : IEncodable {
-            _Encoder encoder = new _Encoder();
+    public static class BinaryEncoder
+    {
+        public static int Encode<TEncodable>(TEncodable encodable, byte[] intoBuffer, int index) where TEncodable : IEncodable
+        {
+            var encoder = new _Encoder();
             encoder.Rent();
             encodable.Encode(encoder);
             var len = encoder.PutBytes(intoBuffer, index);

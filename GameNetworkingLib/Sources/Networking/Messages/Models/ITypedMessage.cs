@@ -1,7 +1,9 @@
-namespace GameNetworking.Messages.Models {
-    using Coders;
+using GameNetworking.Messages.Coders;
 
-    public interface ITypedMessage : ICodable {
+namespace GameNetworking.Messages.Models
+{
+    public interface ITypedMessage : ICodable
+    {
         int type { get; }
     }
 }

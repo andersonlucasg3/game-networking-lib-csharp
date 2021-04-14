@@ -8,23 +8,25 @@ using GameNetworking.Messages.Streams;
 using GameNetworking.Networking.Sockets;
 using Logging;
 
-namespace GameNetworking.Channels {
-    public interface IUnreliableChannelListener {
+namespace GameNetworking.Channels
+{
+    public interface IUnreliableChannelListener
+    {
         void ChannelDidReceiveMessage(UnreliableChannel channel, MessageContainer container, NetEndPoint from);
     }
 
-    public class UnreliableChannel : IUdpSocketIOListener {
-        private readonly ConcurrentDictionary<NetEndPoint, MessageStreamReader> readerCollection;
-        private readonly ConcurrentDictionary<NetEndPoint, MessageStreamWriter> writerCollection;
-        private readonly List<NetEndPoint> netEndPointWriters;
-        private readonly ConcurrentQueue<SendInfo> sendInfoCollection;
+    public class UnreliableChannel : IUdpSocketIOListener
+    {
         private readonly object lockToken = new object();
+        private readonly List<NetEndPoint> netEndPointWriters;
+        private readonly ConcurrentDictionary<NetEndPoint, MessageStreamReader> readerCollection;
+        private readonly ConcurrentQueue<SendInfo> sendInfoCollection;
+        private readonly ConcurrentDictionary<NetEndPoint, MessageStreamWriter> writerCollection;
 
         private UdpSocket socket;
 
-        public IUnreliableChannelListener listener { get; set; }
-
-        public UnreliableChannel(UdpSocket socket) {
+        public UnreliableChannel(UdpSocket socket)
+        {
             this.socket = socket;
             this.socket.listener = this;
 
@@ -34,76 +36,132 @@ namespace GameNetworking.Channels {
             sendInfoCollection = new ConcurrentQueue<SendInfo>();
         }
 
-        internal void StartIO() {
+        public IUnreliableChannelListener listener { get; set; }
+
+        void IUdpSocketIOListener.SocketDidReceiveBytes(UdpSocket socket, byte[] bytes, int count, NetEndPoint from)
+        {
+            ThreadChecker.AssertUnreliableChannel();
+
+            if (!readerCollection.TryGetValue(from, out var reader))
+            {
+                reader = new MessageStreamReader();
+                readerCollection.TryAdd(from, reader);
+            }
+
+            reader.Add(bytes, count);
+
+            MessageContainer? container;
+            while ((container = reader.Decode()) != null) listener?.ChannelDidReceiveMessage(this, container.Value, @from);
+        }
+
+        void IUdpSocketIOListener.SocketDidWriteBytes(UdpSocket socket, int count, NetEndPoint to)
+        {
+            ThreadChecker.AssertUnreliableChannel();
+
+            if (writerCollection.TryGetValue(to, out var writer))
+            {
+                writer.DidWrite(count);
+            }
+            else
+            {
+                if (Logger.IsLoggingEnabled) Logger.Log($"SocketDidWriteBytes did not find writer for endPoint-{to}");
+            }
+        }
+
+        internal void StartIO()
+        {
             ThreadPool.QueueUserWorkItem(ThreadPoolWorker);
         }
 
-        internal void StopIO() {
-            lock (this) {
+        internal void StopIO()
+        {
+            lock (this)
+            {
                 socket.Close();
                 socket = null;
             }
         }
 
-        public void CloseChannel(NetEndPoint endPoint) {
+        public void CloseChannel(NetEndPoint endPoint)
+        {
             writerCollection.TryRemove(endPoint, out _);
-            lock (lockToken) {
+            lock (lockToken)
+            {
                 netEndPointWriters.Remove(endPoint);
             }
         }
 
-        public void Send(ITypedMessage message, NetEndPoint to) {
+        public void Send(ITypedMessage message, NetEndPoint to)
+        {
             ThreadChecker.AssertMainThread();
 
-            sendInfoCollection.Enqueue(new SendInfo { message = message, to = to });
+            sendInfoCollection.Enqueue(new SendInfo {message = message, to = to});
         }
 
-        private void ThreadPoolWorker(object state) {
+        private void ThreadPoolWorker(object state)
+        {
             Thread.CurrentThread.Name = "UnreliableChannel Thread";
             ThreadChecker.ConfigureUnreliable(Thread.CurrentThread);
-            bool shouldRun = true;
+            var shouldRun = true;
 
-            NetEndPoint to = new NetEndPoint();
-            void SendTo(byte[] bytes, int count) {
+            var to = new NetEndPoint();
+
+            void SendTo(byte[] bytes, int count)
+            {
                 socket.Send(bytes, count, to);
             }
 
-            NetEndPoint[] endPoints = new NetEndPoint[100];
-            int endPointCount = 0;
+            var endPoints = new NetEndPoint[100];
+            var endPointCount = 0;
 
-            do {
-                lock (this) { shouldRun = socket != null; }
+            do
+            {
+                lock (this)
+                {
+                    shouldRun = socket != null;
+                }
 
-                try {
+                try
+                {
                     socket.Receive();
 
-                    if (sendInfoCollection.TryDequeue(out SendInfo info)) {
+                    if (sendInfoCollection.TryDequeue(out var info))
+                    {
                         var message = info.message;
                         to = info.to;
 
-                        if (!writerCollection.TryGetValue(to, out MessageStreamWriter writer)) {
+                        if (!writerCollection.TryGetValue(to, out var writer))
+                        {
                             writer = new MessageStreamWriter();
                             writerCollection.TryAdd(to, writer);
-                            lock (lockToken) {
+                            lock (lockToken)
+                            {
                                 netEndPointWriters.Add(to);
                             }
                         }
+
                         writer.Write(message);
                     }
 
-                    lock (lockToken) {
+                    lock (lockToken)
+                    {
                         netEndPointWriters.CopyTo(endPoints);
                         endPointCount = netEndPointWriters.Count;
                     }
 
-                    for (int index = 0; index < endPointCount; index++) {
+                    for (var index = 0; index < endPointCount; index++)
+                    {
                         to = endPoints[index];
                         var writer = writerCollection[to];
                         writer.Use(SendTo);
                     }
-                } catch (ObjectDisposedException) {
+                }
+                catch (ObjectDisposedException)
+                {
                     shouldRun = false;
-                } catch (Exception ex) {
+                }
+                catch (Exception ex)
+                {
                     Logger.Log($"Exception thrown in ThreadPool\n{ex}");
                 }
             } while (shouldRun);
@@ -112,32 +170,8 @@ namespace GameNetworking.Channels {
             ThreadChecker.ConfigureUnreliable(null);
         }
 
-        void IUdpSocketIOListener.SocketDidReceiveBytes(UdpSocket socket, byte[] bytes, int count, NetEndPoint from) {
-            ThreadChecker.AssertUnreliableChannel();
-
-            if (!readerCollection.TryGetValue(from, out MessageStreamReader reader)) {
-                reader = new MessageStreamReader();
-                readerCollection.TryAdd(from, reader);
-            }
-            reader.Add(bytes, count);
-
-            MessageContainer? container;
-            while ((container = reader.Decode()) != null) {
-                listener?.ChannelDidReceiveMessage(this, container.Value, from);
-            }
-        }
-
-        void IUdpSocketIOListener.SocketDidWriteBytes(UdpSocket socket, int count, NetEndPoint to) {
-            ThreadChecker.AssertUnreliableChannel();
-
-            if (writerCollection.TryGetValue(to, out MessageStreamWriter writer)) {
-                writer.DidWrite(count);
-            } else {
-                if (Logger.IsLoggingEnabled) { Logger.Log($"SocketDidWriteBytes did not find writer for endPoint-{to}"); }
-            }
-        }
-
-        private struct SendInfo {
+        private struct SendInfo
+        {
             public ITypedMessage message;
             public NetEndPoint to;
         }

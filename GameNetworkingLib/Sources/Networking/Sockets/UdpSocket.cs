@@ -4,64 +4,55 @@ using System.Net.Sockets;
 using GameNetworking.Commons;
 using Logging;
 
-namespace GameNetworking.Networking.Sockets {
+namespace GameNetworking.Networking.Sockets
+{
     public interface IUdpSocket<TDerived> : ISocket<TDerived>
-        where TDerived : IUdpSocket<TDerived> {
+        where TDerived : IUdpSocket<TDerived>
+    {
         void Receive();
         void Send(byte[] bytes, int count, NetEndPoint to);
     }
 
-    public interface IUdpSocketIOListener {
+    public interface IUdpSocketIOListener
+    {
         void SocketDidReceiveBytes(UdpSocket socket, byte[] bytes, int count, NetEndPoint from);
         void SocketDidWriteBytes(UdpSocket socket, int count, NetEndPoint to);
     }
 
-    public sealed class UdpSocket : IUdpSocket<UdpSocket> {
-        private const int SIO_UDP_CONNRESET = -1744830452;
+    public sealed class UdpSocket : IUdpSocket<UdpSocket>
+    {
+        private const int SIO_UDP_CONN_RESET = -1744830452;
 
         private readonly ObjectPool<byte[]> bufferPool;
         private readonly ObjectPool<IPEndPoint> ipEndPointPool;
         private readonly object receiveLock = new object();
         private readonly object sendLock = new object();
+
+        private bool isClosed;
         private Socket socket;
 
-        private bool isClosed = false;
-
-        public bool isBound => socket.IsBound;
-        public bool isConnected { get; private set; }
-
-        public NetEndPoint localEndPoint { get; private set; } = new NetEndPoint();
-        public NetEndPoint remoteEndPoint { get; private set; } = new NetEndPoint();
-
-        public IUdpSocketIOListener listener { get; set; }
-
-        public UdpSocket() {
+        public UdpSocket()
+        {
             bufferPool = new ObjectPool<byte[]>(() => new byte[Consts.bufferSize]);
             ipEndPointPool = new ObjectPool<IPEndPoint>(() => new IPEndPoint(IPAddress.Any, 0));
         }
 
-        public UdpSocket(UdpSocket socket, NetEndPoint remoteEndPoint) : this() {
+        public UdpSocket(UdpSocket socket, NetEndPoint remoteEndPoint) : this()
+        {
             this.socket = socket.socket;
             this.remoteEndPoint = remoteEndPoint;
         }
 
-        private void Bind(IPEndPoint endPoint) {
-            socket = new Socket(endPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp) {
-                ReceiveBufferSize = Consts.bufferSize,
-                SendBufferSize = Consts.bufferSize,
-                Blocking = false
-            };
-            socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-            try { socket.DontFragment = true; } catch (Exception) { Logger.Log("DontFragment not supported."); }
-            try { socket.IOControl((IOControlCode)SIO_UDP_CONNRESET, new byte[] { 0, 0, 0, 0 }, null); } catch (Exception) { Logger.Log("Error setting SIO_UDP_CONNRESET. Maybe not running on Windows."); }
-            socket.Bind(endPoint);
+        public bool isBound => socket.IsBound;
 
-            isClosed = false;
+        public IUdpSocketIOListener listener { get; set; }
+        public bool isConnected { get; private set; }
 
-            Logger.Log($"Listening on {endPoint}");
-        }
+        public NetEndPoint localEndPoint { get; private set; }
+        public NetEndPoint remoteEndPoint { get; private set; }
 
-        public void Bind(NetEndPoint endPoint) {
+        public void Bind(NetEndPoint endPoint)
+        {
             localEndPoint = endPoint;
             isConnected = true;
 
@@ -72,12 +63,18 @@ namespace GameNetworking.Networking.Sockets {
             ipEndPointPool.Pay(ipep);
         }
 
-        public void Connect(NetEndPoint endPoint) => remoteEndPoint = endPoint;
+        public void Connect(NetEndPoint endPoint)
+        {
+            remoteEndPoint = endPoint;
+        }
 
-        public void Close() {
-            lock (sendLock) {
-                lock (receiveLock) {
-                    if (isClosed || socket == null) { return; }
+        public void Close()
+        {
+            lock (sendLock)
+            {
+                lock (receiveLock)
+                {
+                    if (isClosed || socket == null) return;
                     socket.Close();
                     socket = null;
                     isClosed = true;
@@ -85,16 +82,54 @@ namespace GameNetworking.Networking.Sockets {
             }
         }
 
-        public override string ToString() {
+        private void Bind(IPEndPoint endPoint)
+        {
+            socket = new Socket(endPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp)
+            {
+                ReceiveBufferSize = Consts.bufferSize,
+                SendBufferSize = Consts.bufferSize,
+                Blocking = false
+            };
+            socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            try
+            {
+                socket.DontFragment = true;
+            }
+            catch (Exception)
+            {
+                Logger.Log("DontFragment not supported.");
+            }
+
+            try
+            {
+                socket.IOControl((IOControlCode) SIO_UDP_CONN_RESET, new byte[] {0, 0, 0, 0}, null);
+            }
+            catch (Exception)
+            {
+                Logger.Log("Error setting SIO_UDP_CONNRESET. Maybe not running on Windows.");
+            }
+
+            socket.Bind(endPoint);
+
+            isClosed = false;
+
+            Logger.Log($"Listening on {endPoint}");
+        }
+
+        public override string ToString()
+        {
             return $"{{EndPoint-{remoteEndPoint}}}";
         }
 
         #region Read & Write
 
-        public void Receive() {
-            lock (receiveLock) {
-                if (socket == null) { return; }
-                if (socket.Poll(1, SelectMode.SelectRead)) {
+        public void Receive()
+        {
+            lock (receiveLock)
+            {
+                if (socket == null) return;
+                if (socket.Poll(1, SelectMode.SelectRead))
+                {
                     var buffer = bufferPool.Rent();
                     var endPoint = ipEndPointPool.Rent();
                     endPoint.Address = IPAddress.Any;
@@ -102,7 +137,7 @@ namespace GameNetworking.Networking.Sockets {
                     EndPoint ep = endPoint;
 
                     var count = socket.ReceiveFrom(buffer, 0, Consts.bufferSize, SocketFlags.None, ref ep);
-                    if (count > 0) { listener?.SocketDidReceiveBytes(this, buffer, count, From(ep)); }
+                    if (count > 0) listener?.SocketDidReceiveBytes(this, buffer, count, From(ep));
 
                     bufferPool.Pay(buffer);
                     ipEndPointPool.Pay(endPoint);
@@ -110,14 +145,17 @@ namespace GameNetworking.Networking.Sockets {
             }
         }
 
-        public void Send(byte[] bytes, int count, NetEndPoint to) {
-            lock (sendLock) {
-                if (socket == null) { return; }
-                if (socket.Poll(1, SelectMode.SelectWrite)) {
-                    IPEndPoint endPoint = ipEndPointPool.Rent();
+        public void Send(byte[] bytes, int count, NetEndPoint to)
+        {
+            lock (sendLock)
+            {
+                if (socket == null) return;
+                if (socket.Poll(1, SelectMode.SelectWrite))
+                {
+                    var endPoint = ipEndPointPool.Rent();
                     From(to, ref endPoint);
                     var written = socket.SendTo(bytes, 0, count, SocketFlags.None, endPoint);
-                    if (written > 0) { listener?.SocketDidWriteBytes(this, written, to); }
+                    if (written > 0) listener?.SocketDidWriteBytes(this, written, to);
                     ipEndPointPool.Pay(endPoint);
                 }
             }
@@ -127,26 +165,33 @@ namespace GameNetworking.Networking.Sockets {
 
         #region Equatable Methods
 
-        private void From(NetEndPoint ep, ref IPEndPoint endPoint) {
+        private void From(NetEndPoint ep, ref IPEndPoint endPoint)
+        {
             endPoint.Address = ep.address;
             endPoint.Port = ep.port;
         }
 
-        private NetEndPoint From(EndPoint ep) {
-            IPEndPoint endPoint = (IPEndPoint)ep;
+        private NetEndPoint From(EndPoint ep)
+        {
+            var endPoint = (IPEndPoint) ep;
             return new NetEndPoint(endPoint.Address, endPoint.Port);
         }
 
-        public bool Equals(IPEndPoint endPoint) => remoteEndPoint.Equals(endPoint);
+        public bool Equals(IPEndPoint endPoint)
+        {
+            return remoteEndPoint.Equals(endPoint);
+        }
 
-        public override bool Equals(object obj) {
-            if (obj is UdpSocket other) {
-                return Equals(other.remoteEndPoint);
-            }
+        public override bool Equals(object obj)
+        {
+            if (obj is UdpSocket other) return Equals(other.remoteEndPoint);
             return base.Equals(obj);
         }
 
-        public override int GetHashCode() => remoteEndPoint.GetHashCode();
+        public override int GetHashCode()
+        {
+            return remoteEndPoint.GetHashCode();
+        }
 
         #endregion
     }

@@ -1,5 +1,8 @@
-﻿namespace GameNetworking.Channels {
-    public enum Channel {
-        reliable, unreliable
+﻿namespace GameNetworking.Channels
+{
+    public enum Channel
+    {
+        reliable,
+        unreliable
     }
 }

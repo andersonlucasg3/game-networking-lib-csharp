@@ -53,7 +53,7 @@ namespace GameNetworking.Networking
 
             socket.serverListener = this;
 
-            var reliable = new ReliableChannel(socket);
+            ReliableChannel reliable = new ReliableChannel(socket);
             ReliableChannel.Add(reliable);
 
             _socketCollection.Add(socket, reliable);

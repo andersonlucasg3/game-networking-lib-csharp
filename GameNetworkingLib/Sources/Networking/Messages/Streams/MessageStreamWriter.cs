@@ -11,8 +11,8 @@ namespace GameNetworking.Messages.Streams
 
     public class MessageStreamWriter : IStreamWriter
     {
-        private readonly object lockToken = new object();
-#if !UNITY_64
+        private readonly object _lockToken = new object();
+#if !UNITY_64 || UNIT_TESTS
         public readonly byte[] currentBuffer = new byte[1024 * 1024]; // 1MB
 #else
         private readonly byte[] currentBuffer = new byte[1024 * 1024]; // 1MB
@@ -22,7 +22,7 @@ namespace GameNetworking.Messages.Streams
 
         public void Write<TMessage>(TMessage message) where TMessage : ITypedMessage
         {
-            lock (lockToken)
+            lock (_lockToken)
             {
                 var startIndex = currentBufferLength;
                 currentBufferLength += CoderHelper.WriteInt(message.type, currentBuffer, currentBufferLength);
@@ -34,7 +34,7 @@ namespace GameNetworking.Messages.Streams
 
         public void Use(Action<byte[], int> action)
         {
-            lock (lockToken)
+            lock (_lockToken)
             {
                 if (currentBufferLength == 0) return;
                 action?.Invoke(currentBuffer, currentBufferLength);

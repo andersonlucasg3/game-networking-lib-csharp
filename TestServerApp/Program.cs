@@ -57,7 +57,7 @@ namespace TestServerApp
                 lock (program)
                 {
                     program.actions.ForEach(a => a.Invoke());
-                    program.actions.RemoveAll(_ => true);
+                    program.actions.RemoveAll(m => true);
                 }
 
                 program.server.Update();

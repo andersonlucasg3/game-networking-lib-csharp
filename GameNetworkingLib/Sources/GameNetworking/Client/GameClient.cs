@@ -126,13 +126,11 @@ namespace GameNetworking.Client
 
         void INetworkClientListener.NetworkClientDidConnect()
         {
-            ThreadChecker.AssertReliableChannel();
             router.dispatcher.Enqueue(() => listener?.GameClientDidConnect(Channel.reliable));
         }
 
         void INetworkClientListener.NetworkClientConnectDidTimeout()
         {
-            ThreadChecker.AssertReliableChannel();
             router.dispatcher.Enqueue(() => listener?.GameClientConnectDidTimeout());
         }
 
@@ -161,23 +159,21 @@ namespace GameNetworking.Client
 
         void IRemoteClientListener.RemoteClientDidConnect(int playerId, bool isLocalPlayer)
         {
-            ThreadChecker.AssertReliableChannel();
-
             var player = new TPlayer();
             player.Configure(playerId, isLocalPlayer);
 
             _playerCollection.Add(playerId, player);
 
             listener?.GameClientPlayerDidConnect(player);
-            if (player.isLocalPlayer)
-            {
-                localPlayer = player;
-                router.dispatcher.Enqueue(() => listener?.GameClientDidIdentifyLocalPlayer(player));
+            
+            if (!player.isLocalPlayer) return;
+            
+            localPlayer = player;
+            router.dispatcher.Enqueue(() => listener?.GameClientDidIdentifyLocalPlayer(player));
 
-                var endPoint = networkClient.localEndPoint;
-                var remote = networkClient.remoteEndPoint;
-                natIdentifierAckHelper.Start(new NatIdentifierRequestMessage(player.playerId, endPoint.address, endPoint.port), remote);
-            }
+            var endPoint = networkClient.localEndPoint;
+            var remote = networkClient.remoteEndPoint;
+            natIdentifierAckHelper.Start(new NatIdentifierRequestMessage(player.playerId, endPoint.address, endPoint.port), remote);
         }
 
         void IRemoteClientListener.RemoteClientDidDisconnect(int playerId)

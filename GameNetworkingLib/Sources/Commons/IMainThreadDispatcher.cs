@@ -10,10 +10,10 @@ namespace GameNetworking.Commons
 
     internal static class ThreadChecker
     {
-        private static readonly Thread mainThread = Thread.CurrentThread;
-        private static readonly object acceptLock = new object();
-        private static readonly object reliableLock = new object();
-        private static readonly object unreliableLock = new object();
+        private static readonly Thread _mainThread = Thread.CurrentThread;
+        private static readonly object _acceptLock = new object();
+        private static readonly object _reliableLock = new object();
+        private static readonly object _unreliableLock = new object();
 
         private static Thread acceptThread;
         private static Thread unreliableThread;
@@ -21,8 +21,10 @@ namespace GameNetworking.Commons
 
         internal static void ConfigureAccept(Thread thread)
         {
+#if !UNIT_TESTS
             if (thread != null && acceptThread != null) throw new InvalidOperationException("There is already a instance of ACCEPT thread alive");
-            lock (acceptLock)
+#endif
+            lock (_acceptLock)
             {
                 acceptThread = thread;
             }
@@ -30,8 +32,10 @@ namespace GameNetworking.Commons
 
         internal static void ConfigureReliable(Thread thread)
         {
+#if !UNIT_TESTS
             if (thread != null && reliableThread != null) throw new InvalidOperationException("There is already a instance of RELIABLE thread alive");
-            lock (reliableLock)
+#endif
+            lock (_reliableLock)
             {
                 reliableThread = thread;
             }
@@ -39,8 +43,10 @@ namespace GameNetworking.Commons
 
         internal static void ConfigureUnreliable(Thread thread)
         {
+#if !UNIT_TESTS
             if (thread != null && unreliableThread != null) throw new InvalidOperationException("There is already a instance of UNRELIABLE thread alive");
-            lock (unreliableLock)
+#endif
+            lock (_unreliableLock)
             {
                 unreliableThread = thread;
             }
@@ -48,12 +54,12 @@ namespace GameNetworking.Commons
 
         public static void AssertMainThread(bool isMainThread = true)
         {
-            AreEqual(mainThread, Thread.CurrentThread, !isMainThread);
+            AreEqual(_mainThread, Thread.CurrentThread, !isMainThread);
         }
 
         public static void AssertAcceptThread()
         {
-            lock (acceptLock)
+            lock (_acceptLock)
             {
                 AreEqual(acceptThread, Thread.CurrentThread);
             }
@@ -61,7 +67,7 @@ namespace GameNetworking.Commons
 
         public static void AssertReliableChannel()
         {
-            lock (reliableLock)
+            lock (_reliableLock)
             {
                 AreEqual(reliableThread, Thread.CurrentThread);
             }
@@ -69,7 +75,7 @@ namespace GameNetworking.Commons
 
         public static void AssertUnreliableChannel()
         {
-            lock (unreliableLock)
+            lock (_unreliableLock)
             {
                 AreEqual(unreliableThread, Thread.CurrentThread);
             }
@@ -77,9 +83,9 @@ namespace GameNetworking.Commons
 
         private static void AreEqual(object o1, object o2, bool inverted = false)
         {
-            if (o1 == null || o2 == null)
-                if (!o1.Equals(o2) || inverted)
-                    Thread.CurrentThread.Abort();
+            if (inverted && !o1.Equals(o2) || o1.Equals(o2)) return;
+            
+            Thread.CurrentThread.Abort();
         }
     }
 }

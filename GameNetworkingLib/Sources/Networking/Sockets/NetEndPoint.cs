@@ -27,11 +27,7 @@ namespace GameNetworking.Networking.Sockets
         
         public override int GetHashCode()
         {
-#if !UNITY_64
-            return HashCode.Combine(address, port);
-#else
-            return this.address.GetHashCode() + this.port.GetHashCode();
-#endif
+            return address.GetHashCode() + port.GetHashCode();
         }
 
         public override string ToString()

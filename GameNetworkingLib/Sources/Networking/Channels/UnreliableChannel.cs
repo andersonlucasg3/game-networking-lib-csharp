@@ -17,35 +17,35 @@ namespace GameNetworking.Channels
 
     public class UnreliableChannel : IUdpSocketIOListener
     {
-        private readonly object lockToken = new object();
-        private readonly List<NetEndPoint> netEndPointWriters;
-        private readonly ConcurrentDictionary<NetEndPoint, MessageStreamReader> readerCollection;
-        private readonly ConcurrentQueue<SendInfo> sendInfoCollection;
-        private readonly ConcurrentDictionary<NetEndPoint, MessageStreamWriter> writerCollection;
+        private readonly object _lockToken = new object();
+        private readonly List<NetEndPoint> _netEndPointWriters;
+        private readonly ConcurrentDictionary<NetEndPoint, MessageStreamReader> _readerCollection;
+        private readonly ConcurrentQueue<SendInfo> _sendInfoCollection;
+        private readonly ConcurrentDictionary<NetEndPoint, MessageStreamWriter> _writerCollection;
 
-        private UdpSocket socket;
+        private UdpSocket _socket;
 
         public UnreliableChannel(UdpSocket socket)
         {
-            this.socket = socket;
-            this.socket.listener = this;
+            _socket = socket;
+            _socket.listener = this;
 
-            readerCollection = new ConcurrentDictionary<NetEndPoint, MessageStreamReader>();
-            writerCollection = new ConcurrentDictionary<NetEndPoint, MessageStreamWriter>();
-            netEndPointWriters = new List<NetEndPoint>();
-            sendInfoCollection = new ConcurrentQueue<SendInfo>();
+            _readerCollection = new ConcurrentDictionary<NetEndPoint, MessageStreamReader>();
+            _writerCollection = new ConcurrentDictionary<NetEndPoint, MessageStreamWriter>();
+            _netEndPointWriters = new List<NetEndPoint>();
+            _sendInfoCollection = new ConcurrentQueue<SendInfo>();
         }
 
         public IUnreliableChannelListener listener { get; set; }
 
-        void IUdpSocketIOListener.SocketDidReceiveBytes(UdpSocket socket, byte[] bytes, int count, NetEndPoint from)
+        void IUdpSocketIOListener.SocketDidReceiveBytes(UdpSocket udpSocket, byte[] bytes, int count, NetEndPoint from)
         {
             ThreadChecker.AssertUnreliableChannel();
 
-            if (!readerCollection.TryGetValue(from, out var reader))
+            if (!_readerCollection.TryGetValue(from, out MessageStreamReader reader))
             {
                 reader = new MessageStreamReader();
-                readerCollection.TryAdd(from, reader);
+                _readerCollection.TryAdd(from, reader);
             }
 
             reader.Add(bytes, count);
@@ -54,11 +54,11 @@ namespace GameNetworking.Channels
             while ((container = reader.Decode()) != null) listener?.ChannelDidReceiveMessage(this, container.Value, @from);
         }
 
-        void IUdpSocketIOListener.SocketDidWriteBytes(UdpSocket socket, int count, NetEndPoint to)
+        void IUdpSocketIOListener.SocketDidWriteBytes(UdpSocket udpSocket, int count, NetEndPoint to)
         {
             ThreadChecker.AssertUnreliableChannel();
 
-            if (writerCollection.TryGetValue(to, out var writer))
+            if (_writerCollection.TryGetValue(to, out var writer))
             {
                 writer.DidWrite(count);
             }
@@ -77,17 +77,17 @@ namespace GameNetworking.Channels
         {
             lock (this)
             {
-                socket.Close();
-                socket = null;
+                _socket.Close();
+                _socket = null;
             }
         }
 
         public void CloseChannel(NetEndPoint endPoint)
         {
-            writerCollection.TryRemove(endPoint, out _);
-            lock (lockToken)
+            _writerCollection.TryRemove(endPoint, out _);
+            lock (_lockToken)
             {
-                netEndPointWriters.Remove(endPoint);
+                _netEndPointWriters.Remove(endPoint);
             }
         }
 
@@ -95,20 +95,20 @@ namespace GameNetworking.Channels
         {
             ThreadChecker.AssertMainThread();
 
-            sendInfoCollection.Enqueue(new SendInfo {message = message, to = to});
+            _sendInfoCollection.Enqueue(new SendInfo {message = message, to = to});
         }
 
         private void ThreadPoolWorker(object state)
         {
             Thread.CurrentThread.Name = "UnreliableChannel Thread";
             ThreadChecker.ConfigureUnreliable(Thread.CurrentThread);
-            var shouldRun = true;
+            bool shouldRun;
 
-            var to = new NetEndPoint();
+            NetEndPoint toEndPoint = new NetEndPoint();
 
             void SendTo(byte[] bytes, int count)
             {
-                socket.Send(bytes, count, to);
+                _socket.Send(bytes, count, toEndPoint);
             }
 
             var endPoints = new NetEndPoint[100];
@@ -118,41 +118,41 @@ namespace GameNetworking.Channels
             {
                 lock (this)
                 {
-                    shouldRun = socket != null;
+                    shouldRun = _socket != null;
                 }
 
                 try
                 {
-                    socket.Receive();
+                    _socket.Receive();
 
-                    if (sendInfoCollection.TryDequeue(out var info))
+                    if (_sendInfoCollection.TryDequeue(out var info))
                     {
                         var message = info.message;
-                        to = info.to;
+                        toEndPoint = info.to;
 
-                        if (!writerCollection.TryGetValue(to, out var writer))
+                        if (!_writerCollection.TryGetValue(toEndPoint, out var writer))
                         {
                             writer = new MessageStreamWriter();
-                            writerCollection.TryAdd(to, writer);
-                            lock (lockToken)
+                            _writerCollection.TryAdd(toEndPoint, writer);
+                            lock (_lockToken)
                             {
-                                netEndPointWriters.Add(to);
+                                _netEndPointWriters.Add(toEndPoint);
                             }
                         }
 
                         writer.Write(message);
                     }
 
-                    lock (lockToken)
+                    lock (_lockToken)
                     {
-                        netEndPointWriters.CopyTo(endPoints);
-                        endPointCount = netEndPointWriters.Count;
+                        _netEndPointWriters.CopyTo(endPoints);
+                        endPointCount = _netEndPointWriters.Count;
                     }
 
                     for (var index = 0; index < endPointCount; index++)
                     {
-                        to = endPoints[index];
-                        var writer = writerCollection[to];
+                        toEndPoint = endPoints[index];
+                        var writer = _writerCollection[toEndPoint];
                         writer.Use(SendTo);
                     }
                 }

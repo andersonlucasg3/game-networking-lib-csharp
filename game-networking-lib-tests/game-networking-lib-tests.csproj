@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>netcoreapp3.0</TargetFramework>
         <IsPackable>false</IsPackable>
         <RootNamespace>GameServerLibTests</RootNamespace>
         <StartupObject></StartupObject>
         <OutputType>Library</OutputType>
         <ReleaseVersion>0.2.1</ReleaseVersion>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <DefineConstants>TRACE;UNIT_TESTS</DefineConstants>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <DefineConstants>TRACE;UNIT_TESTS;</DefineConstants>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="nunit" Version="3.12.0" />

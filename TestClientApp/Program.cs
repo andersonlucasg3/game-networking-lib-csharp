@@ -91,7 +91,7 @@ namespace TestClientApp
                 lock (program)
                 {
                     var copy = new List<Action>(program.actions);
-                    program.actions.RemoveAll(_ => true);
+                    program.actions.RemoveAll(m => true);
                     copy.ForEach(each => each?.Invoke());
                     program.client.Update();
                 }

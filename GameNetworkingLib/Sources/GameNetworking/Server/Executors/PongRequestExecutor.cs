@@ -17,7 +17,7 @@ namespace GameNetworking.Executors.Server
             for (var index = 0; index < players.Count; index++)
             {
                 var player = players[index];
-                model.model.Send(new PingResultRequestMessage(player.playerId, player.mostRecentPingValue), Channel.unreliable);
+                model.model.Send(new PingResultRequestMessage(player.playerId, player.mostRecentPingValue), ChannelType.unreliable);
             }
         }
     }

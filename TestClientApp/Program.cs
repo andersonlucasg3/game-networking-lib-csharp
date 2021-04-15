@@ -23,9 +23,9 @@ namespace TestClientApp
         private readonly bool running = true;
         private int? playerId;
 
-        public void GameClientDidConnect(Channel channel)
+        public void GameClientDidConnect(ChannelType channelType)
         {
-            Logger.Log($"GameClientDidConnect - {channel}");
+            Logger.Log($"GameClientDidConnect - {channelType}");
         }
 
         public void GameClientConnectDidTimeout()
@@ -113,8 +113,8 @@ namespace TestClientApp
             if (!playerId.HasValue) return;
             
             var message = new Message(playerId.Value, counter++);
-            client.Send(message, Channel.unreliable);
-            client.Send(message, Channel.reliable);
+            client.Send(message, ChannelType.unreliable);
+            client.Send(message, ChannelType.reliable);
         }
     }
 

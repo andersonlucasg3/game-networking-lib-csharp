@@ -12,7 +12,7 @@ namespace GameNetworking.Executors.Client
         public void Execute(GameClient<TPlayer> model, PingRequestMessage message)
         {
             if (model.localPlayer != null) model.localPlayer.lastReceivedPingRequest = TimeUtils.CurrentTime();
-            model.Send(new PongRequestMessage(message.pingRequestId), Channel.unreliable);
+            model.Send(new PongRequestMessage(message.pingRequestId), ChannelType.unreliable);
         }
     }
 }

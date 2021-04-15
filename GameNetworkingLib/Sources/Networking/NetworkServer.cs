@@ -17,7 +17,7 @@ namespace GameNetworking.Networking
         void NetworkServerDidReceiveMessage(MessageContainer container);
     }
 
-    public class NetworkServer : ITcpServerListener, IUnreliableChannelListener
+    public class NetworkServer : ITcpServerListener, IChannelListener<UnreliableChannel>
     {
         private readonly PlayerCollection<NetEndPoint, INetworkServerMessageListener> _identifiedCollection;
 
@@ -71,14 +71,14 @@ namespace GameNetworking.Networking
             listener?.NetworkServerPlayerDidDisconnect(channel);
         }
 
-        void IUnreliableChannelListener.ChannelDidReceiveMessage(UnreliableChannel channel, MessageContainer container, NetEndPoint from)
+        void IChannelListener<UnreliableChannel>.ChannelDidReceiveMessage(UnreliableChannel channel, MessageContainer container)
         {
             ThreadChecker.AssertUnreliableChannel();
 
-            if (_identifiedCollection.TryGetPlayer(from, out var messageListener))
+            if (_identifiedCollection.TryGetPlayer(container.remoteEndPoint, out var messageListener))
                 messageListener?.NetworkServerDidReceiveMessage(container);
             else
-                listener?.NetworkServerDidReceiveUnidentifiedMessage(container, @from);
+                listener?.NetworkServerDidReceiveUnidentifiedMessage(container, container.remoteEndPoint);
         }
 
         public void Start(NetEndPoint endPoint)

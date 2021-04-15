@@ -15,27 +15,23 @@ namespace GameNetworking.Commons
     {
         private TExecutor forwarding;
         private readonly TModel model;
-        private readonly MessageContainer message;
-        private readonly TMessage unpackedMessage;
+        private readonly TMessage message;
 
         public Executor(TModel model, MessageContainer message)
         {
             ThreadChecker.AssertMainThread(false);
             forwarding = new TExecutor();
             this.model = model;
-            this.message = message;
-            unpackedMessage = message.Parse<TMessage>();
+            this.message = message.Parse<TMessage>();
         }
 
         public void Execute()
         {
             ThreadChecker.AssertMainThread();
 
-            forwarding.Execute(model, unpackedMessage);
+            forwarding.Execute(model, message);
 
-            IDisposable disposable = unpackedMessage as IDisposable;
-            disposable?.Dispose();
-            message.Dispose();
+            (message as IDisposable)?.Dispose();
         }
     }
 }

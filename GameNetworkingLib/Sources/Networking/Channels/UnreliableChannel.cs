@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Threading;
 using GameNetworking.Commons;
 using GameNetworking.Messages.Models;
@@ -10,12 +9,7 @@ using Logging;
 
 namespace GameNetworking.Channels
 {
-    public interface IUnreliableChannelListener
-    {
-        void ChannelDidReceiveMessage(UnreliableChannel channel, MessageContainer container, NetEndPoint from);
-    }
-
-    public class UnreliableChannel : IUdpSocketIOListener
+    public class UnreliableChannel : Channel<UnreliableChannel>, IUdpSocketIOListener
     {
         private readonly object _lockToken = new object();
         private readonly PooledList<NetEndPoint> _netEndPointWriters = PooledList<NetEndPoint>.Rent();
@@ -37,8 +31,6 @@ namespace GameNetworking.Channels
             lock (_lockToken) _netEndPointWriters.Dispose();
         }
 
-        public IUnreliableChannelListener listener { get; set; }
-
         void IUdpSocketIOListener.SocketDidReceiveBytes(UdpSocket udpSocket, byte[] bytes, int count, NetEndPoint from)
         {
             ThreadChecker.AssertUnreliableChannel();
@@ -50,9 +42,8 @@ namespace GameNetworking.Channels
             }
 
             reader.Add(bytes, count);
-
-            MessageContainer container;
-            while ((container = reader.Decode()) != null) listener?.ChannelDidReceiveMessage(this, container, @from);
+            
+            ReadAllMessages(reader, from);
         }
 
         void IUdpSocketIOListener.SocketDidWriteBytes(UdpSocket udpSocket, int count, NetEndPoint to)

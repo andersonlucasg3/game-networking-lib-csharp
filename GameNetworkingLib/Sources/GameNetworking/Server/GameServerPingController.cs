@@ -34,7 +34,7 @@ namespace GameNetworking.Server
 
         public float PongReceived(TPlayer from, long pingRequestId)
         {
-            from.lastReceivedPongRequest = TimeUtils.CurrentTime();
+            TimeUtils.CurrentTime();
 
             if (!pingPlayers.TryGetValue(@from.playerId, out var pingPlayer)) return 0F;
             
@@ -109,7 +109,7 @@ namespace GameNetworking.Server
         {
             pingSent = true;
             _pingSentTime = TimeUtils.CurrentTime();
-            player.Send(new PingRequestMessage(_pingRequestId++), Channel.unreliable);
+            player.Send(new PingRequestMessage(_pingRequestId++), ChannelType.unreliable);
         }
 
         internal void ReceivedPong(long pingRequestId)

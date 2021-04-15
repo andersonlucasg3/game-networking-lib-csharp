@@ -46,7 +46,7 @@ namespace Tests.Core
 
         #region IGameClientListener
 
-        void IGameClientListener<ClientPlayer>.GameClientDidConnect(Channel _)
+        void IGameClientListener<ClientPlayer>.GameClientDidConnect(ChannelType _)
         {
             connectedCalled = true;
         }
@@ -91,7 +91,7 @@ namespace Tests.Core
 
         #region IGameServerListener
 
-        void IGameServerListener<ServerPlayer>.GameServerPlayerDidConnect(ServerPlayer player, Channel _)
+        void IGameServerListener<ServerPlayer>.GameServerPlayerDidConnect(ServerPlayer player, ChannelType _)
         {
             connectedPlayers.Add(player);
         }

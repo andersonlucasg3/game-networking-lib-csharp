@@ -17,10 +17,10 @@ namespace GameNetworking.Executors.Server
             player.remoteIdentifiedEndPoint = model.model;
             model.server.networkServer.Register(model.model, player);
 
-            model.server.listener.GameServerPlayerDidConnect(player, Channel.unreliable);
+            model.server.listener.GameServerPlayerDidConnect(player, ChannelType.unreliable);
 
             var serverEndPoint = model.server.networkServer.listeningOnEndPoint;
-            player.Send(new NatIdentifierResponseMessage(serverEndPoint.address, serverEndPoint.port), Channel.unreliable);
+            player.Send(new NatIdentifierResponseMessage(serverEndPoint.address, serverEndPoint.port), ChannelType.unreliable);
         }
     }
 }

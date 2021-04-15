@@ -19,9 +19,9 @@ namespace TestServerApp
 
         private GameServer<Player> server;
 
-        public void GameServerPlayerDidConnect(Player player, Channel channel)
+        public void GameServerPlayerDidConnect(Player player, ChannelType channelType)
         {
-            Logger.Log($"GameServerPlayerDidConnect - {channel}");
+            Logger.Log($"GameServerPlayerDidConnect - {channelType}");
         }
 
         public void GameServerPlayerDidDisconnect(Player player)
@@ -102,8 +102,8 @@ namespace TestServerApp
         {
             var player = model.playerCollection.FindPlayer(message.playerId);
             Logger.Log($"Received message from playerId-{message.playerId}, as playerId-{player.playerId}, messageId-{message.messageId}");
-            model.SendBroadcast(message, Channel.reliable);
-            model.SendBroadcast(message, Channel.unreliable);
+            model.SendBroadcast(message, ChannelType.reliable);
+            model.SendBroadcast(message, ChannelType.unreliable);
         }
     }
 }

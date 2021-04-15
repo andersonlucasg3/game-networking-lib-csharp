@@ -13,7 +13,7 @@ namespace GameNetworking.Server
         void ClientAcceptorPlayerDidConnect(TPlayer player);
         void ClientAcceptorPlayerDidDisconnect(TPlayer player);
 
-        void SendBroadcast(ITypedMessage message, Channel channel);
+        void SendBroadcast(ITypedMessage message, ChannelType channelType);
     }
 
     public sealed class GameServerClientAcceptor<TPlayer> where TPlayer : Player, new()
@@ -43,7 +43,7 @@ namespace GameNetworking.Server
                     playerId = player.playerId,
                     isMe = player.Equals(each)
                 };
-                each.Send(connectedAll, Channel.reliable);
+                each.Send(connectedAll, ChannelType.reliable);
 
                 if (each.Equals(player)) continue;
 
@@ -53,7 +53,7 @@ namespace GameNetworking.Server
                     playerId = each.playerId,
                     isMe = false
                 };
-                player.Send(connectedSelf, Channel.reliable);
+                player.Send(connectedSelf, ChannelType.reliable);
             }
 
             if (Logger.IsLoggingEnabled) Logger.Log($"(AcceptClient) count {listener.playerCollection.count}");
@@ -66,7 +66,7 @@ namespace GameNetworking.Server
             if (player != null)
             {
                 listener.ClientAcceptorPlayerDidDisconnect(player);
-                listener.SendBroadcast(new DisconnectedPlayerMessage {playerId = player.playerId}, Channel.reliable);
+                listener.SendBroadcast(new DisconnectedPlayerMessage {playerId = player.playerId}, ChannelType.reliable);
             }
         }
 

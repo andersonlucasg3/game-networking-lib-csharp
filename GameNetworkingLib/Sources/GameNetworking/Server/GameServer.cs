@@ -14,7 +14,7 @@ namespace GameNetworking.Server
     public interface IGameServerListener<in TPlayer>
         where TPlayer : IPlayer
     {
-        void GameServerPlayerDidConnect(TPlayer player, Channel channel);
+        void GameServerPlayerDidConnect(TPlayer player, ChannelType channelType);
         void GameServerPlayerDidDisconnect(TPlayer player);
         void GameServerDidReceiveClientMessage(MessageContainer container, TPlayer player);
     }
@@ -47,9 +47,9 @@ namespace GameNetworking.Server
         public IGameServerListener<TPlayer> listener { get; set; }
         public IReadOnlyPlayerCollection<int, TPlayer> playerCollection => _playerCollection;
 
-        public void SendBroadcast(ITypedMessage message, Channel channel)
+        public void SendBroadcast(ITypedMessage message, ChannelType channelType)
         {
-            var sendValue = new SendValue {message = message, channel = channel};
+            var sendValue = new SendValue {message = message, channelType = channelType};
             _playerCollection.ForEach(Send, sendValue);
         }
 
@@ -57,7 +57,7 @@ namespace GameNetworking.Server
         {
             player.listener = _router;
             _playerCollection.Add(player.playerId, player);
-            _router.dispatcher.Enqueue(() => listener?.GameServerPlayerDidConnect(player, Channel.reliable));
+            _router.dispatcher.Enqueue(() => listener?.GameServerPlayerDidConnect(player, ChannelType.reliable));
         }
 
         void IGameServerClientAcceptorListener<TPlayer>.ClientAcceptorPlayerDidDisconnect(TPlayer player)
@@ -120,14 +120,14 @@ namespace GameNetworking.Server
         {
             ThreadChecker.AssertMainThread();
 
-            player.Send(value.message, value.channel);
+            player.Send(value.message, value.channelType);
         }
 
-        public void SendBroadcast(ITypedMessage message, Predicate<TPlayer> predicate, Channel channel)
+        public void SendBroadcast(ITypedMessage message, Predicate<TPlayer> predicate, ChannelType channelType)
         {
             ThreadChecker.AssertMainThread();
 
-            var sendValue = new SendValue {message = message, predicate = predicate, channel = channel};
+            var sendValue = new SendValue {message = message, predicate = predicate, channelType = channelType};
             _playerCollection.ForEach(SendPredicate, sendValue);
         }
 
@@ -135,13 +135,13 @@ namespace GameNetworking.Server
         {
             ThreadChecker.AssertMainThread();
 
-            if (value.predicate(player)) player.Send(value.message, value.channel);
+            if (value.predicate(player)) player.Send(value.message, value.channelType);
         }
 
         private struct SendValue
         {
             public ITypedMessage message;
-            public Channel channel;
+            public ChannelType channelType;
             public Predicate<TPlayer> predicate;
         }
     }

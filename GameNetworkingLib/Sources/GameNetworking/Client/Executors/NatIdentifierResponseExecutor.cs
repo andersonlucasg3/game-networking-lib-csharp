@@ -10,7 +10,7 @@ namespace GameNetworking.Executors.Client
     {
         public void Execute(GameClient<TPlayer> model, NatIdentifierResponseMessage message)
         {
-            model.listener.GameClientDidConnect(Channel.unreliable);
+            model.listener.GameClientDidConnect(ChannelType.unreliable);
         }
     }
 }

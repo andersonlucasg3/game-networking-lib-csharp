@@ -2,6 +2,7 @@
 using GameNetworking.Commons;
 using GameNetworking.Messages.Coders;
 using GameNetworking.Messages.Coders.Converters;
+using GameNetworking.Networking.Sockets;
 
 namespace GameNetworking.Messages.Models
 {
@@ -15,6 +16,7 @@ namespace GameNetworking.Messages.Models
         private int _length;
 
         public int type { get; private set; }
+        public NetEndPoint remoteEndPoint { get; private set; }
 
         private MessageContainer() { }
 
@@ -38,6 +40,12 @@ namespace GameNetworking.Messages.Models
             converter.array = array;
             type = converter.value;
             _intConverterPool.Pay(converter);
+            return this;
+        }
+
+        public MessageContainer WithSender(NetEndPoint fromEndPoint)
+        {
+            remoteEndPoint = fromEndPoint;
             return this;
         }
 

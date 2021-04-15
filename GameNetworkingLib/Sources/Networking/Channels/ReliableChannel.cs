@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using GameNetworking.Commons;
 using GameNetworking.Messages.Models;
@@ -9,12 +8,7 @@ using Logging;
 
 namespace GameNetworking.Channels
 {
-    public interface IReliableChannelListener
-    {
-        void ChannelDidReceiveMessage(ReliableChannel channel, MessageContainer container);
-    }
-
-    public class ReliableChannel : ITcpSocketIOListener
+    public class ReliableChannel : Channel<ReliableChannel>, ITcpSocketIOListener
     {
         private static bool _ioRunning;
         private static readonly PooledList<ReliableChannel> _aliveSockets = PooledList<ReliableChannel>.Rent();
@@ -38,14 +32,11 @@ namespace GameNetworking.Channels
             lock(_socketLock) _aliveSockets.Dispose();
         }
 
-        public IReliableChannelListener listener { get; set; }
-
         void ITcpSocketIOListener.SocketDidReceiveBytes(ITcpSocket remoteSocket, byte[] bytes, int count)
         {
             _reader.Add(bytes, count);
 
-            MessageContainer container;
-            while ((container = _reader.Decode()) != null) listener?.ChannelDidReceiveMessage(this, container);
+            ReadAllMessages(_reader, _socket.remoteEndPoint);
         }
 
         void ITcpSocketIOListener.SocketDidSendBytes(ITcpSocket remoteSocket, int count)

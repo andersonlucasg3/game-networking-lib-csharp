@@ -14,7 +14,7 @@ namespace GameNetworking
             int playerId { get; }
             float mostRecentPingValue { get; }
 
-            void Send(ITypedMessage message, Channel channel);
+            void Send(ITypedMessage message, ChannelType channelType);
 
             void Disconnect();
         }
@@ -24,63 +24,36 @@ namespace GameNetworking
             void PlayerDidReceiveMessage(MessageContainer container, IPlayer from);
         }
 
-        public class Player : IPlayer, IReliableChannelListener, INetworkServerMessageListener
+        public class Player : IPlayer, IChannelListener<ReliableChannel>, INetworkServerMessageListener
         {
-            internal double lastReceivedPongRequest;
-
-            public Player()
-            {
-                lastReceivedPongRequest = TimeUtils.CurrentTime();
-            }
-
-            internal ReliableChannel reliableChannel { get; private set; }
-            internal UnreliableChannel unreliableChannel { get; private set; }
+            private ReliableChannel reliableChannel { get; set; }
+            private UnreliableChannel unreliableChannel { get; set; }
             internal NetEndPoint? remoteIdentifiedEndPoint { get; set; }
             internal IPlayerMessageListener listener { get; set; }
-
-            void INetworkServerMessageListener.NetworkServerDidReceiveMessage(MessageContainer container)
-            {
-                listener?.PlayerDidReceiveMessage(container, this);
-            }
-
-            public int playerId { get; internal set; }
+            
+            public int playerId { get; private set; }
             public float mostRecentPingValue { get; internal set; }
 
-            void IReliableChannelListener.ChannelDidReceiveMessage(ReliableChannel channel, MessageContainer container)
-            {
-                listener?.PlayerDidReceiveMessage(container, this);
-            }
-
-            #region Internal methods
-
-            internal void Configure(int playerId)
-            {
-                this.playerId = playerId;
-            }
-
-            internal void Configure(ReliableChannel reliable, UnreliableChannel unreliable)
-            {
-                reliableChannel = reliable;
-                unreliableChannel = unreliable;
-
-                reliableChannel.listener = this;
-            }
-
-            #endregion
-
             #region Public methods
-
-            public void Send(ITypedMessage message, Channel channel)
+            
+            public Player()
             {
-                switch (channel)
+                //
+            }
+
+            public void Send(ITypedMessage message, ChannelType channelType)
+            {
+                switch (channelType)
                 {
-                    case Channel.reliable:
+                    case ChannelType.reliable:
                         reliableChannel.Send(message);
                         break;
-                    case Channel.unreliable:
+                    case ChannelType.unreliable:
                         if (!remoteIdentifiedEndPoint.HasValue) break;
                         unreliableChannel.Send(message, remoteIdentifiedEndPoint.Value);
                         break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(channelType), channelType, null);
                 }
             }
 
@@ -91,20 +64,42 @@ namespace GameNetworking
             }
 
             #endregion
+            
+            #region Internal methods
+
+            internal void Configure(int thisPlayerId)
+            {
+                playerId = thisPlayerId;
+            }
+            
+            internal void Configure(ReliableChannel reliable, UnreliableChannel unreliable)
+            {
+                reliableChannel = reliable;
+                unreliableChannel = unreliable;
+
+                reliableChannel.listener = this;
+            }
+
+            #endregion
 
             #region IEquatable
 
             bool IEquatable<IPlayer>.Equals(IPlayer other)
             {
-                return playerId == other.playerId;
-            }
-
-            public override int GetHashCode()
-            {
-                return playerId.GetHashCode();
+                return playerId == other?.playerId;
             }
 
             #endregion
+            
+            void IChannelListener<ReliableChannel>.ChannelDidReceiveMessage(ReliableChannel channel, MessageContainer container)
+            {
+                listener?.PlayerDidReceiveMessage(container, this);
+            }
+            
+            void INetworkServerMessageListener.NetworkServerDidReceiveMessage(MessageContainer container)
+            {
+                listener?.PlayerDidReceiveMessage(container, this);
+            }
         }
     }
 

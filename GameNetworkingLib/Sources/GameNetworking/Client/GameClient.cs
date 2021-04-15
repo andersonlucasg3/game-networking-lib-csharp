@@ -14,7 +14,7 @@ namespace GameNetworking.Client
     public interface IGameClientListener<TPlayer>
         where TPlayer : IPlayer
     {
-        void GameClientDidConnect(Channel channel);
+        void GameClientDidConnect(ChannelType channelType);
         void GameClientConnectDidTimeout();
         void GameClientDidDisconnect();
 
@@ -37,7 +37,7 @@ namespace GameNetworking.Client
 
         void Update();
 
-        void Send(ITypedMessage message, Channel channel);
+        void Send(ITypedMessage message, ChannelType channelType);
     }
 
     internal interface IRemoteClientListener
@@ -87,15 +87,15 @@ namespace GameNetworking.Client
             networkClient.Disconnect();
         }
 
-        public void Send(ITypedMessage message, Channel channel)
+        public void Send(ITypedMessage message, ChannelType channelType)
         {
             ThreadChecker.AssertMainThread();
-            switch (channel)
+            switch (channelType)
             {
-                case Channel.reliable:
+                case ChannelType.reliable:
                     networkClient.reliableChannel.Send(message);
                     break;
-                case Channel.unreliable:
+                case ChannelType.unreliable:
                     var remote = networkClient.remoteEndPoint;
                     networkClient.unreliableChannel.Send(message, remote);
                     break;
@@ -126,7 +126,7 @@ namespace GameNetworking.Client
 
         void INetworkClientListener.NetworkClientDidConnect()
         {
-            router.dispatcher.Enqueue(() => listener?.GameClientDidConnect(Channel.reliable));
+            router.dispatcher.Enqueue(() => listener?.GameClientDidConnect(ChannelType.reliable));
         }
 
         void INetworkClientListener.NetworkClientConnectDidTimeout()

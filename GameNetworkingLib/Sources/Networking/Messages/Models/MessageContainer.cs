@@ -5,50 +5,50 @@ using GameNetworking.Messages.Coders.Converters;
 
 namespace GameNetworking.Messages.Models
 {
-    public struct MessageContainer
+    public class MessageContainer : IDisposable
     {
-        private static readonly ObjectPool<IntByteArrayConverter> _intConverterPool
-            = new ObjectPool<IntByteArrayConverter>(() => new IntByteArrayConverter(0));
+        private static readonly ObjectPool<MessageContainer> _messageContainerPool = new ObjectPool<MessageContainer>(() => new MessageContainer());
+        private static readonly ObjectPool<IntByteArrayConverter> _intConverterPool = new ObjectPool<IntByteArrayConverter>(() => new IntByteArrayConverter(0));
+        private static readonly ObjectPool<byte[]> _bufferPool = new ObjectPool<byte[]>(() => new byte[Consts.bufferSize]);
 
-        private readonly byte[] _buffer;
-        private readonly int _length;
+        private byte[] _buffer;
+        private int _length;
 
-        public int type { get; }
+        public int type { get; private set; }
 
-        public MessageContainer(byte[] buffer, int length)
+        private MessageContainer() { }
+
+        public static MessageContainer Rent() => _messageContainerPool.Rent();
+        
+        public void Dispose()
         {
-            _buffer = bufferPool.Rent();
+            _bufferPool.Pay(_buffer);
+            _messageContainerPool.Pay(this);
+        }
+
+        public MessageContainer WithBuffer(byte[] buffer, int length)
+        {
+            _buffer = _bufferPool.Rent();
             CoderHelper.PackageBytes(length, buffer, _buffer);
             _length = length;
 
             var converter = _intConverterPool.Rent();
-            var array = converter.array;
+            byte[] array = converter.array;
             Array.Copy(buffer, array, sizeof(int));
             converter.array = array;
             type = converter.value;
             _intConverterPool.Pay(converter);
+            return this;
         }
 
-        public bool Is(int type)
+        public bool Is(int typeId)
         {
-            return type == this.type;
+            return typeId == type;
         }
 
         public TMessage Parse<TMessage>() where TMessage : struct, IDecodable
         {
             return BinaryDecoder.Decode<TMessage>(_buffer, sizeof(int), _length - sizeof(int));
         }
-
-        #region Buffers
-
-        private static readonly ObjectPool<byte[]> bufferPool
-            = new ObjectPool<byte[]>(() => new byte[Consts.bufferSize]);
-
-        internal void ReturnBuffer()
-        {
-            bufferPool.Pay(_buffer);
-        }
-
-        #endregion
     }
 }

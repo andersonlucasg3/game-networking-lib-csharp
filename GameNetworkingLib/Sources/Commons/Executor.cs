@@ -3,7 +3,7 @@ using GameNetworking.Messages.Models;
 
 namespace GameNetworking.Commons
 {
-    public interface IExecutor<TModel, TMessage>
+    public interface IExecutor<in TModel, in TMessage>
         where TMessage : struct, ITypedMessage
     {
         void Execute(TModel model, TMessage message);
@@ -13,7 +13,7 @@ namespace GameNetworking.Commons
         where TExecutor : struct, IExecutor<TModel, TMessage>
         where TMessage : struct, ITypedMessage
     {
-        private readonly TExecutor forwarding;
+        private TExecutor forwarding;
         private readonly TModel model;
         private readonly MessageContainer message;
         private readonly TMessage unpackedMessage;
@@ -33,8 +33,9 @@ namespace GameNetworking.Commons
 
             forwarding.Execute(model, unpackedMessage);
 
-            if (unpackedMessage is IDisposable disposable) disposable.Dispose();
-            message.ReturnBuffer();
+            IDisposable disposable = unpackedMessage as IDisposable;
+            disposable?.Dispose();
+            message.Dispose();
         }
     }
 }

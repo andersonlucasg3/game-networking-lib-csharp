@@ -6,6 +6,6 @@ namespace GameNetworking.Messages.Streams
     {
         void Add(byte[] buffer, int count);
 
-        MessageContainer? Decode();
+        MessageContainer Decode();
     }
 }

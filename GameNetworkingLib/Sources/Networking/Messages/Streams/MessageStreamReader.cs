@@ -21,25 +21,25 @@ namespace GameNetworking.Messages.Streams
             }
         }
 
-        public MessageContainer? Decode()
+        public MessageContainer Decode()
         {
             lock (lockToken)
             {
                 if (currentBufferLength == 0) return null;
 
                 var delimiterIndex = CoderHelper.CheckForDelimiter(currentBuffer, currentBufferLength);
-                if (delimiterIndex != -1)
+                
+                if (delimiterIndex == -1) return null;
+                
+                if (IsValidChecksum(delimiterIndex))
                 {
-                    if (IsValidChecksum(delimiterIndex))
-                    {
-                        var container = new MessageContainer(currentBuffer, delimiterIndex - 1);
-                        currentBufferLength = CoderHelper.SliceBuffer(delimiterIndex, currentBuffer, currentBufferLength);
-                        return container;
-                    }
-
+                    MessageContainer container = MessageContainer.Rent().WithBuffer(currentBuffer, delimiterIndex - 1);
                     currentBufferLength = CoderHelper.SliceBuffer(delimiterIndex, currentBuffer, currentBufferLength);
-                    if (Logger.IsLoggingEnabled) Logger.Log("Discarded currupted message!");
+                    return container;
                 }
+
+                currentBufferLength = CoderHelper.SliceBuffer(delimiterIndex, currentBuffer, currentBufferLength);
+                if (Logger.IsLoggingEnabled) Logger.Log("Discarded corrupted message!");
 
                 return null;
             }

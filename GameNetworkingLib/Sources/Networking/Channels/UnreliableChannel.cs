@@ -51,8 +51,8 @@ namespace GameNetworking.Channels
 
             reader.Add(bytes, count);
 
-            MessageContainer? container;
-            while ((container = reader.Decode()) != null) listener?.ChannelDidReceiveMessage(this, container.Value, @from);
+            MessageContainer container;
+            while ((container = reader.Decode()) != null) listener?.ChannelDidReceiveMessage(this, container, @from);
         }
 
         void IUdpSocketIOListener.SocketDidWriteBytes(UdpSocket udpSocket, int count, NetEndPoint to)

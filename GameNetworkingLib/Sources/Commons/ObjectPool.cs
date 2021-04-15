@@ -1,22 +1,44 @@
 ﻿using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 namespace GameNetworking.Commons
 {
-    public class ObjectPool<T>
+    public class ObjectPool<TObject>
     {
-        private readonly ConcurrentBag<T> bag;
-        private readonly Func<T> factory;
+        private readonly object _lockToken = new object();
+        private readonly List<TObject> _bag;
+        private readonly Func<TObject> _factory;
 
-        public ObjectPool(Func<T> factory)
+        public ObjectPool(Func<TObject> factory)
         {
-            bag = new ConcurrentBag<T>();
-            this.factory = factory ?? throw new ArgumentNullException(nameof(factory));
+            _bag = new List<TObject>();
+            _factory = factory ?? throw new ArgumentNullException(nameof(factory));
             Pay(Rent());
         }
 
-        public T Rent() => bag.TryTake(out var item) ? item : factory();
+        public TObject Rent()
+        {
+            return TryRemove(out TObject item) ? item : _factory.Invoke();
+        }
 
-        public void Pay(T item) => bag.Add(item);
+        public void Pay(TObject item)
+        {
+            lock (_lockToken) _bag.Add(item);
+        }
+
+        private bool TryRemove(out TObject obj)
+        {
+            lock (_lockToken)
+            {
+                if (_bag.Count == 0)
+                {
+                    obj = default;
+                    return false;
+                }
+                obj = _bag[0];
+                _bag.RemoveAt(0);
+                return true;
+            }
+        }
     }
 }

@@ -2,6 +2,6 @@
 {
     public static class Consts
     {
-        public static readonly int bufferSize = 8 * 1024;
+        public const int bufferSize = 8 * 1024;
     }
 }

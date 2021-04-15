@@ -44,8 +44,8 @@ namespace GameNetworking.Channels
         {
             _reader.Add(bytes, count);
 
-            MessageContainer? container;
-            while ((container = _reader.Decode()).HasValue) listener?.ChannelDidReceiveMessage(this, container.Value);
+            MessageContainer container;
+            while ((container = _reader.Decode()) != null) listener?.ChannelDidReceiveMessage(this, container);
         }
 
         void ITcpSocketIOListener.SocketDidSendBytes(ITcpSocket remoteSocket, int count)

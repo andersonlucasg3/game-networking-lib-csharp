@@ -159,25 +159,25 @@ namespace Tests.IO
                     var x = data.GetRange(position, 1).ToArray();
                     decoder.Add(x, x.Length);
                     var container = decoder.Decode();
-                    if (container.HasValue)
+                    if (container != null)
                     {
-                        if (container.Value.Is(200))
+                        if (container.Is(200))
                         {
                             // LoginRequest
-                            var message = container.Value.Parse<LoginRequest>();
+                            var message = container.Parse<LoginRequest>();
                             Assert.AreEqual(message.accessToken, firstToken);
                             Assert.AreEqual(message.username, username);
                         }
-                        else if (container.Value.Is(201))
+                        else if (container.Is(201))
                         {
                             // MatchRequest
-                            var message = container.Value.Parse<MatchRequest>();
+                            var message = container.Parse<MatchRequest>();
                             Assert.AreNotEqual(message, null);
                         }
-                        else if (container.Value.Is(202))
+                        else if (container.Is(202))
                         {
                             // ConnectGameInstanceResponse
-                            var message = container.Value.Parse<ConnectGameInstanceResponse>();
+                            var message = container.Parse<ConnectGameInstanceResponse>();
                             Assert.AreEqual(message.ip, ip);
                             Assert.AreEqual(message.port, port);
                             Assert.AreEqual(message.token, secondToken);
@@ -337,11 +337,11 @@ namespace Tests.IO
             {
                 reader.Add(buffer, len);
                 var message = reader.Decode();
-                Assert.IsTrue(message.Value.Is(200));
-                Assert.AreEqual(loginRequest, message.Value.Parse<LoginRequest>());
+                Assert.IsTrue(message.Is(200));
+                Assert.AreEqual(loginRequest, message.Parse<LoginRequest>());
                 message = reader.Decode();
-                Assert.IsTrue(message.Value.Is(201));
-                Assert.AreEqual(matchRequest, message.Value.Parse<MatchRequest>());
+                Assert.IsTrue(message.Is(201));
+                Assert.AreEqual(matchRequest, message.Parse<MatchRequest>());
                 writer.DidWrite(len);
             });
 
@@ -352,11 +352,11 @@ namespace Tests.IO
             {
                 reader.Add(buffer, len);
                 var message = reader.Decode();
-                Assert.IsFalse(message.HasValue);
+                Assert.IsFalse(message != null);
                 Assert.IsTrue(message == null);
                 message = reader.Decode();
-                Assert.IsTrue(message.Value.Is(201));
-                Assert.AreEqual(matchRequest, message.Value.Parse<MatchRequest>());
+                Assert.IsTrue(message.Is(201));
+                Assert.AreEqual(matchRequest, message.Parse<MatchRequest>());
                 writer.DidWrite(len);
             });
         }
@@ -381,11 +381,11 @@ namespace Tests.IO
                 {
                     Logger.Log($"Using buffer with len: {len}");
                     reader.Add(buffer, len);
-                    MessageContainer? message = null;
-                    while ((message = reader.Decode()).HasValue)
+                    MessageContainer message = null;
+                    while ((message = reader.Decode()) != null)
                     {
-                        Logger.Log($"Decoded message: {message.Value.type}");
-                        Assert.AreEqual(loginRequest, message.Value.Parse<LoginRequest>());
+                        Logger.Log($"Decoded message: {message.type}");
+                        Assert.AreEqual(loginRequest, message.Parse<LoginRequest>());
                     }
 
                     writer.DidWrite(len);

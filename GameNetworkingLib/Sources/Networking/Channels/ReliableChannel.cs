@@ -10,13 +10,16 @@ namespace GameNetworking.Channels
 {
     public class ReliableChannel : Channel<ReliableChannel>, ITcpSocketIOListener
     {
-        private static bool _ioRunning;
         private static readonly PooledList<ReliableChannel> _aliveSockets = PooledList<ReliableChannel>.Rent();
         private static readonly object _socketLock = new object();
+        
+        private static bool _ioRunning;
 
         private readonly MessageStreamReader _reader;
         private readonly ITcpSocket _socket;
         private readonly MessageStreamWriter _writer;
+        
+        private Action<byte[], int> _channelSend;
 
         public ReliableChannel(ITcpSocket socket)
         {
@@ -25,6 +28,8 @@ namespace GameNetworking.Channels
 
             _reader = new MessageStreamReader();
             _writer = new MessageStreamWriter();
+
+            _channelSend = _socket.Send;
         }
 
         ~ReliableChannel()
@@ -93,11 +98,11 @@ namespace GameNetworking.Channels
 
                 for (var index = 0; index < channelCount; index++)
                 {
-                    var channel = channels[index];
+                    ReliableChannel channel = channels[index];
                     try
                     {
                         channel._socket.Receive();
-                        channel._writer.Use(channel._socket.Send);
+                        channel._writer.Use(channel._channelSend);
                     }
                     catch (ObjectDisposedException)
                     {

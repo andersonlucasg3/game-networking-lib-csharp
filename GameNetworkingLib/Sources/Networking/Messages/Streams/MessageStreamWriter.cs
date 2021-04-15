@@ -12,11 +12,7 @@ namespace GameNetworking.Messages.Streams
     public class MessageStreamWriter : IStreamWriter
     {
         private readonly object _lockToken = new object();
-#if !UNITY_64 || UNIT_TESTS
         public readonly byte[] currentBuffer = new byte[1024 * 1024]; // 1MB
-#else
-        private readonly byte[] currentBuffer = new byte[1024 * 1024]; // 1MB
-#endif
 
         public int currentBufferLength { get; private set; }
 
@@ -51,7 +47,10 @@ namespace GameNetworking.Messages.Streams
             }
 
             var newLength = currentBufferLength - count;
-            Array.Copy(currentBuffer, count, currentBuffer, 0, newLength);
+            lock (_lockToken)
+            {
+                Array.Copy(currentBuffer, count, currentBuffer, 0, newLength);
+            }
             currentBufferLength = newLength;
         }
     }

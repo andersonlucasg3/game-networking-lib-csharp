@@ -7,20 +7,18 @@ namespace GameNetworking.Messages.Coders
 {
     public static class CoderHelper
     {
-        private static readonly ObjectPool<IntByteArrayConverter> _intConverterPool
-            = new ObjectPool<IntByteArrayConverter>(() => new IntByteArrayConverter(0));
-
-        public static readonly byte[] delimiter = Encoding.ASCII.GetBytes("\r\t\r\t\r");
+        private static readonly ObjectPool<IntByteArrayConverter> _intConverterPool = new ObjectPool<IntByteArrayConverter>(() => new IntByteArrayConverter(0));
+        private static readonly byte[] _delimiter = Encoding.ASCII.GetBytes("\r\t\r\t\r");
 
         public static int InsertDelimiter(byte[] buffer, int index)
         {
-            Array.Copy(delimiter, 0, buffer, index, delimiter.Length);
-            return delimiter.Length;
+            Array.Copy(_delimiter, 0, buffer, index, _delimiter.Length);
+            return _delimiter.Length;
         }
 
         public static int CheckForDelimiter(byte[] buffer, int length)
         {
-            return ArraySearch.IndexOf(delimiter, delimiter.Length, buffer, length);
+            return ArraySearch.IndexOf(_delimiter, _delimiter.Length, buffer, length);
         }
 
         public static void PackageBytes(int size, byte[] buffer, byte[] packetBytes)
@@ -30,7 +28,7 @@ namespace GameNetworking.Messages.Coders
 
         public static int SliceBuffer(int delimiterIndex, byte[] buffer, int count)
         {
-            var delimiterEndIndex = delimiterIndex + delimiter.Length;
+            var delimiterEndIndex = delimiterIndex + _delimiter.Length;
             var newLength = count - delimiterEndIndex;
             if (newLength > 0) Array.Copy(buffer, delimiterEndIndex, buffer, 0, newLength);
             return newLength;
@@ -38,18 +36,12 @@ namespace GameNetworking.Messages.Coders
 
         public static int WriteInt(int value, byte[] buffer, int index)
         {
-            var headerSize = sizeof(int);
+            const int headerSize = sizeof(int);
             var converter = _intConverterPool.Rent();
             converter.value = value;
             Array.Copy(converter.array, 0, buffer, index, headerSize);
             _intConverterPool.Pay(converter);
             return headerSize;
-        }
-
-        public static int WriteByte(byte value, byte[] buffer, int index)
-        {
-            buffer[index] = value;
-            return 1;
         }
 
         public static int AddChecksum(byte[] data, int index, int length)
@@ -62,11 +54,7 @@ namespace GameNetworking.Messages.Coders
         public static byte CalculateChecksum(byte[] data, int index, int length)
         {
             byte checksum = 0;
-            unchecked
-            {
-                for (var idx = index; idx < length; idx++) checksum += data[idx];
-            }
-
+            unchecked { for (var idx = index; idx < length; idx++) checksum += data[idx]; }
             return checksum;
         }
     }
@@ -77,20 +65,20 @@ namespace GameNetworking.Messages.Coders
         {
             if (patternLength == 0 || arrayLength == 0 || arrayLength < patternLength) return -1;
 
-            var missmatchInPattern = false;
+            var mismatchInPattern = false;
             for (var inArrayIndex = 0; inArrayIndex < arrayLength; inArrayIndex++)
             {
                 int patternIndex;
                 var currentArrayIndex = inArrayIndex;
                 for (patternIndex = 0; patternIndex < patternLength && currentArrayIndex < arrayLength; patternIndex++, currentArrayIndex++)
                 {
-                    missmatchInPattern = inArray[currentArrayIndex] != pattern[patternIndex];
-                    if (missmatchInPattern) break;
+                    mismatchInPattern = inArray[currentArrayIndex] != pattern[patternIndex];
+                    if (mismatchInPattern) break;
                 }
 
-                if (missmatchInPattern) continue;
+                if (mismatchInPattern) continue;
 
-                if (patternIndex == patternLength && !missmatchInPattern) return inArrayIndex;
+                if (patternIndex == patternLength) return inArrayIndex;
             }
 
             return -1;

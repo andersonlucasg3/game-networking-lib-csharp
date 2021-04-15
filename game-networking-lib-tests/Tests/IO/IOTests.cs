@@ -289,11 +289,11 @@ namespace Tests.IO
         }
 
         [Test]
-        public void TestEndianess()
+        public void TestEndian()
         {
             Console.WriteLine($"Is Little Endian: {BitConverter.IsLittleEndian}");
 
-            var value = 15395;
+            const int value = 15395;
             var bigEndianBytes = BitConverter.GetBytes(value);
 
             var converter = new IntByteArrayConverter
@@ -361,7 +361,7 @@ namespace Tests.IO
         }
 
         [Test]
-        public void TestMultithreadReadAndWrite()
+        public void TestMultiThreadReadAndWrite()
         {
             var loginRequest = new LoginRequest {accessToken = "askldfaljksdf", username = "anderson"};
 

@@ -16,6 +16,7 @@ namespace GameNetworking.Channels
         private readonly ConcurrentDictionary<NetEndPoint, MessageStreamReader> _readerCollection = new ConcurrentDictionary<NetEndPoint, MessageStreamReader>();
         private readonly ConcurrentQueue<SendInfo> _sendInfoCollection = new ConcurrentQueue<SendInfo>();
         private readonly ConcurrentDictionary<NetEndPoint, MessageStreamWriter> _writerCollection = new ConcurrentDictionary<NetEndPoint, MessageStreamWriter>();
+        private readonly Action<byte[], int> _socketSendTo;
 
         private UdpSocket _socket;
         private NetEndPoint _toNetEndPoint;
@@ -24,6 +25,11 @@ namespace GameNetworking.Channels
         {
             _socket = socket;
             _socket.listener = this;
+
+            _socketSendTo = (buffer, count) =>
+            {
+                lock (_lockToken) _socket.Send(buffer, count, _toNetEndPoint);
+            };
         }
 
         ~UnreliableChannel()
@@ -96,37 +102,26 @@ namespace GameNetworking.Channels
             ThreadChecker.ConfigureUnreliable(Thread.CurrentThread);
             bool shouldRun;
             
-            void SendTo(byte[] bytes, int count)
-            {
-                lock (this) _socket.Send(bytes, count, _toNetEndPoint);
-            }
-
-            var endPoints = new NetEndPoint[100];
+            NetEndPoint[] endPoints = new NetEndPoint[100];
 
             do
             {
-                lock (this)
-                {
-                    shouldRun = _socket != null;
-                }
+                lock (this) shouldRun = _socket != null;
 
                 try
                 {
                     lock(this) _socket?.Receive();
 
-                    if (_sendInfoCollection.TryDequeue(out var info))
+                    if (_sendInfoCollection.TryDequeue(out SendInfo info))
                     {
-                        var message = info.message;
+                        ITypedMessage message = info.message;
                         _toNetEndPoint = info.to;
 
-                        if (!_writerCollection.TryGetValue(_toNetEndPoint, out var writer))
+                        if (!_writerCollection.TryGetValue(_toNetEndPoint, out MessageStreamWriter writer))
                         {
                             writer = new MessageStreamWriter();
                             _writerCollection.TryAdd(_toNetEndPoint, writer);
-                            lock (_lockToken)
-                            {
-                                _netEndPointWriters.Add(_toNetEndPoint);
-                            }
+                            lock (_lockToken) _netEndPointWriters.Add(_toNetEndPoint);
                         }
 
                         writer.Write(message);
@@ -143,7 +138,7 @@ namespace GameNetworking.Channels
                     {
                         _toNetEndPoint = endPoints[index];
                         var writer = _writerCollection[_toNetEndPoint];
-                        writer.Use(SendTo);
+                        writer.Use(_socketSendTo);
                     }
                 }
                 catch (ObjectDisposedException)

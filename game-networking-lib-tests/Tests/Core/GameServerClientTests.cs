@@ -1,4 +1,4 @@
-﻿#if !UNITY_64
+﻿#if !UNITY_EDITOR
 
 using System;
 using System.Collections.Concurrent;

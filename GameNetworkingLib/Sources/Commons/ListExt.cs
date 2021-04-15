@@ -5,28 +5,26 @@ namespace GameNetworking.Commons
 {
     public static class ListExt
     {
-        public static void AddRange<T>(this List<T> list, IEnumerable<T> collection, int count)
+        public static void AddRange<TItem>(this List<TItem> list, IReadOnlyList<TItem> collection, int count)
         {
-            var index = 0;
-            var enumerator = collection.GetEnumerator();
-            while (index < count)
+            for (int index = 0; index < count; index++)
             {
-                enumerator.MoveNext();
-                list.Add(enumerator.Current);
-                index++;
+                list.Add(collection[index]);
             }
         }
 
-        public static List<T> FindAll<T>(this IReadOnlyList<T> list, Predicate<T> predicate)
+        public static List<TItem> FindAll<TItem>(this IReadOnlyList<TItem> list, Predicate<TItem> predicate)
         {
-            var values = new List<T>();
-            for (var index = 0; index < list.Count; index++)
+            using (PooledList<TItem> values = PooledList<TItem>.Rent())
             {
-                var value = list[index];
-                if (predicate.Invoke(value)) values.Add(value);
-            }
+                for (var index = 0; index < list.Count; index++)
+                {
+                    var value = list[index];
+                    if (predicate.Invoke(value)) values.Add(value);
+                }
 
-            return values;
+                return values;
+            }
         }
     }
 }

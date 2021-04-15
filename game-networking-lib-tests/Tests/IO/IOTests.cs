@@ -141,7 +141,7 @@ namespace Tests.IO
             };
 
             var encoder = new MessageStreamWriter();
-            var data = new List<byte>();
+            PooledList<byte> data = PooledList<byte>.Rent();
             encoder.Write(loginRequest);
             encoder.Use((buffer, count) => data.AddRange(buffer, count));
             encoder.Write(matchRequest);
@@ -187,6 +187,8 @@ namespace Tests.IO
                     position += 1;
                 } while (position < data.Count);
             }, "Partial Stream Decoding");
+            
+            data.Dispose();
         }
 
         [Test]

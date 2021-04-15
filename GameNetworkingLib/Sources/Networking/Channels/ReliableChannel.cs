@@ -17,7 +17,7 @@ namespace GameNetworking.Channels
     public class ReliableChannel : ITcpSocketIOListener
     {
         private static bool _ioRunning;
-        private static readonly List<ReliableChannel> _aliveSockets = new List<ReliableChannel>();
+        private static readonly PooledList<ReliableChannel> _aliveSockets = PooledList<ReliableChannel>.Rent();
         private static readonly object _socketLock = new object();
 
         private readonly MessageStreamReader _reader;
@@ -31,6 +31,11 @@ namespace GameNetworking.Channels
 
             _reader = new MessageStreamReader();
             _writer = new MessageStreamWriter();
+        }
+
+        ~ReliableChannel()
+        {
+            lock(_socketLock) _aliveSockets.Dispose();
         }
 
         public IReliableChannelListener listener { get; set; }
@@ -61,18 +66,12 @@ namespace GameNetworking.Channels
 
         public static void Add(ReliableChannel channel)
         {
-            lock (_socketLock)
-            {
-                _aliveSockets.Add(channel);
-            }
+            lock (_socketLock) _aliveSockets.Add(channel);
         }
 
         public static void Remove(ReliableChannel channel)
         {
-            lock (_socketLock)
-            {
-                _aliveSockets.Remove(channel);
-            }
+            lock (_socketLock) _aliveSockets.Remove(channel);
         }
 
         public void CloseChannel()

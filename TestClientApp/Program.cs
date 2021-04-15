@@ -20,6 +20,7 @@ namespace TestClientApp
 
         private GameClient<Player> client;
         private int counter;
+        private readonly bool running = true;
         private int? playerId;
 
         public void GameClientDidConnect(Channel channel)
@@ -60,11 +61,11 @@ namespace TestClientApp
         public void GameClientDidReceiveMessage(MessageContainer container)
         {
             Logger.Log($"GameClientDidReceiveMessage - type: {container.type}");
-            if (container.type == 1001)
-            {
-                var message = container.Parse<Message>();
-                Logger.Log($"Received message to playerId-{message.playerId}, and I'm playerId-{playerId.Value}, with id-{message.messageId}");
-            }
+            
+            if (container.type != 1001 || !playerId.HasValue) return;
+            
+            var message = container.Parse<Message>();
+            Logger.Log($"Received message to playerId-{message.playerId}, and I'm playerId-{playerId.Value}, with id-{message.messageId}");
         }
 
         public void Enqueue(Action action)
@@ -75,7 +76,7 @@ namespace TestClientApp
             }
         }
 
-        private static void Main(string[] _)
+        private static void Main()
         {
             var program = new Program();
             program.client = new GameClient<Player>(new NetworkClient(new TcpSocket(), new UdpSocket()), new GameClientMessageRouter<Player>(program));
@@ -86,27 +87,31 @@ namespace TestClientApp
 
             var startTime = DateTime.Now;
 
-            while (true)
+            while (program.running)
             {
                 lock (program)
                 {
-                    var copy = new List<Action>(program.actions);
-                    program.actions.RemoveAll(m => true);
-                    copy.ForEach(each => each?.Invoke());
-                    program.client.Update();
+                    using (PooledList<Action> copy = PooledList<Action>.Rent(program.actions))
+                    {
+                        program.actions.RemoveAll(m => true);
+                        copy.ForEach(each => each?.Invoke());
+                        program.client.Update();
+                    }
                 }
 
                 var elapsed = DateTime.Now - startTime;
-                if (elapsed.TotalMilliseconds > 100)
-                {
-                    startTime = DateTime.Now;
-                    if (program.playerId.HasValue) program.Send();
-                }
+                
+                if (!(elapsed.TotalMilliseconds > 100)) continue;
+                
+                startTime = DateTime.Now;
+                if (program.playerId.HasValue) program.Send();
             }
         }
 
         private void Send()
         {
+            if (!playerId.HasValue) return;
+            
             var message = new Message(playerId.Value, counter++);
             client.Send(message, Channel.unreliable);
             client.Send(message, Channel.reliable);

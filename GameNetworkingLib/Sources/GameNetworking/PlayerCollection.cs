@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using GameNetworking.Commons;
 
 namespace GameNetworking
 {
@@ -33,25 +34,30 @@ namespace GameNetworking
         where TKey : IEquatable<TKey>
         where TPlayer : class
     {
-        private readonly List<TPlayer> _values = new List<TPlayer>();
-        private readonly ConcurrentDictionary<TKey, TPlayer> playersCollection = new ConcurrentDictionary<TKey, TPlayer>();
+        private readonly PooledList<TPlayer> _values = PooledList<TPlayer>.Rent();
+        private readonly ConcurrentDictionary<TKey, TPlayer> _playersCollection = new ConcurrentDictionary<TKey, TPlayer>();
 
-        public List<IPlayerCollectionListener<TPlayer>> listeners { get; } = new List<IPlayerCollectionListener<TPlayer>>();
+        public PooledList<IPlayerCollectionListener<TPlayer>> listeners { get; } = PooledList<IPlayerCollectionListener<TPlayer>>.Rent();
 
         public IReadOnlyList<TPlayer> values => _values;
 
-        public TPlayer this[TKey key] => playersCollection[key];
-        public int count => playersCollection.Count;
+        public TPlayer this[TKey key] => _playersCollection[key];
+        public int count => _playersCollection.Count;
+
+        ~PlayerCollection()
+        {
+            _values.Dispose();
+            listeners.Dispose();
+        }
 
         public bool TryGetPlayer(TKey key, out TPlayer value)
         {
-            return playersCollection.TryGetValue(key, out value);
+            return _playersCollection.TryGetValue(key, out value);
         }
 
         public TPlayer FindPlayer(TKey key)
         {
-            if (playersCollection.TryGetValue(key, out var player)) return player;
-            return null;
+            return _playersCollection.TryGetValue(key, out var player) ? player : null;
         }
 
         public TPlayer FindPlayer(Func<TPlayer, bool> predicate)
@@ -60,11 +66,11 @@ namespace GameNetworking
             for (var index = 0; index < values.Count; index++)
             {
                 var value = values[index];
-                if (predicate.Invoke(value))
-                {
-                    player = value;
-                    break;
-                }
+                
+                if (!predicate.Invoke(value)) continue;
+                
+                player = value;
+                break;
             }
 
             return player;
@@ -89,7 +95,7 @@ namespace GameNetworking
 
         public void Add(TKey key, TPlayer player)
         {
-            if (playersCollection.TryAdd(key, player))
+            if (_playersCollection.TryAdd(key, player))
             {
                 _values.Add(player);
 
@@ -99,7 +105,7 @@ namespace GameNetworking
 
         public TPlayer Remove(TKey key)
         {
-            if (playersCollection.TryRemove(key, out var player))
+            if (_playersCollection.TryRemove(key, out var player))
             {
                 _values.Remove(player);
 
@@ -115,7 +121,7 @@ namespace GameNetworking
             for (var index_l = 0; index_l < listeners.Count; index_l++)
                 listeners[index_l].PlayerStorageDidRemove(values[index_p]);
 
-            playersCollection.Clear();
+            _playersCollection.Clear();
             _values.Clear();
         }
     }

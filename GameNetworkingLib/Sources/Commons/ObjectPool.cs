@@ -15,15 +15,8 @@ namespace GameNetworking.Commons
             Pay(Rent());
         }
 
-        public T Rent()
-        {
-            if (bag.TryTake(out var item)) return item;
-            return factory();
-        }
+        public T Rent() => bag.TryTake(out var item) ? item : factory();
 
-        public void Pay(T item)
-        {
-            bag.Add(item);
-        }
+        public void Pay(T item) => bag.Add(item);
     }
 }

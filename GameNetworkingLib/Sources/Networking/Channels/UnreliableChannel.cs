@@ -18,22 +18,23 @@ namespace GameNetworking.Channels
     public class UnreliableChannel : IUdpSocketIOListener
     {
         private readonly object _lockToken = new object();
-        private readonly List<NetEndPoint> _netEndPointWriters;
-        private readonly ConcurrentDictionary<NetEndPoint, MessageStreamReader> _readerCollection;
-        private readonly ConcurrentQueue<SendInfo> _sendInfoCollection;
-        private readonly ConcurrentDictionary<NetEndPoint, MessageStreamWriter> _writerCollection;
+        private readonly PooledList<NetEndPoint> _netEndPointWriters = PooledList<NetEndPoint>.Rent();
+        private readonly ConcurrentDictionary<NetEndPoint, MessageStreamReader> _readerCollection = new ConcurrentDictionary<NetEndPoint, MessageStreamReader>();
+        private readonly ConcurrentQueue<SendInfo> _sendInfoCollection = new ConcurrentQueue<SendInfo>();
+        private readonly ConcurrentDictionary<NetEndPoint, MessageStreamWriter> _writerCollection = new ConcurrentDictionary<NetEndPoint, MessageStreamWriter>();
 
         private UdpSocket _socket;
+        private NetEndPoint _toNetEndPoint;
 
         public UnreliableChannel(UdpSocket socket)
         {
             _socket = socket;
             _socket.listener = this;
+        }
 
-            _readerCollection = new ConcurrentDictionary<NetEndPoint, MessageStreamReader>();
-            _writerCollection = new ConcurrentDictionary<NetEndPoint, MessageStreamWriter>();
-            _netEndPointWriters = new List<NetEndPoint>();
-            _sendInfoCollection = new ConcurrentQueue<SendInfo>();
+        ~UnreliableChannel()
+        {
+            lock (_lockToken) _netEndPointWriters.Dispose();
         }
 
         public IUnreliableChannelListener listener { get; set; }
@@ -103,16 +104,13 @@ namespace GameNetworking.Channels
             Thread.CurrentThread.Name = "UnreliableChannel Thread";
             ThreadChecker.ConfigureUnreliable(Thread.CurrentThread);
             bool shouldRun;
-
-            NetEndPoint toEndPoint = new NetEndPoint();
-
+            
             void SendTo(byte[] bytes, int count)
             {
-                _socket.Send(bytes, count, toEndPoint);
+                lock (this) _socket.Send(bytes, count, _toNetEndPoint);
             }
 
             var endPoints = new NetEndPoint[100];
-            var endPointCount = 0;
 
             do
             {
@@ -123,36 +121,37 @@ namespace GameNetworking.Channels
 
                 try
                 {
-                    _socket.Receive();
+                    lock(this) _socket?.Receive();
 
                     if (_sendInfoCollection.TryDequeue(out var info))
                     {
                         var message = info.message;
-                        toEndPoint = info.to;
+                        _toNetEndPoint = info.to;
 
-                        if (!_writerCollection.TryGetValue(toEndPoint, out var writer))
+                        if (!_writerCollection.TryGetValue(_toNetEndPoint, out var writer))
                         {
                             writer = new MessageStreamWriter();
-                            _writerCollection.TryAdd(toEndPoint, writer);
+                            _writerCollection.TryAdd(_toNetEndPoint, writer);
                             lock (_lockToken)
                             {
-                                _netEndPointWriters.Add(toEndPoint);
+                                _netEndPointWriters.Add(_toNetEndPoint);
                             }
                         }
 
                         writer.Write(message);
                     }
 
+                    int endPointCount;
                     lock (_lockToken)
                     {
                         _netEndPointWriters.CopyTo(endPoints);
                         endPointCount = _netEndPointWriters.Count;
                     }
 
-                    for (var index = 0; index < endPointCount; index++)
+                    for (int index = 0; index < endPointCount; index++)
                     {
-                        toEndPoint = endPoints[index];
-                        var writer = _writerCollection[toEndPoint];
+                        _toNetEndPoint = endPoints[index];
+                        var writer = _writerCollection[_toNetEndPoint];
                         writer.Use(SendTo);
                     }
                 }

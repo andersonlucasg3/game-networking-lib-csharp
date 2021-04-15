@@ -17,7 +17,7 @@ namespace Tests.IO
 {
     public class IOTests
     {
-        private void Measure(Action action, string name)
+        private static void Measure(Action action, string name)
         {
             var times = new TimeSpan[10];
             for (var index = 0; index < times.Length; index++)

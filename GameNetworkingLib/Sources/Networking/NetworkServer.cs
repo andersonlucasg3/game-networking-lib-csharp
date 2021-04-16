@@ -7,9 +7,14 @@ namespace GameNetworking.Networking
 {
     public interface INetworkServerListener
     {
-        void NetworkServerDidAcceptPlayer(ReliableChannel reliable, UnreliableChannel unreliable);
-        void NetworkServerPlayerDidDisconnect(ReliableChannel channel);
-        void NetworkServerDidReceiveUnidentifiedMessage(MessageContainer container, NetEndPoint from);
+        void NetworkServerReliableChannelConnected(ReliableChannel reliable);
+        void NetworkServerUnreliableChannelConnected(UnreliableChannel unreliable);
+        void NetworkServerReliableChannelDisconnected(ReliableChannel channel);
+    }
+
+    public interface INetworkServerUnidentifiedMessageListener
+    {
+        void NetworkServerDidReceiveUnidentifiedMessage(MessageContainer container, NetEndPoint from);   
     }
 
     public interface INetworkServerMessageListener
@@ -25,6 +30,12 @@ namespace GameNetworking.Networking
         private readonly TcpSocket _tcpSocket;
         private readonly UdpSocket _udpSocket;
 
+        public UnreliableChannel unreliableChannel { get; }
+        public NetEndPoint listeningOnEndPoint { get; private set; }
+
+        public INetworkServerListener listener { get; set; }
+        public INetworkServerUnidentifiedMessageListener unidentifiedMessageListener { get; set; }
+        
         public NetworkServer(TcpSocket tcpSocket, UdpSocket udpSocket)
         {
             _tcpSocket = tcpSocket;
@@ -40,11 +51,6 @@ namespace GameNetworking.Networking
             unreliableChannel = new UnreliableChannel(_udpSocket) {listener = this};
         }
 
-        public UnreliableChannel unreliableChannel { get; }
-        public NetEndPoint listeningOnEndPoint { get; private set; }
-
-        public INetworkServerListener listener { get; set; }
-
         void ITcpServerListener.SocketDidAccept(ITcpSocket socket)
         {
             ThreadChecker.AssertAcceptThread();
@@ -57,7 +63,7 @@ namespace GameNetworking.Networking
             ReliableChannel.Add(reliable);
 
             _socketCollection.Add(socket, reliable);
-            listener?.NetworkServerDidAcceptPlayer(reliable, unreliableChannel);
+            listener?.NetworkServerReliableChannelConnected(reliable);
         }
 
         void ITcpServerListener.SocketDidDisconnect(ITcpSocket socket)
@@ -68,42 +74,55 @@ namespace GameNetworking.Networking
             if (channel == null) return;
 
             ReliableChannel.Remove(channel);
-            listener?.NetworkServerPlayerDidDisconnect(channel);
+            listener?.NetworkServerReliableChannelDisconnected(channel);
         }
 
         void IChannelListener<UnreliableChannel>.ChannelDidReceiveMessage(UnreliableChannel channel, MessageContainer container)
         {
             ThreadChecker.AssertUnreliableChannel();
 
-            if (_identifiedCollection.TryGetPlayer(container.remoteEndPoint, out var messageListener))
-                messageListener?.NetworkServerDidReceiveMessage(container);
-            else
-                listener?.NetworkServerDidReceiveUnidentifiedMessage(container, container.remoteEndPoint);
+            if (_identifiedCollection.TryGetPlayer(container.remoteEndPoint, out var messageListener)) messageListener?.NetworkServerDidReceiveMessage(container);
+            else unidentifiedMessageListener?.NetworkServerDidReceiveUnidentifiedMessage(container, container.remoteEndPoint);
         }
 
-        public void Start(NetEndPoint endPoint)
+        public void StartReliable(NetEndPoint endPoint)
         {
             ThreadChecker.AssertMainThread();
 
             _tcpSocket.Bind(endPoint);
             _tcpSocket.Start();
 
-            _udpSocket.Bind(endPoint);
-
             listeningOnEndPoint = _tcpSocket.localEndPoint;
 
             ReliableChannel.StartIO();
+        }
 
+        public void StartUnreliable(NetEndPoint endPoint)
+        {
+            ThreadChecker.AssertMainThread();
+            
+            _udpSocket.Bind(endPoint);
+            
             unreliableChannel?.StartIO();
         }
 
-        public void Stop()
+        public void StopReliable()
         {
             ThreadChecker.AssertMainThread();
 
             ReliableChannel.StopIO();
             _tcpSocket.Stop();
+        }
+
+        public void StopUnreliable()
+        {
             unreliableChannel?.StopIO();
+        }
+
+        public void StopAll()
+        {
+            StopReliable();
+            StopUnreliable();
         }
 
         public void Close()

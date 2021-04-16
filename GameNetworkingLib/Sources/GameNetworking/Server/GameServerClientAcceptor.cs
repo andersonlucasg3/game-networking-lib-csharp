@@ -2,6 +2,7 @@
 using GameNetworking.Channels;
 using GameNetworking.Messages.Models;
 using GameNetworking.Messages.Server;
+using GameNetworking.Networking;
 using Logging;
 
 namespace GameNetworking.Server
@@ -16,19 +17,19 @@ namespace GameNetworking.Server
         void SendBroadcast(ITypedMessage message, ChannelType channelType);
     }
 
-    public sealed class GameServerClientAcceptor<TPlayer> where TPlayer : Player, new()
+    public sealed class GameServerClientAcceptor<TPlayer> : INetworkServerListener where TPlayer : Player, new()
     {
         private readonly ConcurrentDictionary<ReliableChannel, TPlayer> channelCollection;
         private int playerIdCounter;
+
+        public IGameServerClientAcceptorListener<TPlayer> listener { get; set; }
 
         public GameServerClientAcceptor()
         {
             channelCollection = new ConcurrentDictionary<ReliableChannel, TPlayer>();
         }
 
-        public IGameServerClientAcceptorListener<TPlayer> listener { get; set; }
-
-        public void AcceptClient(TPlayer player)
+        private void AcceptClient(TPlayer player)
         {
             listener.ClientAcceptorPlayerDidConnect(player);
 
@@ -59,29 +60,33 @@ namespace GameNetworking.Server
             if (Logger.IsLoggingEnabled) Logger.Log($"(AcceptClient) count {listener.playerCollection.count}");
         }
 
-        public void Disconnect(TPlayer player)
+        private void Disconnect(TPlayer player)
         {
             if (Logger.IsLoggingEnabled) Logger.Log($"(Disconnect) count {listener.playerCollection.count}");
 
-            if (player != null)
-            {
-                listener.ClientAcceptorPlayerDidDisconnect(player);
-                listener.SendBroadcast(new DisconnectedPlayerMessage {playerId = player.playerId}, ChannelType.reliable);
-            }
+            if (player == null) return;
+            
+            listener.ClientAcceptorPlayerDidDisconnect(player);
+            listener.SendBroadcast(new DisconnectedPlayerMessage {playerId = player.playerId}, ChannelType.reliable);
         }
 
-        public void NetworkServerDidAcceptPlayer(ReliableChannel reliable, UnreliableChannel unreliable)
+        void INetworkServerListener.NetworkServerReliableChannelConnected(ReliableChannel reliable)
         {
             var player = new TPlayer();
             player.Configure(playerIdCounter++);
-            player.Configure(reliable, unreliable);
+            player.Configure(reliable);
 
             channelCollection[reliable] = player;
 
             AcceptClient(player);
         }
 
-        public void NetworkServerPlayerDidDisconnect(ReliableChannel channel)
+        void INetworkServerListener.NetworkServerUnreliableChannelConnected(UnreliableChannel unreliable)
+        {
+            // TODO: ...
+        }
+
+        void INetworkServerListener.NetworkServerReliableChannelDisconnected(ReliableChannel channel)
         {
             if (channelCollection.TryRemove(channel, out var player)) Disconnect(player);
         }

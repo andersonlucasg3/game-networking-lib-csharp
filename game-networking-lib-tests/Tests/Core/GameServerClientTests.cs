@@ -149,11 +149,11 @@ namespace Tests.Core
             NewServer(out var server, out var serverListener);
             NewClient(out var client, out var clientListener);
 
-            server.Start(5000);
+            server.StartAll(5000);
 
             server.Update();
 
-            client.Connect(hostIp, 5000);
+            client.ConnectAll(hostIp, 5000);
 
             server.Update();
             client.Update();
@@ -182,7 +182,7 @@ namespace Tests.Core
 
             Assert.IsNotNull(serverPlayer);
 
-            client.Disconnect();
+            client.DisconnectAll();
 
             client.Update();
             server.Update();
@@ -203,7 +203,7 @@ namespace Tests.Core
 
             Assert.AreEqual(0, clientListener.disconnectedPlayers.Count);
 
-            server.Stop();
+            server.StopAll();
 
             Thread.Sleep(2000);
         }
@@ -234,19 +234,19 @@ namespace Tests.Core
                 MainThreadDispatcher.Execute();
             }
 
-            server.Start(5000);
+            server.StartAll(5000);
 
             UpdateAction();
 
-            client1.Connect(hostIp, 5000);
+            client1.ConnectAll(hostIp, 5000);
 
             UpdateAction();
 
-            client2.Connect(hostIp, 5000);
+            client2.ConnectAll(hostIp, 5000);
 
             UpdateAction();
 
-            client3.Connect(hostIp, 5000);
+            client3.ConnectAll(hostIp, 5000);
 
             UpdateAction();
 
@@ -280,7 +280,7 @@ namespace Tests.Core
 
             UpdateAction();
 
-            client3.Disconnect();
+            client3.DisconnectAll();
 
             UpdateAction();
 
@@ -309,7 +309,7 @@ namespace Tests.Core
             Assert.AreEqual(1, client2.playerCollection.values.FindAll(p => p.isLocalPlayer).Count);
             Assert.AreEqual(0, client3.playerCollection.values.FindAll(p => p.isLocalPlayer).Count);
 
-            server.Stop();
+            server.StopAll();
 
             Thread.Sleep(2000);
         }
@@ -334,29 +334,29 @@ namespace Tests.Core
                 MainThreadDispatcher.Execute();
             }
 
-            server.Start(5000);
+            server.StartAll(5000);
 
             Update();
 
-            client1.Connect(hostIp, 5000);
+            client1.ConnectAll(hostIp, 5000);
 
             Update();
 
-            client2.Connect(hostIp, 5000);
+            client2.ConnectAll(hostIp, 5000);
 
             Update();
 
             var player2 = client2.playerCollection.FindPlayer(player => player.isLocalPlayer);
             var disconnectedPlayerId = player2.playerId;
 
-            client2.Disconnect();
+            client2.DisconnectAll();
 
             Update();
 
             Assert.IsNull(server.playerCollection.FindPlayer(player2.playerId));
             NewClient(out client2, out var listener2_c);
 
-            client2.Connect(hostIp, 5000);
+            client2.ConnectAll(hostIp, 5000);
 
             Update();
 
@@ -365,7 +365,7 @@ namespace Tests.Core
 
             Assert.AreEqual(disconnectedPlayerId, listener1_c.disconnectedPlayers[0].playerId);
 
-            server.Stop();
+            server.StopAll();
 
             Thread.Sleep(2000);
         }
@@ -390,15 +390,15 @@ namespace Tests.Core
                 MainThreadDispatcher.Execute();
             }
 
-            server.Start(5000);
+            server.StartAll(5000);
 
             Update();
 
-            client1.Connect(hostIp, 5000);
+            client1.ConnectAll(hostIp, 5000);
 
             Update();
 
-            client2.Connect(hostIp, 5000);
+            client2.ConnectAll(hostIp, 5000);
 
             Update();
             Update();
@@ -430,7 +430,7 @@ namespace Tests.Core
             Assert.Less(Math.Abs(player1.mostRecentPingValue - client2client1Ping), 0.5F);
             Assert.Less(Math.Abs(player2.mostRecentPingValue - client1client2Ping), 0.5F);
 
-            server.Stop();
+            server.StopAll();
 
             Thread.Sleep(2000);
         }
@@ -449,30 +449,30 @@ namespace Tests.Core
                 MainThreadDispatcher.Execute();
             }
 
-            server.Start(5000);
+            server.StartAll(5000);
 
             Update();
 
-            client1.Connect(hostIp, 5000);
+            client1.ConnectAll(hostIp, 5000);
 
             Update();
             Update();
 
             Assert.IsTrue(clientListener.localPlayer.playerId == 0);
 
-            client1.Disconnect();
+            client1.DisconnectAll();
 
             Update();
 
             NewClient(out client1, out clientListener);
 
-            client1.Connect(hostIp, 5000);
+            client1.ConnectAll(hostIp, 5000);
 
             Update();
 
             Assert.IsTrue(clientListener.localPlayer.playerId == 1);
 
-            server.Stop();
+            server.StopAll();
 
             Thread.Sleep(2000);
         }

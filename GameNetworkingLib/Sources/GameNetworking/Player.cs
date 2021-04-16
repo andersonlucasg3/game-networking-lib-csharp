@@ -72,12 +72,15 @@ namespace GameNetworking
                 playerId = thisPlayerId;
             }
             
-            internal void Configure(ReliableChannel reliable, UnreliableChannel unreliable)
+            internal void Configure(ReliableChannel reliable)
             {
                 reliableChannel = reliable;
-                unreliableChannel = unreliable;
-
                 reliableChannel.listener = this;
+            }
+
+            internal void Configure(UnreliableChannel unreliable)
+            {
+                unreliableChannel = unreliable;
             }
 
             #endregion

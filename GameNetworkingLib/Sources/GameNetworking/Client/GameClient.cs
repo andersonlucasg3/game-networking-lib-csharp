@@ -1,4 +1,5 @@
-﻿using GameNetworking.Channels;
+﻿using System;
+using GameNetworking.Channels;
 using GameNetworking.Commons;
 using GameNetworking.Commons.Client;
 using GameNetworking.Executors.Client;
@@ -24,35 +25,27 @@ namespace GameNetworking.Client
         void GameClientPlayerDidDisconnect(TPlayer player);
     }
 
-    public interface IGameClient<TPlayer>
-        where TPlayer : Player
-    {
-        IReadOnlyPlayerCollection<int, TPlayer> playerCollection { get; }
-        TPlayer localPlayer { get; }
-
-        IGameClientListener<TPlayer> listener { get; set; }
-
-        void Connect(string host, int port);
-        void Disconnect();
-
-        void Update();
-
-        void Send(ITypedMessage message, ChannelType channelType);
-    }
-
     internal interface IRemoteClientListener
     {
         void RemoteClientDidConnect(int playerId, bool isLocalPlayer);
         void RemoteClientDidDisconnect(int playerId);
     }
 
-    public class GameClient<TPlayer> : IGameClient<TPlayer>, IRemoteClientListener, INetworkClientListener, IMessageAckHelperListener<NatIdentifierResponseMessage>
+    public class GameClient<TPlayer> : IRemoteClientListener, INetworkClientListener, IMessageAckHelperListener<NatIdentifierResponseMessage>
         where TPlayer : Player, new()
     {
         private readonly PlayerCollection<int, TPlayer> _playerCollection = new PlayerCollection<int, TPlayer>();
         private readonly GameClientMessageRouter<TPlayer> router;
 
         private MessageAckHelper<NatIdentifierRequestMessage, NatIdentifierResponseMessage> natIdentifierAckHelper;
+
+        public NetworkClient networkClient { get; }
+
+        public IReadOnlyPlayerCollection<int, TPlayer> playerCollection => _playerCollection;
+
+        public TPlayer localPlayer { get; private set; }
+
+        public IGameClientListener<TPlayer> listener { get; set; }
 
         public GameClient(NetworkClient networkClient, GameClientMessageRouter<TPlayer> router)
         {
@@ -69,22 +62,42 @@ namespace GameNetworking.Client
             this.router.Configure(this);
         }
 
-        public NetworkClient networkClient { get; }
-        public IReadOnlyPlayerCollection<int, TPlayer> playerCollection => _playerCollection;
-        public TPlayer localPlayer { get; private set; }
-
-        public IGameClientListener<TPlayer> listener { get; set; }
-
-        public void Connect(string host, int port)
+        public void ConnectReliable(string host, int port)
         {
             ThreadChecker.AssertMainThread();
-            networkClient.Connect(host, port);
+            networkClient.ConnectReliable(host, port);
         }
 
-        public void Disconnect()
+        public void ConnectUnreliable(string host, int port)
         {
             ThreadChecker.AssertMainThread();
-            networkClient.Disconnect();
+            networkClient.ConnectUnreliable(host, port);
+        }
+
+        public void ConnectAll(string host, int port)
+        {
+            ThreadChecker.AssertMainThread();
+            ConnectReliable(host, port);
+            ConnectUnreliable(host, port);
+        }
+
+        public void DisconnectReliable()
+        {
+            ThreadChecker.AssertMainThread();
+            networkClient.DisconnectReliable();
+        }
+
+        public void DisconnectUnreliable()
+        {
+            ThreadChecker.AssertMainThread();
+            networkClient.DisconnectUnreliable();
+        }
+
+        public void DisconnectAll()
+        {
+            ThreadChecker.AssertMainThread();
+            DisconnectReliable();
+            DisconnectUnreliable();
         }
 
         public void Send(ITypedMessage message, ChannelType channelType)
@@ -99,6 +112,8 @@ namespace GameNetworking.Client
                     var remote = networkClient.remoteEndPoint;
                     networkClient.unreliableChannel.Send(message, remote);
                     break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(channelType), channelType, null);
             }
         }
 
@@ -110,9 +125,7 @@ namespace GameNetworking.Client
 
         void IMessageAckHelperListener<NatIdentifierResponseMessage>.MessageAckHelperFailed()
         {
-            ThreadChecker.AssertUnreliableChannel();
-
-            Disconnect();
+            DisconnectUnreliable();
             natIdentifierAckHelper = null;
         }
 
@@ -124,12 +137,12 @@ namespace GameNetworking.Client
             natIdentifierAckHelper = null;
         }
 
-        void INetworkClientListener.NetworkClientDidConnect()
+        void INetworkClientListener.NetworkClientReliableChannelConnected()
         {
             router.dispatcher.Enqueue(() => listener?.GameClientDidConnect(ChannelType.reliable));
         }
 
-        void INetworkClientListener.NetworkClientConnectDidTimeout()
+        void INetworkClientListener.NetworkClientReliableChannelTimedOut()
         {
             router.dispatcher.Enqueue(() => listener?.GameClientConnectDidTimeout());
         }
@@ -144,12 +157,16 @@ namespace GameNetworking.Client
         {
             ThreadChecker.AssertUnreliableChannel();
             if (natIdentifierAckHelper != null)
+            {
                 natIdentifierAckHelper.Route(@from, container);
+            }
             else
+            {
                 router.Route(container);
+            }
         }
 
-        void INetworkClientListener.NetworkClientDidDisconnect()
+        void INetworkClientListener.NetworkClientReliableChannelDisconnected()
         {
             ThreadChecker.AssertReliableChannel();
             router.dispatcher.Enqueue(() => listener?.GameClientDidDisconnect());

@@ -7,9 +7,9 @@ namespace GameNetworking.Networking
 {
     public interface INetworkClientListener
     {
-        void NetworkClientDidConnect();
-        void NetworkClientConnectDidTimeout();
-        void NetworkClientDidDisconnect();
+        void NetworkClientReliableChannelConnected();
+        void NetworkClientReliableChannelTimedOut();
+        void NetworkClientReliableChannelDisconnected();
 
         void NetworkClientDidReceiveMessage(MessageContainer container);
         void NetworkClientDidReceiveMessage(MessageContainer container, NetEndPoint from);
@@ -17,55 +17,52 @@ namespace GameNetworking.Networking
 
     public class NetworkClient : ITcpClientListener, IChannelListener<ReliableChannel>, IChannelListener<UnreliableChannel>
     {
-        private readonly TcpSocket tcpSocket;
-        private readonly UdpSocket udpSocket;
+        private readonly TcpSocket _tcpSocket;
+        private readonly UdpSocket _udpSocket;
 
-        public NetworkClient(TcpSocket tcpSocket, UdpSocket udpSocket)
-        {
-            this.tcpSocket = tcpSocket;
-            this.udpSocket = udpSocket;
-
-            this.tcpSocket.clientListener = this;
-
-            reliableChannel = new ReliableChannel(this.tcpSocket);
-            unreliableChannel = new UnreliableChannel(this.udpSocket);
-
-            reliableChannel.listener = this;
-            unreliableChannel.listener = this;
-        }
-
-        public NetEndPoint localEndPoint => tcpSocket.localEndPoint;
-        public NetEndPoint remoteEndPoint => tcpSocket.remoteEndPoint;
+        public NetEndPoint localEndPoint => _tcpSocket.localEndPoint;
+        public NetEndPoint remoteEndPoint => _tcpSocket.remoteEndPoint;
 
         public ReliableChannel reliableChannel { get; }
         public UnreliableChannel unreliableChannel { get; }
 
         public INetworkClientListener listener { get; set; }
+        
+        public NetworkClient(TcpSocket tcpSocket, UdpSocket udpSocket)
+        {
+            _tcpSocket = tcpSocket;
+            _udpSocket = udpSocket;
+
+            _tcpSocket.clientListener = this;
+
+            reliableChannel = new ReliableChannel(_tcpSocket);
+            unreliableChannel = new UnreliableChannel(_udpSocket);
+
+            reliableChannel.listener = this;
+            unreliableChannel.listener = this;
+        }
 
         void ITcpClientListener.SocketDidConnect()
         {
             ReliableChannel.Add(reliableChannel);
 
-            udpSocket.Bind(tcpSocket.localEndPoint);
-            udpSocket.Connect(tcpSocket.remoteEndPoint);
-
-            listener?.NetworkClientDidConnect();
+            listener?.NetworkClientReliableChannelConnected();
         }
 
         void ITcpClientListener.SocketDidTimeout()
         {
-            listener?.NetworkClientConnectDidTimeout();
+            listener?.NetworkClientReliableChannelTimedOut();
 
-            tcpSocket.Close();
+            _tcpSocket.Close();
         }
 
         void ITcpClientListener.SocketDidDisconnect()
         {
             ReliableChannel.Remove(reliableChannel);
 
-            listener?.NetworkClientDidDisconnect();
+            listener?.NetworkClientReliableChannelDisconnected();
 
-            tcpSocket.Close();
+            _tcpSocket.Close();
         }
 
         void IChannelListener<ReliableChannel>.ChannelDidReceiveMessage(ReliableChannel channel, MessageContainer container)
@@ -78,18 +75,29 @@ namespace GameNetworking.Networking
             listener?.NetworkClientDidReceiveMessage(container, container.remoteEndPoint);
         }
 
-        public void Connect(string host, int port)
+        public void ConnectReliable(string host, int port)
         {
-            tcpSocket.Connect(new NetEndPoint(IPAddress.Parse(host), port));
+            _tcpSocket.Connect(new NetEndPoint(IPAddress.Parse(host), port));
             ReliableChannel.StartIO();
+        }
+
+        public void ConnectUnreliable(string host, int port)
+        {
+            _udpSocket.Bind(new NetEndPoint(IPAddress.Any, port));
+            _udpSocket.Connect(new NetEndPoint(IPAddress.Parse(host), port));
+            
             unreliableChannel.StartIO();
         }
 
-        public void Disconnect()
+        public void DisconnectReliable()
         {
             reliableChannel.CloseChannel();
-            unreliableChannel.CloseChannel(remoteEndPoint);
             ReliableChannel.StopIO();
+        }
+
+        public void DisconnectUnreliable()
+        {
+            unreliableChannel.CloseChannel(remoteEndPoint);
             unreliableChannel.StopIO();
         }
     }

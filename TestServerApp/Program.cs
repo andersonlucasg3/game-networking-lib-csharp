@@ -48,7 +48,7 @@ namespace TestServerApp
             var program = new Program();
             program.server = new GameServer<Player>(new NetworkServer(new TcpSocket(), new UdpSocket()), new GameServerMessageRouter<Player>(program));
 
-            program.server.Start(64000);
+            program.server.StartAll(64000);
 
             program.server.listener = program;
 

@@ -81,7 +81,7 @@ namespace TestClientApp
             var program = new Program();
             program.client = new GameClient<Player>(new NetworkClient(new TcpSocket(), new UdpSocket()), new GameClientMessageRouter<Player>(program));
 
-            program.client.Connect("127.0.0.1", 64000);
+            program.client.ConnectAll("127.0.0.1", 64000);
 
             program.client.listener = program;
 

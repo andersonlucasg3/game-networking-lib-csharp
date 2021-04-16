@@ -19,20 +19,25 @@ namespace GameNetworking.Server
         void GameServerDidReceiveClientMessage(MessageContainer container, TPlayer player);
     }
 
-    public class GameServer<TPlayer> : IGameServerClientAcceptorListener<TPlayer>, INetworkServerListener where TPlayer : Player, new()
+    public class GameServer<TPlayer> : IGameServerClientAcceptorListener<TPlayer>, INetworkServerUnidentifiedMessageListener where TPlayer : Player, new()
     {
         private readonly PlayerCollection<int, TPlayer> _playerCollection;
-        private readonly GameServerClientAcceptor<TPlayer> _clientAcceptor;
         private readonly GameServerMessageRouter<TPlayer> _router;
+        
+        public NetworkServer networkServer { get; }
+        public IGameServerPingController<TPlayer> pingController { get; }
+
+        public IGameServerListener<TPlayer> listener { get; set; }
+        public IReadOnlyPlayerCollection<int, TPlayer> playerCollection => _playerCollection;
 
         public GameServer(NetworkServer networkServer, GameServerMessageRouter<TPlayer> router)
         {
             ThreadChecker.AssertMainThread();
 
-            _clientAcceptor = new GameServerClientAcceptor<TPlayer> {listener = this};
+            GameServerClientAcceptor<TPlayer> clientAcceptor = new GameServerClientAcceptor<TPlayer> {listener = this};
 
             this.networkServer = networkServer;
-            this.networkServer.listener = this;
+            this.networkServer.listener = clientAcceptor;
 
             _playerCollection = new PlayerCollection<int, TPlayer>();
             pingController = new GameServerPingController<TPlayer>(_playerCollection);
@@ -40,19 +45,85 @@ namespace GameNetworking.Server
             _router = router;
             _router.Configure(this);
         }
-
-        public NetworkServer networkServer { get; }
-        public IGameServerPingController<TPlayer> pingController { get; }
-
-        public IGameServerListener<TPlayer> listener { get; set; }
-        public IReadOnlyPlayerCollection<int, TPlayer> playerCollection => _playerCollection;
-
+        
         public void SendBroadcast(ITypedMessage message, ChannelType channelType)
         {
             var sendValue = new SendValue {message = message, channelType = channelType};
             _playerCollection.ForEach(Send, sendValue);
         }
 
+        public void StartReliable(int port)
+        {
+            ThreadChecker.AssertMainThread();
+
+            networkServer.StartReliable(new NetEndPoint(IPAddress.Any, port));
+        }
+
+        public void StartUnreliable(int port)
+        {
+            ThreadChecker.AssertMainThread();
+            
+            networkServer.StartUnreliable(new NetEndPoint(IPAddress.Any, port));
+        }
+
+        public void StartAll(int port)
+        {
+            ThreadChecker.AssertMainThread();
+            
+            StartReliable(port);
+            StartUnreliable(port);
+        }
+
+        public void StopReliable()
+        {
+            ThreadChecker.AssertMainThread();
+
+            networkServer.StopReliable();
+        }
+
+        public void StopUnreliable()
+        {
+            ThreadChecker.AssertMainThread();
+            
+            networkServer.StopUnreliable();
+        }
+
+        public void StopAll()
+        {
+            ThreadChecker.AssertMainThread();
+            
+            networkServer.StopAll();
+        }
+
+        public void Update()
+        {
+            ThreadChecker.AssertMainThread();
+
+            pingController.Update();
+        }
+
+        private static void Send(TPlayer player, SendValue value)
+        {
+            ThreadChecker.AssertMainThread();
+
+            player.Send(value.message, value.channelType);
+        }
+
+        public void SendBroadcast(ITypedMessage message, Predicate<TPlayer> predicate, ChannelType channelType)
+        {
+            ThreadChecker.AssertMainThread();
+
+            var sendValue = new SendValue {message = message, predicate = predicate, channelType = channelType};
+            _playerCollection.ForEach(SendPredicate, sendValue);
+        }
+
+        private static void SendPredicate(TPlayer player, SendValue value)
+        {
+            ThreadChecker.AssertMainThread();
+
+            if (value.predicate(player)) player.Send(value.message, value.channelType);
+        }
+        
         void IGameServerClientAcceptorListener<TPlayer>.ClientAcceptorPlayerDidConnect(TPlayer player)
         {
             player.listener = _router;
@@ -69,20 +140,8 @@ namespace GameNetworking.Server
             if (player.remoteIdentifiedEndPoint.HasValue) networkServer.Unregister(player.remoteIdentifiedEndPoint.Value);
             _router.dispatcher.Enqueue(() => listener?.GameServerPlayerDidDisconnect(player));
         }
-
-        void INetworkServerListener.NetworkServerDidAcceptPlayer(ReliableChannel reliable, UnreliableChannel unreliable)
-        {
-            _clientAcceptor.NetworkServerDidAcceptPlayer(reliable, unreliable);
-        }
-
-        void INetworkServerListener.NetworkServerPlayerDidDisconnect(ReliableChannel channel)
-        {
-            ThreadChecker.AssertReliableChannel();
-
-            _clientAcceptor.NetworkServerPlayerDidDisconnect(channel);
-        }
-
-        void INetworkServerListener.NetworkServerDidReceiveUnidentifiedMessage(MessageContainer container, NetEndPoint from)
+        
+        void INetworkServerUnidentifiedMessageListener.NetworkServerDidReceiveUnidentifiedMessage(MessageContainer container, NetEndPoint from)
         {
             ThreadChecker.AssertUnreliableChannel();
 
@@ -90,52 +149,10 @@ namespace GameNetworking.Server
 
             var serverModel = new GameServerMessageRouter<TPlayer>.ServerModel<NetEndPoint>(this, from);
 
-            var executor = new Executor<NatIdentifierRequestExecutor<TPlayer>, GameServerMessageRouter<TPlayer>.ServerModel<NetEndPoint>,
+            var executor = new Executor<NatIdentifierRequestExecutor<TPlayer>, 
+                GameServerMessageRouter<TPlayer>.ServerModel<NetEndPoint>,
                 NatIdentifierRequestMessage>(serverModel, container);
             _router.dispatcher.Enqueue(executor.Execute);
-        }
-
-        public void Start(int port)
-        {
-            ThreadChecker.AssertMainThread();
-
-            networkServer.Start(new NetEndPoint(IPAddress.Any, port));
-        }
-
-        public void Stop()
-        {
-            ThreadChecker.AssertMainThread();
-
-            networkServer.Stop();
-        }
-
-        public void Update()
-        {
-            ThreadChecker.AssertMainThread();
-
-            pingController.Update();
-        }
-
-        private void Send(TPlayer player, SendValue value)
-        {
-            ThreadChecker.AssertMainThread();
-
-            player.Send(value.message, value.channelType);
-        }
-
-        public void SendBroadcast(ITypedMessage message, Predicate<TPlayer> predicate, ChannelType channelType)
-        {
-            ThreadChecker.AssertMainThread();
-
-            var sendValue = new SendValue {message = message, predicate = predicate, channelType = channelType};
-            _playerCollection.ForEach(SendPredicate, sendValue);
-        }
-
-        private void SendPredicate(TPlayer player, SendValue value)
-        {
-            ThreadChecker.AssertMainThread();
-
-            if (value.predicate(player)) player.Send(value.message, value.channelType);
         }
 
         private struct SendValue
